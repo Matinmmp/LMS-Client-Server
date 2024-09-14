@@ -22,7 +22,7 @@ export const isAuthenticated = CatchAsyncError(async (req: Request, res: Respons
     const user = await redis.get(decode.id)
 
     if (!user)
-        return next(new ErrorHandler("لطفا وارد حساب خود شوید", 400))
+        return next(new ErrorHandler("لطفا وارد حساب خود شوید", 401))
 
     req.user = JSON.parse(user)
 

@@ -5,6 +5,7 @@ import categoryRouter from "./routes/category.route";
 import teacherRouter from "./routes/teacher.route";
 import academyRouter from "./routes/academy.route";
 import courseRouter from "./routes/course.route";
+import dashboardRoute from "./routes/dashboard.route";
 const express = require('express')
 const cors = require('cors')
 const cookieParser = require('cookie-parser')
@@ -30,6 +31,8 @@ app.use('/api/v1', categoryRouter);
 app.use('/api/v1', teacherRouter);
 app.use('/api/v1', academyRouter);
 app.use('/api/v1', courseRouter);
+app.use('/api/v1/dashboard', dashboardRoute);
+
 
 
 

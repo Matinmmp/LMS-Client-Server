@@ -3,7 +3,7 @@ import { CatchAsyncError } from "../middleware/catchAsyncErrors";
 import ErrorHandler from "../utils/ErrorHandler";
 import CategoryModel from "../models/category.model";
 
- 
+
 const getCategories = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
 
@@ -16,10 +16,10 @@ const getCategories = CatchAsyncError(async (req: Request, res: Response, next: 
     }
 })
 
- 
+
 
 export {
- 
+
     getCategories,
- 
+
 }
