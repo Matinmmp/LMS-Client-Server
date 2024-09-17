@@ -124,11 +124,13 @@ const loginUser = CatchAsyncError(async (req: Request, res: Response, next: Next
     try {
 
         const { email, password } = req.body as ILoginRequest;
+ 
 
         if (!email || !password)
             return next(new ErrorHandler('لطفا ایمیل و رمز عبور خود را وارد کنید', 400))
 
-        const user = await userModel.findOne({ email }).select('+password');
+        const user = await userModel.findOne({ email }).select('name email +password avatar.imageUrl');
+        // const user = await userModel.findOne({ email }).select('name password');
 
         if (!user)
             return next(new ErrorHandler('ایمیل یا رمز عبور اشتباه است', 400))
