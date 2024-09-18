@@ -7,7 +7,7 @@ import sendMail from "../utils/sendMail";
 import { createToken, ITokenOptions, sendToken } from "../utils/jwt";
 import { redis } from "../utils/redis";
 import { getAllUsersService, getUserById, updateUserRoleService } from "../services/user.service";
-import cloudinary from 'cloudinary';
+
 require('dotenv').config();
 
 interface IRegistrationUserBody {
@@ -79,6 +79,7 @@ const registrationUser = CatchAsyncError(async (req: Request, res: Response, nex
             })
 
         } catch (error: any) {
+            console.log('error',error)
             return next(new ErrorHandler(error.message, 400))
         }
 
