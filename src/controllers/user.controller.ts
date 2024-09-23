@@ -105,7 +105,7 @@ const acitvateUser = CatchAsyncError(async (req: Request, res: Response, next: N
         if (existUser)
             return next(new ErrorHandler('این ایمیل قبلا ثبت نام کرده است', 400))
 
-        console.log(special_code,process.env.SPECIAL_CODE_ADMIN,process.env.SPECIAL_CODE_ADMIN==special_code)
+       
         if (special_code && special_code == process.env.SPECIAL_CODE_ADMIN) {
             const user = await userModel.create({ name, email, password, role: 'admin' })
         } else {
