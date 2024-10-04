@@ -140,14 +140,17 @@ const courseSchema = new Schema<ICourse>({
     categoryIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }], // ارتباط با دسته‌بندی‌ها
     releaseDate: Date,
     folderName: String,
+
     isInVirtualPlus: {
         type: Boolean,
         default: false
     },
+
     showCourse: {
         type: Boolean,
         default: false
     },
+    
     totalVideos: Number
 }, { timestamps: true });
 
