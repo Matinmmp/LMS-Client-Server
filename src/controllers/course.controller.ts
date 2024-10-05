@@ -92,29 +92,174 @@ const editCourse = CatchAsyncError(async (req: Request, res: Response, next: Nex
 // قابل کش
 const getHomeLastCourses = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const courses = await CourseModel.find({ showCourse: true }).sort({ updatedAt: -1 }).limit(16)
-            .select("totalVideos isInVirtualPlus discount.percent discount.expireTime status ratings level thumbnail.imageUrl description name");
+        const courses = await CourseModel.aggregate([
+            {
+                $match: { showCourse: true }
+            },
+            {
+                $sort: { updatedAt: -1 } // مرتب‌سازی بر اساس آخرین آپدیت
+            },
+            {
+                $limit: 16 // محدود به 16 دوره
+            },
+            {
+                $lookup: {
+                    from: 'teachers', // اتصال به جدول Teacher
+                    localField: 'teacherId', // فیلد مرتبط در Course
+                    foreignField: '_id', // فیلد مرتبط در Teacher
+                    as: 'teacherData' // اطلاعات مدرسین را در این فیلد ذخیره می‌کنیم
+                }
+            },
+            {
+                $lookup: {
+                    from: 'academies', // اتصال به جدول Academy
+                    localField: 'academyId', // فیلد مرتبط در Course
+                    foreignField: '_id', // فیلد مرتبط در Academy
+                    as: 'academyData' // اطلاعات آکادمی‌ها را در این فیلد ذخیره می‌کنیم
+                }
+            },
+            {
+                $addFields: {
+                    courseLength: {
+                        $sum: {
+                            $map: {
+                                input: "$courseData", // فیلد courseData که شامل ویدیوها است
+                                as: "courseItem",
+                                in: { $toInt: "$$courseItem.videoLength" } // جمع کردن طول ویدیوها
+                            }
+                        }
+                    },
 
-        setTimeout(() => {
-            res.status(400).json({
-                success: true,
-                courses
-            });
-        }, 1000); 
+                    teacher: {
+                        teacherFaName: { $arrayElemAt: ["$teacherData.faName", 0] },
+                        teacherId: { $arrayElemAt: ["$teacherData._id", 0] },
+                    },
+                    academy: {
+                        academyEngName: { $arrayElemAt: ["$academyData.engName", 0] },
+                        academyId: { $arrayElemAt: ["$academyData._id", 0] },
+                    }
+                }
+            },
+            {
+                $project: {
+                    totalVideos: 1,
+                    isInVirtualPlus: 1,
+                    "discount.percent": 1,
+                    "discount.expireTime": 1,
+                    status: 1,
+                    ratings: 1,
+                    level: 1,
+                    "thumbnail.imageUrl": 1,
+                    description: 1,
+                    name: 1,
+                    teacher: 1,
+                    academy: 1,
+                    courseLength: 1,
+                    price: 1,
 
-        
+                }
+            }
+        ]);
 
+        res.status(200).json({
+            success: true,
+            courses
+        });
 
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 500));
     }
 })
 
+const getHomeFavoritCourses = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
 
+        const courses = await CourseModel.aggregate([
+            {
+                $match: { showCourse: true }
+            },
+            {
+                $sort: {
+                    purchased: -1, // مرتب‌سازی بر اساس بیشترین purchased
+                    ratings: -1    // در صورت تساوی در purchased، بر اساس بیشترین ratings مرتب‌سازی می‌شود
+                }
+            },
+            {
+                $limit: 16 // محدود به 16 دوره
+            },
+            {
+                $lookup: {
+                    from: 'teachers', // اتصال به جدول Teacher
+                    localField: 'teacherId', // فیلد مرتبط در Course
+                    foreignField: '_id', // فیلد مرتبط در Teacher
+                    as: 'teacherData' // اطلاعات مدرسین را در این فیلد ذخیره می‌کنیم
+                }
+            },
+            {
+                $lookup: {
+                    from: 'academies', // اتصال به جدول Academy
+                    localField: 'academyId', // فیلد مرتبط در Course
+                    foreignField: '_id', // فیلد مرتبط در Academy
+                    as: 'academyData' // اطلاعات آکادمی‌ها را در این فیلد ذخیره می‌کنیم
+                }
+            },
+            {
+                $addFields: {
+                    courseLength: {
+                        $sum: {
+                            $map: {
+                                input: "$courseData", // فیلد courseData که شامل ویدیوها است
+                                as: "courseItem",
+                                in: { $toInt: "$$courseItem.videoLength" } // جمع کردن طول ویدیوها
+                            }
+                        }
+                    },
+
+                    teacher: {
+                        teacherFaName: { $arrayElemAt: ["$teacherData.faName", 0] },
+                        teacherId: { $arrayElemAt: ["$teacherData._id", 0] },
+                    },
+                    academy: {
+                        academyEngName: { $arrayElemAt: ["$academyData.engName", 0] },
+                        academyId: { $arrayElemAt: ["$academyData._id", 0] },
+                    }
+                }
+            },
+            {
+                $project: {
+                    totalVideos: 1,
+                    isInVirtualPlus: 1,
+                    "discount.percent": 1,
+                    "discount.expireTime": 1,
+                    status: 1,
+                    ratings: 1,
+                    level: 1,
+                    "thumbnail.imageUrl": 1,
+                    description: 1,
+                    name: 1,
+                    teacher: 1,
+                    academy: 1,
+                    courseLength: 1,
+                    price: 1,
+
+                }
+            }
+        ]);
+
+        res.status(200).json({
+            success: true,
+            courses
+        });
+
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message, 500));
+    }
+})
 
 export {
     getAllCourses,
     getCourseById,
     editCourse,
-    getHomeLastCourses
+    getHomeLastCourses,
+    getHomeFavoritCourses
 }

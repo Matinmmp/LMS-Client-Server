@@ -60,7 +60,7 @@ const registrationUser = CatchAsyncError(async (req: Request, res: Response, nex
 
         const data = { user: { name: user.name }, activationCode };
 
-        console.log(activationCode)
+ 
 
         // const html = await ejs.renderFile(path.join('../mails/activation-mail.ejs'), data)
 
@@ -79,7 +79,7 @@ const registrationUser = CatchAsyncError(async (req: Request, res: Response, nex
             })
 
         } catch (error: any) {
-            console.log('error',error)
+            
             return next(new ErrorHandler(error.message, 400))
         }
 

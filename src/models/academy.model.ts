@@ -1,7 +1,9 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
 
 export interface IAcademy extends Document {
-    name: string;
+    engName: string;
+    faName: string;
+    tags: string;
     description?: string;
     avatar: {
         imageName: string;
@@ -13,7 +15,9 @@ export interface IAcademy extends Document {
 }
 
 const academySchema: Schema<IAcademy> = new mongoose.Schema({
-    name: String,
+    engName: String,
+    faName: String,
+    tags: String,
     description: String,
     avatar: {
         imageName: String,
@@ -30,3 +34,4 @@ const academySchema: Schema<IAcademy> = new mongoose.Schema({
 const AcademyModel: Model<IAcademy> = mongoose.model('Academy', academySchema);
 
 export default AcademyModel;
+

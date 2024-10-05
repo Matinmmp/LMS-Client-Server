@@ -9,7 +9,7 @@ require('dotenv').config();
 export const isAuthenticated = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
 
     const access_token = req.cookies.access_token;
-    console.log(access_token)
+     
     if (!access_token) {
         return next(new ErrorHandler('لطفا وارد حساب خود شوید', 401))
     }

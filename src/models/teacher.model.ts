@@ -1,7 +1,9 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
 
 export interface ITeacher extends Document {
-    name: string;
+    engName: string;
+    faName:string;
+    tags: string[];
     description?: string;
     avatar: {
         imageName: string;
@@ -14,7 +16,9 @@ export interface ITeacher extends Document {
 }
 
 const teacherSchema: Schema<ITeacher> = new mongoose.Schema({
-    name: String,
+    engName: { type: String, required: false }, 
+    faName: { type: String, required: false },
+    tags: String,
     description: String,
     avatar: {
         imageName: String,
