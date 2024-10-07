@@ -2,11 +2,14 @@ import { NextFunction, Request, Response } from "express";
 import { CatchAsyncError } from "../middleware/catchAsyncErrors";
 import ErrorHandler from "../utils/ErrorHandler";
 import TeacherModel from "../models/teacher.model";
-import randomLetterGenerator from '../utils/randomName';
-import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import AcademyModel from "../models/academy.model";
 import CourseModel from "../models/course.model";
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+import Fuse from "fuse.js";
+import _ from "lodash";
+import CategoryModel from "../models/category.model";
+
+
 
 // قابل کش
 
@@ -302,9 +305,72 @@ const getHomeFavoritTeachers = CatchAsyncError(async (req: Request, res: Respons
     }
 })
 
+
+const fuseOptions = {
+    includeScore: true,
+    shouldSort: true,
+    threshold: 0.5, // سطح تطابق، عدد کمتر یعنی جستجوی دقیق‌تر
+    keys: [
+        "engName", // برای معلمین و آکادمی‌ها
+        "faName",  // برای معلمین و آکادمی‌ها
+        "tags",    // برای دوره‌ها و آکادمی‌ها
+        "name",    // برای دوره‌ها و دسته‌بندی‌ها
+        "description", // توضیحات
+    ]
+};
+
+ const homeSearch = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { query } = req.query;
+
+        if (!query || typeof query !== "string") {
+            return res.status(400).json({ success: false, message: "Query is required" });
+        }
+
+        // 1. دریافت تمام داده‌ها از مدل‌های موردنظر
+        const [teachers, academies, courses, categories] = await Promise.all([
+            TeacherModel.find({}).lean(),
+            AcademyModel.find({}).lean(),
+            CourseModel.find({}).lean(),
+            CategoryModel.find({}).lean(),
+        ]);
+
+        // 2. استفاده از Fuse.js برای جستجوی فازی
+        const fuse = new Fuse([...teachers, ...academies, ...courses, ...categories], fuseOptions);
+        const searchResults = fuse.search(query);
+        console.log(searchResults);
+
+        // 3. مرتب‌سازی نتایج براساس محبوبیت (به‌عنوان مثال براساس تعداد دانشجویان یا امتیازات)
+        const sortedResults = _.orderBy(searchResults, (result:any) => {
+            const item:any = result.item;
+            if (item.students) return item.students;  // محبوبیت براساس تعداد دانشجویان
+            if (item.rates) return item.rates;        // یا براساس امتیاز
+            return 0;
+        }, ['desc']);
+
+        // 4. جدا کردن نتایج در سه لیست: معلمین، دوره‌ها و آکادمی‌ها
+        const teacherResults = sortedResults.filter((result) => result.item.engName || result.item.faName);
+        const academyResults = sortedResults.filter((result) => result.item.tags && result.item.courses);
+        const courseResults = sortedResults.filter((result) => result.item.name && result.item.academyId);
+
+        // 5. ارسال نتایج به کاربر
+        res.status(200).json({
+            success: true,
+            teachers: teacherResults.map(result => result.item),
+            academies: academyResults.map(result => result.item),
+            courses: courseResults.map(result => result.item),
+        });
+    } catch (error:any) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+
+
 export {
     getHomeFavoritAcadmy,
     getHomeLastCourses,
     getHomeFavoritCourses,
-    getHomeFavoritTeachers
+    getHomeFavoritTeachers,
+    homeSearch
 }
