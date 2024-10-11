@@ -428,7 +428,7 @@ const getOrSetCache = async (key: string, fetchFunction: () => Promise<any>) => 
     return freshData;
 };
 
-const homeSearch = async (req: Request, res: Response, next: NextFunction) => {
+const homeSearch = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { query } = req.query;
 
@@ -472,7 +472,7 @@ const homeSearch = async (req: Request, res: Response, next: NextFunction) => {
     } catch (error: any) {
         res.status(500).json({ success: false, message: error.message });
     }
-};
+});
 
 export default homeSearch;
 
