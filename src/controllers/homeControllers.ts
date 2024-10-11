@@ -8,6 +8,7 @@ const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 import Fuse from "fuse.js";
 import _ from "lodash";
 import CategoryModel from "../models/category.model";
+import { redis } from "../utils/redis";
 
 
 
@@ -306,20 +307,128 @@ const getHomeFavoritTeachers = CatchAsyncError(async (req: Request, res: Respons
 })
 
 
-const fuseOptions = {
-    includeScore: true,
-    shouldSort: true,
-    threshold: 0.5, // سطح تطابق، عدد کمتر یعنی جستجوی دقیق‌تر
-    keys: [
-        "engName", // برای معلمین و آکادمی‌ها
-        "faName",  // برای معلمین و آکادمی‌ها
-        "tags",    // برای دوره‌ها و آکادمی‌ها
-        "name",    // برای دوره‌ها و دسته‌بندی‌ها
-        "description", // توضیحات
-    ]
+// const CACHE_EXPIRATION = 5 * 60 * 60; // به ثانیه (۲ ساعت)
+
+// const getOrSetCache = async (key: string, fetchFunction: () => Promise<any>) => {
+//     const cachedData = await redis.get(key);
+//     if (cachedData) {
+//         return JSON.parse(cachedData);
+//     }
+
+//     const freshData = await fetchFunction();
+//     await redis.setex(key, CACHE_EXPIRATION, JSON.stringify(freshData));
+
+//     return freshData;
+// };
+
+// const fuseOptions = {
+//     includeScore: true,
+//     shouldSort: true,
+//     threshold: 0.3, // سطح تطابق، عدد کمتر یعنی جستجوی دقیق‌تر
+//     keys: [
+//         "engName", // برای معلمین و آکادمی‌ها
+//         "faName",  // برای معلمین و آکادمی‌ها
+//         "tags",    // برای دوره‌ها و آکادمی‌ها
+//         "name",    // برای دوره‌ها و دسته‌بندی‌ها
+//     ]
+// };
+
+
+// // Endpoint جستجو
+// const homeSearch = async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//         const { query } = req.query;
+
+//         if (!query || typeof query !== "string") {
+//             return res.status(400).json({ success: false, message: "Query is required" });
+//         }
+
+//         // 1. بررسی cache برای جستجو
+//         const cacheKey = `search:${query}`;
+//         const cachedResults = await redis.get(cacheKey);
+//         if (cachedResults) {
+//             return res.status(200).json({ success: true, ...JSON.parse(cachedResults) });
+//         }
+
+//         // 2. کش کردن داده‌های teachers, academies و courses
+//         const [teachers, academies, courses] = await Promise.all([
+//             getOrSetCache("teachersforhomesearch", () => TeacherModel.find({}, 'faName engName avatar.imageUrl').lean()),
+//             getOrSetCache("academiesforhomesearch", () => AcademyModel.find({}, 'faName engName avatar.imageUrl').lean()),
+//             getOrSetCache("coursesforhomesearch", () => CourseModel.find({}, 'name thumbnail.imageUrl tags').lean())
+//         ]);
+
+//         // 3. استفاده از Fuse.js برای جستجوی فازی
+//         const fuse = new Fuse([...teachers, ...academies, ...courses], fuseOptions);
+//         let searchResults = fuse.search(query);
+
+//         // 4. مرتب‌سازی نتایج بر اساس محبوبیت (تعداد دانشجویان، امتیاز)
+//         const sortedResults = _.orderBy(searchResults, (result: any) => {
+//             const item: any = result.item;
+//             if (item.students) return item.students;
+//             if (item.rates) return item.rates;
+//             return 0;
+//         }, ['desc']);
+
+//         // 5. جدا کردن نتایج و محدود کردن هر لیست به 5 نتیجه
+//         const teacherResults = sortedResults.filter(result => result.item.fName || result.item.engName).slice(0, 5);
+//         const academyResults = sortedResults.filter(result => result.item.engName || result.item.faName).slice(0, 5);
+//         const courseResults = sortedResults.filter(result => result.item.name).slice(0, 5);
+
+//         // 6. اگر هیچ دوره‌ای پیدا نشد، جستجو در دسته‌بندی‌ها (Category)
+//         if (courseResults.length === 0) {
+//             const categoryMatch = await CategoryModel.findOne({ name: new RegExp(query, 'i') });
+//             if (categoryMatch) {
+//                 const relatedCourses = await CourseModel.find({ categoryIds: categoryMatch._id }, 'name thumbnail.imageUrl').lean();
+//                 const relatedTeachers = await TeacherModel.find({ _id: { $in: relatedCourses.map(course => course.teacherId) }}, 'faName engName avatar.imageUrl').lean();
+//                 const relatedAcademies = await AcademyModel.find({ _id: { $in: relatedCourses.map(course => course.academyId) }}, 'faName engName avatar.imageUrl').lean();
+
+//                 const resultData = {
+//                     teachers: relatedTeachers.slice(0, 5),
+//                     academies: relatedAcademies.slice(0, 5),
+//                     courses: relatedCourses.slice(0, 5),
+//                 };
+
+//                 // ذخیره نتایج در cache
+//                 await redis.setex(cacheKey, CACHE_EXPIRATION, JSON.stringify(resultData));
+
+//                 return res.status(200).json({ success: true, ...resultData });
+//             }
+//         }
+
+//         // 7. ذخیره نتایج در cache برای جستجو
+//         const resultData = {
+//             teachers: teacherResults.map(result => result.item),
+//             academies: academyResults.map(result => result.item),
+//             courses: courseResults.map(result => result.item),
+//         };
+
+//         await redis.setex(cacheKey, CACHE_EXPIRATION, JSON.stringify(resultData));
+
+//         // 8. ارسال نتایج به کاربر
+//         res.status(200).json({ success: true, ...resultData });
+
+//     } catch (error: any) {
+//         res.status(500).json({ success: false, message: error.message });
+//     }
+// };
+
+
+const CACHE_EXPIRATION = 2 * 60 * 60; // ۲ ساعت
+
+// تابع کمکی برای ذخیره داده در cache با کلید و مدت زمان مشخص
+const getOrSetCache = async (key: string, fetchFunction: () => Promise<any>) => {
+    const cachedData = await redis.get(key);
+    if (cachedData) {
+        return JSON.parse(cachedData);
+    }
+
+    const freshData = await fetchFunction();
+    await redis.setex(key, CACHE_EXPIRATION, JSON.stringify(freshData));
+
+    return freshData;
 };
 
- const homeSearch = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+const homeSearch = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { query } = req.query;
 
@@ -327,43 +436,45 @@ const fuseOptions = {
             return res.status(400).json({ success: false, message: "Query is required" });
         }
 
-        // 1. دریافت تمام داده‌ها از مدل‌های موردنظر
-        const [teachers, academies, courses, categories] = await Promise.all([
-            TeacherModel.find({}).lean(),
-            AcademyModel.find({}).lean(),
-            CourseModel.find({}).lean(),
-            CategoryModel.find({}).lean(),
-        ]);
+        // 1. بررسی cache برای جستجوی دوره‌ها
+        const cacheKey = `courses:search:${query}`;
+        const cachedCourses = await redis.get(cacheKey);
+        if (cachedCourses) {
+            return res.status(200).json({ success: true, courses: JSON.parse(cachedCourses) });
+        }
 
-        // 2. استفاده از Fuse.js برای جستجوی فازی
-        const fuse = new Fuse([...teachers, ...academies, ...courses, ...categories], fuseOptions);
+        // 2. کش کردن داده‌های دوره‌ها
+        const courses = await getOrSetCache("courses_for_home_search", () => CourseModel.find({}, 'name thumbnail.imageUrl tags ratings').lean());
+
+        // 3. استفاده از Fuse.js برای جستجوی فازی
+        const fuse = new Fuse(courses, { keys: ['name', 'tags'], includeScore: true });
         const searchResults = fuse.search(query);
-        console.log(searchResults);
 
-        // 3. مرتب‌سازی نتایج براساس محبوبیت (به‌عنوان مثال براساس تعداد دانشجویان یا امتیازات)
-        const sortedResults = _.orderBy(searchResults, (result:any) => {
-            const item:any = result.item;
-            if (item.students) return item.students;  // محبوبیت براساس تعداد دانشجویان
-            if (item.rates) return item.rates;        // یا براساس امتیاز
+        // 4. مرتب‌سازی نتایج بر اساس محبوبیت (تعداد دانشجویان، امتیاز)
+        const sortedResults = _.orderBy(searchResults, (result: any) => {
+            const item: any = result.item;
+            if (item.students) return item.students; // فرض کنید اینجا تعداد دانشجویان را دارید
+            if (item.ratings) return item.ratings; // فرض کنید اینجا امتیاز را دارید
             return 0;
         }, ['desc']);
 
-        // 4. جدا کردن نتایج در سه لیست: معلمین، دوره‌ها و آکادمی‌ها
-        const teacherResults = sortedResults.filter((result) => result.item.engName || result.item.faName);
-        const academyResults = sortedResults.filter((result) => result.item.tags && result.item.courses);
-        const courseResults = sortedResults.filter((result) => result.item.name && result.item.academyId);
+        // 5. جدا کردن نتایج نهایی
+        const resultData = sortedResults.map(result => result.item);
 
-        // 5. ارسال نتایج به کاربر
-        res.status(200).json({
-            success: true,
-            teachers: teacherResults.map(result => result.item),
-            academies: academyResults.map(result => result.item),
-            courses: courseResults.map(result => result.item),
-        });
-    } catch (error:any) {
+        // 6. ذخیره نتایج در cache فقط در صورتی که نتایج خالی نباشند
+        if (resultData.length > 0) {
+            await redis.setex(cacheKey, CACHE_EXPIRATION, JSON.stringify(resultData));
+        }
+
+        // 7. ارسال نتایج به کاربر
+        res.status(200).json({ success: true, courses: resultData });
+
+    } catch (error: any) {
         res.status(500).json({ success: false, message: error.message });
     }
-});
+};
+
+export default homeSearch;
 
 
 
