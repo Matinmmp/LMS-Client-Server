@@ -443,11 +443,15 @@ const homeSearch = CatchAsyncError(async (req: Request, res: Response, next: Nex
             return res.status(200).json({ success: true, courses: JSON.parse(cachedCourses) });
         }
 
-        // 2. کش کردن داده‌های دوره‌ها
-        const courses = await getOrSetCache("courses_for_home_search", () => CourseModel.find({}, 'name thumbnail.imageUrl tags ratings').lean());
+        // 2. کش کردن داده‌های دوره‌ها با اطلاعات مربی و فیلد tags برای جستجو
+        const courses = await getOrSetCache("courses_for_home_search", () =>
+            CourseModel.find({}, 'name thumbnail.imageUrl tags ratings teacherId') // انتخاب tags برای جستجو و teacherId برای مربی
+                .populate('teacherId', 'engName faName') // اضافه کردن اطلاعات مربی بدون _id
+                .lean()
+        );
 
         // 3. استفاده از Fuse.js برای جستجوی فازی
-        const fuse = new Fuse(courses, { keys: ['name', 'tags'], includeScore: true });
+        const fuse = new Fuse(courses, { keys: ['name', 'tags', 'teacher.engName', 'teacher.faName'], includeScore: true }); // استفاده از tags در جستجو
         const searchResults = fuse.search(query);
 
         // 4. مرتب‌سازی نتایج بر اساس محبوبیت (تعداد دانشجویان، امتیاز)
@@ -458,8 +462,23 @@ const homeSearch = CatchAsyncError(async (req: Request, res: Response, next: Nex
             return 0;
         }, ['desc']);
 
-        // 5. جدا کردن نتایج نهایی
-        const resultData = sortedResults.map(result => result.item);
+        // 5. جدا کردن نتایج نهایی، حذف فیلدهای `tags` و `_id` از دوره و اطلاعات مربی
+        const resultData = sortedResults.map(result => {
+            const item = { ...result.item };
+            
+            // حذف فیلد tags از خروجی
+            delete item.tags;
+
+            // حذف فیلد _id از دوره
+            delete item._id;
+
+            // حذف فیلد _id از اطلاعات مربی (teacherId)
+            if (item.teacherId) {
+                delete item.teacherId._id; // حذف _id از داخل teacherId
+            }
+
+            return item;
+        });
 
         // 6. ذخیره نتایج در cache فقط در صورتی که نتایج خالی نباشند
         if (resultData.length > 0) {
@@ -474,7 +493,9 @@ const homeSearch = CatchAsyncError(async (req: Request, res: Response, next: Nex
     }
 });
 
-export default homeSearch;
+
+
+ 
 
 
 
