@@ -8,7 +8,7 @@ import {  getTeachers } from "../controllers/teacherControllers";
 const teacherRouter = express.Router();
 
 
-teacherRouter.get('/teachers', isAuthenticated, authorizeRoles('admin'), getTeachers);
+teacherRouter.get('/teachers', getTeachers);
 
 
 

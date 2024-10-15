@@ -7,7 +7,7 @@ import CourseModel from "../models/course.model";
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 import Fuse from "fuse.js";
 import _ from "lodash";
-import CategoryModel from "../models/category.model";
+ 
 import { redis } from "../utils/redis";
 
 
