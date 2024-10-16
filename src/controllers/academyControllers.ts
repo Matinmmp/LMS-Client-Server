@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { CatchAsyncError } from "../middleware/catchAsyncErrors";
 import ErrorHandler from "../utils/ErrorHandler";
 import AcademyModel from "../models/academy.model";
+import { redis } from "../utils/redis";
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 
 require('dotenv').config();
@@ -17,19 +18,77 @@ const client = new S3Client({
 })
 
 
-
+const CACHE_EXPIRATION = 86400; // 24 ساعت (86400 ثانیه)
 
 const getAcademies = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const cacheKey = 'academies_all'; // کلید کش برای نگهداری اطلاعات مدرسین
 
-        const academies = await AcademyModel.find({})
+        // 1. بررسی کش Redis برای داده‌های موجود
+        const cachedAcademies = await redis.get(cacheKey);
+        if (cachedAcademies) {
+            return res.status(200).json({ academies: JSON.parse(cachedAcademies), success: true });
+        }
 
-        res.status(200).json({ academies, success: true })
+        // 2. واکشی داده‌ها از MongoDB در صورت نبودن کش
+        const academies = await AcademyModel.aggregate([
+ 
+            {
+                $lookup: {
+                    from: 'teachers', // نام مجموعه (collection) مرتبط
+                    localField: '_id', // ارتباط با فیلد آکادمی
+                    foreignField: 'academies', // ارتباط با فیلد آکادمی در Teacher
+                    as: 'teacherData' // داده‌های مدرسین
+                }
+            },
+            {
+                $lookup: {
+                    from: 'courses', // Referencing the courses collection
+                    localField: '_id',
+                    foreignField: 'academyId', // Field in the course document that references academy
+                    as: 'courseData'
+                }
+            },
+            {
+                $addFields: {
+                    totalTeachers: { $size: "$teacherData" }, // Counting total teachers for each academy
+                    totalStudents: { $sum: "$teacherData.students" }, // Summing the total number of students from teachers
+                    totalCourses: { $size: "$courseData" }, // Counting the total number of courses
+                }
+            },
+            {
+                $sort: {
+                    totalStudents: -1, // مرتب‌سازی بر اساس تعداد دانشجویان
+                    totalTeachers: -1, // مرتب‌سازی بر اساس تعداد مدرسین
+                    totalCourses: -1
+                }
+            },
+            {
+                $project: {
+                    engName: 1, // فیلدهای مورد نیاز برای بازگشت
+                    faName: 1,
+                    description: 1,
+                    "avatar.imageUrl": 1,
+                    rates: 1,
+                    totalStudents: 1,
+                    totalTeachers: 1,
+                    totalCourses: 1,
+
+                }
+            }
+        ]);
+
+
+        // 3. ذخیره داده‌ها در Redis با انقضای 24 ساعت
+        await redis.setex(cacheKey, CACHE_EXPIRATION, JSON.stringify(academies));
+
+        
+        res.status(200).json({ academies, success: true });
 
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 400));
     }
-})
+});
 
 
 

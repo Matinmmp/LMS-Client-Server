@@ -6,7 +6,7 @@ import {  getAcademies,} from "../controllers/academyControllers";
 const academyRouter = express.Router();
 
 
-academyRouter.get('/academies', authorizeRoles('admin'), getAcademies);
+academyRouter.get('/academies', getAcademies);
 
  
 
