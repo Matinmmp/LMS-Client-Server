@@ -32,7 +32,7 @@ const getAcademies = CatchAsyncError(async (req: Request, res: Response, next: N
 
         // 2. واکشی داده‌ها از MongoDB در صورت نبودن کش
         const academies = await AcademyModel.aggregate([
- 
+
             {
                 $lookup: {
                     from: 'teachers', // نام مجموعه (collection) مرتبط
@@ -82,7 +82,7 @@ const getAcademies = CatchAsyncError(async (req: Request, res: Response, next: N
         // 3. ذخیره داده‌ها در Redis با انقضای 24 ساعت
         await redis.setex(cacheKey, CACHE_EXPIRATION, JSON.stringify(academies));
 
-        
+
         res.status(200).json({ academies, success: true });
 
     } catch (error: any) {
@@ -92,8 +92,39 @@ const getAcademies = CatchAsyncError(async (req: Request, res: Response, next: N
 
 
 
+const getAcademyByEngName = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const academyEngName = req.params.name; // دریافت engName از پارامترهای درخواست
+        const cacheKey = `academy:${academyEngName}`; // کلید کش مخصوص این آکادمی
+
+        // 1. بررسی کش Redis برای داده‌های موجود
+        const cachedAcademy = await redis.get(cacheKey);
+        if (cachedAcademy) {
+            return res.status(200).json({ success: true, academy: JSON.parse(cachedAcademy) });
+        }
+
+        // 2. واکشی داده‌ها از MongoDB در صورت نبودن کش
+        const academy = await AcademyModel.findOne({ engName: academyEngName }).lean().select('faName engName tags description avatar rates -_id');
+
+        if (!academy) {
+            return res.status(404).json({ success: false, message: "Academy not found" });
+        }
+
+        // 3. ذخیره داده‌ها در Redis با انقضای 24 ساعت
+        await redis.setex(cacheKey, CACHE_EXPIRATION, JSON.stringify(academy));
+
+        // 4. ارسال داده‌ها به کاربر
+        res.status(200).json({ success: true, academy });
+
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message, 500)); // مدیریت خطا
+    }
+});
+
+
 
 export {
     getAcademies,
- 
+    getAcademyByEngName
+
 }
