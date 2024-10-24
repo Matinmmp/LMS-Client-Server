@@ -5,6 +5,7 @@ export interface ITeacher extends Document {
     faName:string;
     tags: string[];
     description?: string;
+    longDescription:string;
     avatar: {
         imageName: string;
         imageUrl: string;
@@ -20,6 +21,7 @@ const teacherSchema: Schema<ITeacher> = new mongoose.Schema({
     faName: { type: String, required: false },
     tags: String,
     description: String,
+    longDescription:String,
     avatar: {
         imageName: String,
         imageUrl: String

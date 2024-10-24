@@ -7,7 +7,7 @@ import CourseModel from "../models/course.model";
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 import Fuse from "fuse.js";
 import _ from "lodash";
- 
+
 import { redis } from "../utils/redis";
 
 
@@ -67,12 +67,12 @@ const getHomeFavoritAcadmy = CatchAsyncError(async (req: Request, res: Response,
         ]);
 
 
-        setTimeout(() => {
-            res.status(200).json({
-                success: true,
-                academies
-            });
-        }, 2000)
+
+        res.status(200).json({
+            success: true,
+            academies
+        });
+
 
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 400));
@@ -151,12 +151,12 @@ const getHomeLastCourses = CatchAsyncError(async (req: Request, res: Response, n
             }
         ]);
 
-        setTimeout(() => {
-            res.status(200).json({
-                success: true,
-                courses
-            });
-        }, 2000)
+
+        res.status(200).json({
+            success: true,
+            courses
+        });
+
 
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 500));
@@ -239,12 +239,12 @@ const getHomeFavoritCourses = CatchAsyncError(async (req: Request, res: Response
             }
         ]);
 
-        setTimeout(() => {
-            res.status(200).json({
-                success: true,
-                courses
-            });
-        }, 2000)
+
+        res.status(200).json({
+            success: true,
+            courses
+        });
+
 
 
     } catch (error: any) {
@@ -294,12 +294,12 @@ const getHomeFavoritTeachers = CatchAsyncError(async (req: Request, res: Respons
         ]);
 
 
-        setTimeout(() => {
-            res.status(200).json({
-                success: true,
-                teachers
-            });
-        }, 2000)
+
+        res.status(200).json({
+            success: true,
+            teachers
+        });
+
 
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 500));
@@ -465,7 +465,7 @@ const homeSearch = CatchAsyncError(async (req: Request, res: Response, next: Nex
         // 5. جدا کردن نتایج نهایی، حذف فیلدهای `tags` و `_id` از دوره و اطلاعات مربی
         const resultData = sortedResults.map(result => {
             const item = { ...result.item };
-            
+
             // حذف فیلد tags از خروجی
             delete item.tags;
 
@@ -495,7 +495,7 @@ const homeSearch = CatchAsyncError(async (req: Request, res: Response, next: Nex
 
 
 
- 
+
 
 
 

@@ -5,6 +5,7 @@ export interface IAcademy extends Document {
     faName: string;
     tags: string;
     description?: string;
+    longDescription:string;
     avatar: {
         imageName: string;
         imageUrl: string;
@@ -19,6 +20,7 @@ const academySchema: Schema<IAcademy> = new mongoose.Schema({
     faName: String,
     tags: String,
     description: String,
+    longDescription:String,
     avatar: {
         imageName: String,
         imageUrl: String
