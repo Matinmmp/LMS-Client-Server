@@ -344,12 +344,36 @@ const getAcademyTeachersByEngName = CatchAsyncError(async (req: Request, res: Re
     }
 });
 
+const getAllAcademyNames = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const cacheKey = 'academies_name_all'; // کلید کش برای نگهداری اطلاعات مدرسین
 
+        // 1. بررسی کش Redis برای داده‌های موجود
+        const cachedAcademies = await redis.get(cacheKey);
+        if (cachedAcademies) {
+            return res.status(200).json({ academies: JSON.parse(cachedAcademies), success: true });
+        }
+
+        // 2. واکشی داده‌ها از MongoDB در صورت نبودن کش
+        const academiesName = await AcademyModel.find({}).select("engName -_id")
+
+
+        // 3. ذخیره داده‌ها در Redis با انقضای 24 ساعت
+        await redis.setex(cacheKey, CACHE_EXPIRATION, JSON.stringify(academiesName));
+
+
+        res.status(200).json({ academiesName, success: true });
+
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message, 400));
+    }
+});
 
 export {
     getAcademies,
     getAcademyByEngName,
     getAcademyCoursesByEngName,
-    getAcademyTeachersByEngName
+    getAcademyTeachersByEngName,
+    getAllAcademyNames
 
 }
