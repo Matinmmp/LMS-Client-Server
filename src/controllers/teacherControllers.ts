@@ -7,22 +7,19 @@ import AcademyModel from "../models/academy.model";
 import CourseModel from "../models/course.model";
 
 
- 
 const CACHE_EXPIRATION = 86400; // 24 ساعت (86400 ثانیه)
 
- 
 
 const getTeachers = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const cacheKey = 'teachers_all'; // کلید کش برای نگهداری اطلاعات مدرسین
+        const cacheKey = 'teachers_all';
 
-        // 1. بررسی کش Redis برای داده‌های موجود
         const cachedTeachers = await redis.get(cacheKey);
         if (cachedTeachers) {
             return res.status(200).json({ teachers: JSON.parse(cachedTeachers), success: true });
         }
 
-        // 2. واکشی داده‌ها از MongoDB در صورت نبودن کش
+
         const teachers = await TeacherModel.aggregate([
             {
                 $lookup: {
@@ -71,29 +68,25 @@ const getTeachers = CatchAsyncError(async (req: Request, res: Response, next: Ne
             }
         ]);
 
-        // 3. ذخیره داده‌ها در Redis با انقضای 24 ساعت
         await redis.setex(cacheKey, CACHE_EXPIRATION, JSON.stringify(teachers));
 
-        // 4. ارسال داده‌ها به کاربر
         res.status(200).json({ teachers, success: true });
 
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 400));
     }
 });
- 
+
 const getTeacherByEngName = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const teacherEngName = req.params.name; // دریافت engName از پارامترهای درخواست
-        const cacheKey = `teacher:${teacherEngName}`; // کلید کش مخصوص این تیچر
+        const teacherEngName = req.params.name; 
+        const cacheKey = `teacher:${teacherEngName}`;
 
-        // 1. بررسی کش Redis برای داده‌های موجود
         const cachedTeacher = await redis.get(cacheKey);
         if (cachedTeacher) {
             return res.status(200).json({ success: true, teacher: JSON.parse(cachedTeacher) });
         }
 
-        // 2. استفاده از aggregation برای واکشی و محاسبه داده‌های مرتبط
         const teachers = await TeacherModel.aggregate([
             {
                 $match: { engName: teacherEngName }, // پیدا کردن مدرس بر اساس engName
@@ -136,45 +129,40 @@ const getTeacherByEngName = CatchAsyncError(async (req: Request, res: Response, 
             }
         ]);
 
-        const teacher = teachers[0]; // چون فقط یک مدرس با engName مشخص وجود دارد
+        const teacher = teachers[0];
 
         if (!teacher) {
             return res.status(404).json({ success: false, message: "Teacher not found" });
         }
 
-        // 3. ذخیره داده‌ها در Redis با انقضای 24 ساعت
         await redis.setex(cacheKey, CACHE_EXPIRATION, JSON.stringify(teacher));
 
-        // 4. ارسال داده‌ها به کاربر
         res.status(200).json({ success: true, teacher });
 
     } catch (error: any) {
-        return next(new ErrorHandler(error.message, 500)); // مدیریت خطا
+        return next(new ErrorHandler(error.message, 500));
     }
 });
 
 const getTeachersAcademiesByEngName = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const teacherEngName = req.params.name; // دریافت engName از پارامترهای درخواست
-        const cacheKey = `teacher:${teacherEngName}:academies`; // کلید کش برای آکادمی‌های یک مدرس
+        const teacherEngName = req.params.name; 
+        const cacheKey = `teacher:${teacherEngName}:academies`; 
 
-        // 1. بررسی کش Redis برای داده‌های موجود
         const cachedAcademies = await redis.get(cacheKey);
         if (cachedAcademies) {
             return res.status(200).json({ success: true, academies: JSON.parse(cachedAcademies) });
         }
 
-        // 2. پیدا کردن مدرس بر اساس engName
         const teacher = await TeacherModel.findOne({ engName: teacherEngName }).lean();
 
         if (!teacher) {
             return res.status(404).json({ success: false, message: "Teacher not found" });
         }
 
-        // 3. استفاده از aggregation برای پیدا کردن آکادمی‌های مرتبط با این مدرس
         const academies = await AcademyModel.aggregate([
             {
-                $match: { _id: { $in: teacher.academies } } // فقط آکادمی‌هایی که این مدرس در آنها تدریس می‌کند
+                $match: { _id: { $in: teacher.academies } }
             },
             {
                 $lookup: {
@@ -217,37 +205,30 @@ const getTeachersAcademiesByEngName = CatchAsyncError(async (req: Request, res: 
             return res.status(404).json({ success: false, message: "No academies found for this teacher" });
         }
 
-        // 4. ذخیره داده‌ها در Redis با انقضای 24 ساعت
         await redis.setex(cacheKey, CACHE_EXPIRATION, JSON.stringify(academies));
 
-        // 5. ارسال داده‌ها به کاربر
         res.status(200).json({ success: true, academies });
 
     } catch (error: any) {
-        return next(new ErrorHandler(error.message, 500)); // مدیریت خطا
+        return next(new ErrorHandler(error.message, 500));
     }
 });
 
-
 const getTeacherCoursesByEngName = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const teacherEngName = req.params.name; // دریافت engName از پارامترهای درخواست
-        const cacheKey = `teacher:${teacherEngName}:topCourses`; // کلید کش برای این مدرس و دوره‌های برتر
+        const teacherEngName = req.params.name; 
+        const cacheKey = `teacher:${teacherEngName}:topCourses`; 
 
-        // 1. بررسی کش Redis برای داده‌های موجود
         const cachedCourses = await redis.get(cacheKey);
         if (cachedCourses) {
             return res.status(200).json({ success: true, courses: JSON.parse(cachedCourses) });
         }
-
-        // 2. پیدا کردن مدرس بر اساس engName
         const teacher = await TeacherModel.findOne({ engName: teacherEngName }).lean();
 
         if (!teacher) {
             return res.status(404).json({ success: false, message: "Teacher not found" });
         }
 
-        // 3. استفاده از aggregation برای پیدا کردن دوره‌های مرتبط
         const courses = await CourseModel.aggregate([
             {
                 $match: { showCourse: true, teacherId: teacher._id } // فیلتر دوره‌ها بر اساس teacherId
@@ -322,23 +303,41 @@ const getTeacherCoursesByEngName = CatchAsyncError(async (req: Request, res: Res
             return res.status(404).json({ success: false, message: "No courses found for this teacher" });
         }
 
-        // 6. ذخیره داده‌ها در Redis با انقضای 24 ساعت
         await redis.setex(cacheKey, CACHE_EXPIRATION, JSON.stringify(courses));
 
-        // 7. ارسال داده‌ها به کاربر
         res.status(200).json({ success: true, courses });
 
     } catch (error: any) {
-        return next(new ErrorHandler(error.message, 500)); // مدیریت خطا
+        return next(new ErrorHandler(error.message, 500)); 
     }
 });
 
 
+const getAllTeachersName = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const cacheKey = 'teachers_name_all'; 
 
+
+        const cachedTeachers = await redis.get(cacheKey);
+        if (cachedTeachers) {
+            return res.status(200).json({ teachersName: JSON.parse(cachedTeachers), success: true });
+        }
+
+        const teachersName = await TeacherModel.find({}).select("engName -_id")
+
+        await redis.setex(cacheKey, CACHE_EXPIRATION, JSON.stringify(teachersName));
+
+        res.status(200).json({ teachersName, success: true });
+
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message, 400));
+    }
+});
 
 export {
     getTeachers,
     getTeacherByEngName,
     getTeachersAcademiesByEngName,
     getTeacherCoursesByEngName,
+    getAllTeachersName
 }
