@@ -132,7 +132,6 @@ const searchCourses = CatchAsyncError(async (req: Request, res: Response, next: 
             await CategoryModel.find({}).select("name _id").lean()
         );
 
-        // کش برای تمام دوره‌ها (یک ساعته)
         let allCourses: any = await redis.get("all_courses");
         if (allCourses) {
             allCourses = JSON.parse(allCourses);
@@ -156,6 +155,14 @@ const searchCourses = CatchAsyncError(async (req: Request, res: Response, next: 
                     }
                 },
                 {
+                    $lookup: {
+                        from: "categories", // اتصال به مجموعه دسته‌بندی‌ها
+                        localField: "categoryIds",
+                        foreignField: "_id",
+                        as: "categoryData"
+                    }
+                },
+                {
                     $addFields: {
                         courseLength: {
                             $sum: {
@@ -173,6 +180,10 @@ const searchCourses = CatchAsyncError(async (req: Request, res: Response, next: 
                         academy: {
                             academyEngName: { $arrayElemAt: ["$academyData.engName", 0] },
                             academyId: { $arrayElemAt: ["$academyData._id", 0] }
+                        },
+                        categories: {
+                            categoryNames: "$categoryData.name",
+                            categoryIds: "$categoryData._id"
                         }
                     }
                 },
@@ -190,6 +201,7 @@ const searchCourses = CatchAsyncError(async (req: Request, res: Response, next: 
                         name: 1,
                         teacher: 1,
                         academy: 1,
+                        categories: 1, // افزودن فیلد دسته‌بندی به خروجی نهایی
                         courseLength: 1,
                         price: 1,
                         purchased: 1
@@ -202,26 +214,25 @@ const searchCourses = CatchAsyncError(async (req: Request, res: Response, next: 
 
         // فیلتر کردن براساس پارامترها
         let filteredCourses = allCourses;
-        
+
 
         // فیلتر آکادمی‌ها
         if (academies && academies.length > 0) {
             const academyIds = allAcademies.filter((a: any) => academies.includes(a.engName)).map((a: any) => String(a._id));
-            console.log(academyIds)
             filteredCourses = filteredCourses.filter((course: any) => academyIds.includes(String(course.academy.academyId)));
         }
 
         // فیلتر مدرسین
         if (teachers && teachers.length > 0) {
             const teacherIds = allTeachers.filter((t: any) => teachers.includes(t.engName)).map((t: any) => String(t._id));
-            filteredCourses = filteredCourses.filter((course: any) => teacherIds.includes(String(course.teacherId)));
+            filteredCourses = filteredCourses.filter((course: any) => teacherIds.includes(String(course.teacher.teacherId)));
         }
 
         // فیلتر دسته‌بندی‌ها
         if (categories && categories.length > 0) {
             const categoryIds = allCategories.filter((c: any) => categories.includes(c.name)).map((c: any) => String(c._id));
             filteredCourses = filteredCourses.filter((course: any) =>
-                course.categoryIds.some((catId: any) => categoryIds.includes(String(catId)))
+                course.categories.categoryIds.some((catId: any) => categoryIds.includes(String(catId)))
             );
         }
 
