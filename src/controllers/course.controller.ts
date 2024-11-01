@@ -113,15 +113,7 @@ async function getOrSetCache(key: string, expiration: number, fetchFunction: () 
 
 const searchCourses = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const {
-            searchText,
-            order,
-            price,
-            academies,
-            teachers,
-            categories,
-            page = "1"
-        } = req.body;
+        const { searchText, order, price, academies, teachers, categories, page = "1" } = req.body;
 
         const pageNumber = parseInt(page, 10);
 
@@ -210,24 +202,26 @@ const searchCourses = CatchAsyncError(async (req: Request, res: Response, next: 
 
         // فیلتر کردن براساس پارامترها
         let filteredCourses = allCourses;
+        
 
         // فیلتر آکادمی‌ها
         if (academies && academies.length > 0) {
-            const academyIds = allAcademies.filter((a: any) => academies.includes(a.engName)).map((a: any) => a._id);
-            filteredCourses = filteredCourses.filter((course: any) => academyIds.some((aid: any) => aid.equals(course.academyId)));
+            const academyIds = allAcademies.filter((a: any) => academies.includes(a.engName)).map((a: any) => String(a._id));
+            console.log(academyIds)
+            filteredCourses = filteredCourses.filter((course: any) => academyIds.includes(String(course.academy.academyId)));
         }
 
         // فیلتر مدرسین
         if (teachers && teachers.length > 0) {
-            const teacherIds = allTeachers.filter((t: any) => teachers.includes(t.engName)).map((t: any) => t._id);
-            filteredCourses = filteredCourses.filter((course: any) => teacherIds.some((tid: any) => tid.equals(course.teacherId)));
+            const teacherIds = allTeachers.filter((t: any) => teachers.includes(t.engName)).map((t: any) => String(t._id));
+            filteredCourses = filteredCourses.filter((course: any) => teacherIds.includes(String(course.teacherId)));
         }
 
         // فیلتر دسته‌بندی‌ها
         if (categories && categories.length > 0) {
-            const categoryIds = allCategories.filter((c: any) => categories.includes(c.name)).map((c: any) => c._id);
+            const categoryIds = allCategories.filter((c: any) => categories.includes(c.name)).map((c: any) => String(c._id));
             filteredCourses = filteredCourses.filter((course: any) =>
-                course.categoryIds.some((catId: any) => categoryIds.some((cid: any) => cid.equals(catId)))
+                course.categoryIds.some((catId: any) => categoryIds.includes(String(catId)))
             );
         }
 
