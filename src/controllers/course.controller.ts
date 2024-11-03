@@ -262,12 +262,15 @@ const searchCourses = CatchAsyncError(async (req: Request, res: Response, next: 
         const paginatedCourses = filteredCourses.slice((pageNumber - 1) * itemsPerPage, pageNumber * itemsPerPage);
 
         // ارسال پاسخ
-        res.status(201).json({
-            success: true,
-            courses: paginatedCourses,
-            currentPage: pageNumber,
-            totalPage: totalPages
-        });
+ 
+            res.status(201).json({
+                success: true,
+                courses: paginatedCourses,
+                currentPage: pageNumber,
+                totalPage: totalPages
+            });
+  
+        
 
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 500));
