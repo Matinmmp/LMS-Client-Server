@@ -6,7 +6,7 @@ import teacherRouter from "./routes/teacher.route";
 import academyRouter from "./routes/academy.route";
 import courseRouter from "./routes/course.route";
 import dashboardRoute from "./routes/dashboard.route";
-import homeRouter from "./routes/home.router";
+import homeRouter from "./routes/home.route";
 const express = require('express')
 const cors = require('cors')
 const cookieParser = require('cookie-parser')

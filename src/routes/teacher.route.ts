@@ -1,5 +1,5 @@
 import express from "express";
-import {  getTeachers, getTeacherByEngName, getTeachersAcademiesByEngName, getTeacherCoursesByEngName, getAllTeachersName } from "../controllers/teacherControllers";
+import {  getTeachers, getTeacherByEngName, getTeachersAcademiesByEngName, getTeacherCoursesByEngName, getAllTeachersName } from "../controllers/teacher.controller";
 
 
 const teacherRouter = express.Router();
