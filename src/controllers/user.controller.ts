@@ -60,7 +60,7 @@ const registrationUser = CatchAsyncError(async (req: Request, res: Response, nex
 
         const data = { user: { name: user.name }, activationCode };
 
- 
+
 
         // const html = await ejs.renderFile(path.join('../mails/activation-mail.ejs'), data)
 
@@ -79,7 +79,7 @@ const registrationUser = CatchAsyncError(async (req: Request, res: Response, nex
             })
 
         } catch (error: any) {
-            
+
             return next(new ErrorHandler(error.message, 400))
         }
 
@@ -105,7 +105,7 @@ const acitvateUser = CatchAsyncError(async (req: Request, res: Response, next: N
         if (existUser)
             return next(new ErrorHandler('این ایمیل قبلا ثبت نام کرده است', 400))
 
-       
+
         if (special_code && special_code == process.env.SPECIAL_CODE_ADMIN) {
             const user = await userModel.create({ name, email, password, role: 'admin' })
         } else {
@@ -125,7 +125,7 @@ const loginUser = CatchAsyncError(async (req: Request, res: Response, next: Next
     try {
 
         const { email, password } = req.body as ILoginRequest;
- 
+
 
         if (!email || !password)
             return next(new ErrorHandler('لطفا ایمیل و رمز عبور خود را وارد کنید', 400))
@@ -141,6 +141,7 @@ const loginUser = CatchAsyncError(async (req: Request, res: Response, next: Next
         if (!isPasswordMatch)
             return next(new ErrorHandler('ایمیل یا رمز عبور اشتباه است', 400))
 
+        user.password = '';
 
         sendToken(user, 200, res, req);
 
@@ -212,16 +213,35 @@ const updateAccessToken = CatchAsyncError(async (req: Request, res: Response, ne
 // get user info
 const getUserInfo = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const userId = req.user?._id as string
-        const user = await getUserById(userId);
-        if (!user)
-            return next(new ErrorHandler('کاربر یافت نشد', 404));
-        res.status(200).json({ success: true, user });
+        const userId = req.user?._id as string;
 
+        // دریافت کاربر با اطلاعات کامل از دیتابیس
+        const user: any = await userModel.findById(userId).populate("courses.courseId", "price").lean();
+        if (!user) return next(new ErrorHandler('کاربر یافت نشد', 404));
+
+        // تاریخ عضویت
+        const registrationDate = user.createdAt;
+
+        // // محاسبه دوره‌های پولی و رایگان
+        // const paidCourses = user.courses.filter((course: any) => course.price && course.price > 0).length;
+        // const freeCourses = user.courses.filter((course: any) => course.price === 0).length;
+
+        // // آمار اضافی - تعداد دوره‌های علاقه‌مندی
+        // const totalFavoriteCourses = user.favoritCourses ? user.favoritCourses.length : 0;
+
+        res.status(200).json({
+            success: true,
+            user: {
+                name: user.name,
+                email: user.email,
+                registrationDate,
+            }
+        });
     } catch (error: any) {
-        return next(new ErrorHandler(error.message, 400))
+        return next(new ErrorHandler(error.message, 400));
     }
-})
+});
+
 
 // social auth
 const socialAuth = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {

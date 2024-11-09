@@ -15,6 +15,9 @@ export interface IUser extends Document {
         imageName: string;
         imageUrl: string;
     },
+    favoritCourses:Array<{ courseId: string }>;
+    favoritTeachers:Array<{ teacherId: string }>;
+    favoritAcademies:Array<{ academyId: string }>;
     role: string;
     isVerified: boolean;
     courses: Array<{ courseId: string }>;
@@ -69,11 +72,11 @@ const userSchema: Schema<IUser> = new mongoose.Schema({
         default: false
     },
 
-    courses: [
-        {
-            courseId: String
-        }
-    ],
+    courses: [ { courseId: String}],
+    favoritCourses: [ { courseId: String}],
+    favoritTeachers: [ { teacherId: String}],
+    favoritAcademies: [ { academyId: String}],
+
 
     coursesRating: [
         {
