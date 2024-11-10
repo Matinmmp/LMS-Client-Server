@@ -214,7 +214,7 @@ const updateAccessToken = CatchAsyncError(async (req: Request, res: Response, ne
 const getUserInfo = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const userId = req.user?._id as string;
-
+        console.log(userId);
         // دریافت کاربر با اطلاعات کامل از دیتابیس
         const user: any = await userModel.findById(userId).populate("courses.courseId", "price").lean();
         if (!user) return next(new ErrorHandler('کاربر یافت نشد', 404));
@@ -229,14 +229,16 @@ const getUserInfo = CatchAsyncError(async (req: Request, res: Response, next: Ne
         // // آمار اضافی - تعداد دوره‌های علاقه‌مندی
         // const totalFavoriteCourses = user.favoritCourses ? user.favoritCourses.length : 0;
 
-        res.status(200).json({
-            success: true,
-            user: {
-                name: user.name,
-                email: user.email,
-                registrationDate,
-            }
-        });
+        setTimeout(()=>{
+            res.status(200).json({
+                success: true,
+                user: {
+                    name: user.name,
+                    email: user.email,
+                    registrationDate,
+                }
+            });
+        },2000)
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 400));
     }
