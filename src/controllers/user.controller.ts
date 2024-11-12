@@ -7,8 +7,19 @@ import sendMail from "../utils/sendMail";
 import { createToken, ITokenOptions, sendToken } from "../utils/jwt";
 import { redis } from "../utils/redis";
 import { getAllUsersService, getUserById, updateUserRoleService } from "../services/user.service";
+import randomLetterGenerator from "../utils/randomName";
+const { S3Client, PutObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
 
 require('dotenv').config();
+
+const client = new S3Client({
+    region: "default",
+    endpoint: process.env.LIARA_ENDPOINT,
+    credentials: {
+        accessKeyId: process.env.LIARA_ACCESS_KEY,
+        secretAccessKey: process.env.LIARA_SECRET_KEY
+    }
+})
 
 interface IRegistrationUserBody {
     name: string,
@@ -229,16 +240,17 @@ const getUserInfo = CatchAsyncError(async (req: Request, res: Response, next: Ne
         // // آمار اضافی - تعداد دوره‌های علاقه‌مندی
         // const totalFavoriteCourses = user.favoritCourses ? user.favoritCourses.length : 0;
 
-        setTimeout(()=>{
-            res.status(200).json({
-                success: true,
-                user: {
-                    name: user.name,
-                    email: user.email,
-                    registrationDate,
-                }
-            });
-        },2000)
+
+        res.status(200).json({
+            success: true,
+            user: {
+                name: user.name,
+                email: user.email,
+                imageUrl:user?.avatar?.imageUrl,
+                registrationDate,
+            }
+        });
+
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 400));
     }
@@ -346,44 +358,64 @@ interface IUpdateProfilePicture {
     avatar: string
 }
 
-// update profile picture
 const updateProfilePicture = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { avatar } = req.body;
 
+        console.log(req.body)
         const userId = req.user?._id;
-        const user = await userModel.findById(userId);
+        const user = await userModel.findById(userId).select('-password');
 
-        //cloudinary
-        // if (avatar && user) {
+        if (!user)
+            return res.status(404).json({ success: false, message: "User not found" });
 
-        //     if (user?.avatar?.public_id) {
-        //         await cloudinary.v2.uploader.destroy(user?.avatar?.public_id);
-        //         const myCloud = await cloudinary.v2.uploader.upload(avatar, { folder: 'avatar', width: 150 });
-        //         user.avatar = { public_id: myCloud.public_id, url: myCloud.secure_url }
-        //     }
-        //     else {
-        //         const myCloud = await cloudinary.v2.uploader.upload(avatar, { folder: 'avatar', width: 150 });
-        //         user.avatar = { public_id: myCloud.public_id, url: myCloud.secure_url }
-        //     }
-        // }
+        const imageName = `${randomLetterGenerator()}-${user?.name}.png`;
+        const buffer = Buffer.from(avatar.split(',')[1], 'base64');
 
-        await user?.save();
+        const uploadParams = {
+            Body: buffer,
+            Bucket: process.env.LIARA_BUCKET_NAME,
+            Key: `user/${imageName}`,
+            ACL: 'public-read'
+        };
+
+        // اگر تصویر قبلی وجود دارد، ابتدا آن را حذف کن
+        if (user?.avatar?.imageName) {
+            const deleteParams = {
+                Bucket: process.env.LIARA_BUCKET_NAME,
+                Key: `user/${user.avatar.imageName}`
+            };
+
+            try {
+                await client.send(new DeleteObjectCommand(deleteParams));
+            } catch (error: any) {
+                return next(new ErrorHandler(`Error deleting previous image: ${error.message}`, 400));
+            }
+        }
+
+        try {
+            // آپلود تصویر جدید
+            await client.send(new PutObjectCommand(uploadParams));
+        } catch (error: any) {
+            return next(new ErrorHandler(`Error uploading new image: ${error.message}`, 400));
+        }
+
+        // به‌روزرسانی اطلاعات تصویر در دیتابیس
+        user.avatar = {
+            imageName: imageName,
+            imageUrl: `https://buckettest.storage.c2.liara.space/user/${imageName}`,
+        };
+
+        await user.save();
         await redis.set(userId as string, JSON.stringify(user));
 
-        // Convert user to an object and delete the password field
-        const userWithoutPassword = user?.toObject() as any;
-        delete userWithoutPassword.password;
+        res.status(201).json({ success: true, message: 'تصویر پروفایل با موفقیت تغییر کرد', user });
 
-        res.status(201).json({ success: true, message: 'تصویر پروفایل با موفقیت تغییر کرد', user })
-
-
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message, 400));
     }
-    catch (error: any) {
-        return next(new ErrorHandler(error.message, 400))
+});
 
-    }
-})
 
 // get all user -- noly admin
 const getAllUsers = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
