@@ -47,7 +47,7 @@ interface ILoginRequest {
 
 interface IUpdateUserInfo {
     name?: string,
-    email?: string
+    phone?:string
 }
 
 // Controllers
@@ -141,9 +141,9 @@ const loginUser = CatchAsyncError(async (req: Request, res: Response, next: Next
         if (!email || !password)
             return next(new ErrorHandler('لطفا ایمیل و رمز عبور خود را وارد کنید', 400))
 
-        const user = await userModel.findOne({ email }).select('name email +password avatar.imageUrl');
+        const user = await userModel.findOne({ email }).select('name email +password avatar.imageUrl +phone');
         // const user = await userModel.findOne({ email }).select('name password');
-
+        
         if (!user)
             return next(new ErrorHandler('ایمیل یا رمز عبور اشتباه است', 400))
 
@@ -248,6 +248,7 @@ const getUserInfo = CatchAsyncError(async (req: Request, res: Response, next: Ne
                 email: user.email,
                 imageUrl:user?.avatar?.imageUrl,
                 registrationDate,
+                phone:user?.phone
             }
         });
 
@@ -279,7 +280,7 @@ const socialAuth = CatchAsyncError(async (req: Request, res: Response, next: Nex
 // update user info
 const updateUserInfo = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { name } = req.body as IUpdateUserInfo;
+        const { name,phone } = req.body as IUpdateUserInfo;
         const userId = req.user?._id;
         const user = await userModel.findById(userId);
 
@@ -293,6 +294,8 @@ const updateUserInfo = CatchAsyncError(async (req: Request, res: Response, next:
 
         if (name && user)
             user.name = name;
+        if(phone && user)
+            user.phone = phone;
 
         await user?.save();
         await redis.set(userId as string, JSON.stringify(user));
@@ -362,9 +365,8 @@ const updateProfilePicture = CatchAsyncError(async (req: Request, res: Response,
     try {
         const { avatar } = req.body;
 
-        console.log(req.body)
         const userId = req.user?._id;
-        const user = await userModel.findById(userId).select('-password');
+        const user:any = await userModel.findById(userId).select('-password');
 
         if (!user)
             return res.status(404).json({ success: false, message: "User not found" });
@@ -406,15 +408,29 @@ const updateProfilePicture = CatchAsyncError(async (req: Request, res: Response,
             imageUrl: `https://buckettest.storage.c2.liara.space/user/${imageName}`,
         };
 
+        console.log(user.avatar);
         await user.save();
         await redis.set(userId as string, JSON.stringify(user));
 
-        res.status(201).json({ success: true, message: 'تصویر پروفایل با موفقیت تغییر کرد', user });
+        // فقط فیلدهای مورد نظر را ارسال کن
+        const userResponse = {
+            name: user.name,
+            email: user.email,
+            imageUrl: user.avatar.imageUrl,
+            registrationDate: user.createdAt
+        };
+
+        res.status(201).json({
+            success: true,
+            message: 'تصویر پروفایل با موفقیت تغییر کرد',
+            user: userResponse
+        });
 
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 400));
     }
 });
+
 
 
 // get all user -- noly admin
