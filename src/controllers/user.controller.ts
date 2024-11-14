@@ -47,7 +47,7 @@ interface ILoginRequest {
 
 interface IUpdateUserInfo {
     name?: string,
-    phone?:string
+    phone?: string
 }
 
 // Controllers
@@ -143,7 +143,7 @@ const loginUser = CatchAsyncError(async (req: Request, res: Response, next: Next
 
         const user = await userModel.findOne({ email }).select('name email +password avatar.imageUrl +phone');
         // const user = await userModel.findOne({ email }).select('name password');
-        
+
         if (!user)
             return next(new ErrorHandler('ایمیل یا رمز عبور اشتباه است', 400))
 
@@ -152,7 +152,7 @@ const loginUser = CatchAsyncError(async (req: Request, res: Response, next: Next
         if (!isPasswordMatch)
             return next(new ErrorHandler('ایمیل یا رمز عبور اشتباه است', 400))
 
-        user.password = '';
+        user.password = '1';
 
         sendToken(user, 200, res, req);
 
@@ -227,7 +227,7 @@ const getUserInfo = CatchAsyncError(async (req: Request, res: Response, next: Ne
         const userId = req.user?._id as string;
         console.log(userId);
         // دریافت کاربر با اطلاعات کامل از دیتابیس
-        const user: any = await userModel.findById(userId).populate("courses.courseId", "price").lean();
+        const user: any = await userModel.findById(userId).select('+password').populate("courses.courseId", "price").lean();
         if (!user) return next(new ErrorHandler('کاربر یافت نشد', 404));
 
         // تاریخ عضویت
@@ -241,15 +241,19 @@ const getUserInfo = CatchAsyncError(async (req: Request, res: Response, next: Ne
         // const totalFavoriteCourses = user.favoritCourses ? user.favoritCourses.length : 0;
 
 
+        const newUser = {
+            name: user.name,
+            email: user.email,
+            imageUrl: user?.avatar?.imageUrl,
+            registrationDate,
+            phone: user?.phone,
+            password: ''
+        }
+        if (user?.password) newUser.password = '1';
+        console.log(user);
         res.status(200).json({
             success: true,
-            user: {
-                name: user.name,
-                email: user.email,
-                imageUrl:user?.avatar?.imageUrl,
-                registrationDate,
-                phone:user?.phone
-            }
+            user: newUser
         });
 
     } catch (error: any) {
@@ -280,7 +284,7 @@ const socialAuth = CatchAsyncError(async (req: Request, res: Response, next: Nex
 // update user info
 const updateUserInfo = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { name,phone } = req.body as IUpdateUserInfo;
+        const { name, phone } = req.body as IUpdateUserInfo;
         const userId = req.user?._id;
         const user = await userModel.findById(userId);
 
@@ -294,7 +298,7 @@ const updateUserInfo = CatchAsyncError(async (req: Request, res: Response, next:
 
         if (name && user)
             user.name = name;
-        if(phone && user)
+        if (phone && user)
             user.phone = phone;
 
         await user?.save();
@@ -343,13 +347,40 @@ const updatePassword = CatchAsyncError(async (req: Request, res: Response, next:
         await redis.set(userId as string, JSON.stringify(user));
 
         // Convert user to an object and delete the password field
-        const userWithoutPassword = user.toObject() as any;
-        delete userWithoutPassword.password;
+        // const userWithoutPassword = user.toObject() as any;
+        // delete userWithoutPassword.password;
 
         res.status(201).json({
             success: true,
             message: 'رمز عبور با موفقیت تغییر کرد',
-            userWithoutPassword
+
+        })
+    }
+    catch (error: any) {
+        return next(new ErrorHandler(error.message, 400))
+    }
+})
+
+const setPassword = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+
+        const { password } = req.body;
+        console.log(req.body)
+        if (!password)
+            return next(new ErrorHandler('لطفا پسور را وارد کنید', 400))
+
+        const userId = req.user?._id;
+        const user = await userModel.findById(userId)
+
+        if (user)
+            user.password = password;
+
+        await user?.save();
+        await redis.set(userId as string, JSON.stringify(user));
+
+        res.status(201).json({
+            success: true,
+            message: 'رمز عبور با موفقیت تنظیم شد.',
         })
     }
     catch (error: any) {
@@ -366,7 +397,7 @@ const updateProfilePicture = CatchAsyncError(async (req: Request, res: Response,
         const { avatar } = req.body;
 
         const userId = req.user?._id;
-        const user:any = await userModel.findById(userId).select('-password');
+        const user: any = await userModel.findById(userId).select('-password');
 
         if (!user)
             return res.status(404).json({ success: false, message: "User not found" });
@@ -495,6 +526,7 @@ const createActivationToken = (user: IRegistrationUserBody): IActivationToken =>
 }
 
 export {
+    setPassword,
     registrationUser,
     acitvateUser,
     loginUser,
