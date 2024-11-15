@@ -1,6 +1,6 @@
 import express from "express";
-import { acitvateUser, deleteUser, getAllUsers, getUserInfo, loginUser, logoutUser, registrationUser, setPassword, socialAuth, updateAccessToken, updatePassword, updateProfilePicture, updateUserInfo, updateUserRole } from "../controllers/user.controller";
-import { authorizeRoles, isAuthenticated } from "../middleware/auth";
+import { acitvateUser, createInvoice, getUserInfo, getUserInvoices, loginUser, logoutUser, registrationUser, setPassword, socialAuth, updateAccessToken, updatePassword, updateProfilePicture, updateUserInfo } from "../controllers/user.controller";
+import { isAuthenticated } from "../middleware/auth";
 
 const userRouter = express.Router();
 
@@ -17,7 +17,7 @@ userRouter.post('/social-auth', socialAuth);
 userRouter.get('/refresh-token', updateAccessToken);
 
 // get user by id //me in course
-userRouter.get('/user',isAuthenticated, getUserInfo);
+userRouter.get('/user', isAuthenticated, getUserInfo);
 
 // edit user info 
 userRouter.put('/update-user-info', isAuthenticated, updateUserInfo);
@@ -28,11 +28,15 @@ userRouter.put('/set-user-password', isAuthenticated, setPassword);
 
 userRouter.put('/update-user-avatar', isAuthenticated, updateProfilePicture);
 
-userRouter.get('/get-users', isAuthenticated, authorizeRoles('admin'), getAllUsers);
 
-userRouter.put('/update-user-role', isAuthenticated, authorizeRoles('admin'), updateUserRole);
+userRouter.post('/create-invoice', isAuthenticated, createInvoice);
 
-userRouter.delete('/delete-user/:id', isAuthenticated, authorizeRoles('admin'), deleteUser);
+userRouter.get('/get-invoice', isAuthenticated, getUserInvoices);
+
+
+
+
+
 
 
 

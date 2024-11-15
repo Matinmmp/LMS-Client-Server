@@ -4,10 +4,11 @@ import userModel, { IUser } from "../models/user.model";
 import ErrorHandler from "../utils/ErrorHandler";
 import jwt, { JwtPayload, Secret } from "jsonwebtoken";
 import sendMail from "../utils/sendMail";
-import { createToken, ITokenOptions, sendToken } from "../utils/jwt";
+import { createToken, sendToken } from "../utils/jwt";
 import { redis } from "../utils/redis";
-import { getAllUsersService, getUserById, updateUserRoleService } from "../services/user.service";
 import randomLetterGenerator from "../utils/randomName";
+import InvoiceModel from "../models/Invoice.model";
+import CourseModel from "../models/course.model";
 const { S3Client, PutObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
 
 require('dotenv').config();
@@ -388,10 +389,6 @@ const setPassword = CatchAsyncError(async (req: Request, res: Response, next: Ne
     }
 })
 
-interface IUpdateProfilePicture {
-    avatar: string
-}
-
 const updateProfilePicture = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { avatar } = req.body;
@@ -463,58 +460,82 @@ const updateProfilePicture = CatchAsyncError(async (req: Request, res: Response,
 });
 
 
-
-// get all user -- noly admin
-const getAllUsers = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+const getUserInvoices = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const users = await getAllUsersService();
-        res.status(200).json({
-            success: true,
-            users
-        })
-    } catch (error: any) {
-        return next(new ErrorHandler(error.message, 400))
-    }
-})
+        const userId = req.user?._id as string;
 
-// update user role --- only for admin
-const updateUserRole = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const { id, role } = req.body;
-        const updatedUser = await updateUserRoleService(id, role);
-        res.status(200).json({
-            success: true,
-            user: updatedUser,
-            message: 'رول کاربر با موفقیت تغییر کرد',
-        })
-    } catch (error: any) {
+        // بررسی اگر userId موجود نیست
+        if (!userId) return next(new ErrorHandler('کاربر یافت نشد', 404));
 
-    }
-})
+        // دریافت فاکتورها از دیتابیس
+        const invoices = await InvoiceModel.find({ userId }).populate('courseId', 'name').lean();
 
-// Delete User --- only for admin
-const deleteUser = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const id = req.params.id;
-        const user = await userModel.findById(id);
-
-        if (!user)
-            return next(new ErrorHandler('کاربر پیدا نشد', 404))
-
-        await user.deleteOne({ id });
-
-        await redis.del(id);
+        if (!invoices || invoices.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'هیچ فاکتوری برای این کاربر یافت نشد'
+            });
+        }
 
         res.status(200).json({
             success: true,
-            message: 'کاربر با موفقیت حذف شد',
-        })
-
+            invoices
+        });
 
     } catch (error: any) {
-        return next(new ErrorHandler(error.message, 400))
+        return next(new ErrorHandler(error.message, 400));
     }
-})
+});
+
+const createInvoice = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { courseId, userId } = req.body;
+
+        // بررسی ورودی‌ها
+        if (!courseId || !userId) {
+            return next(new ErrorHandler('آیدی کاربر و دوره الزامی است', 400));
+        }
+
+        // پیدا کردن کاربر
+        const user = await userModel.findById(userId);
+        if (!user) {
+            return next(new ErrorHandler('کاربر یافت نشد', 404));
+        }
+
+        // پیدا کردن دوره
+        const course = await CourseModel.findById(courseId);
+        if (!course) {
+            return next(new ErrorHandler('دوره یافت نشد', 404));
+        }
+
+        // محاسبه مبلغ تخفیف و قیمت نهایی
+        const discountAmount = course.discount?.percent
+            ? (course.price * course.discount.percent) / 100
+            : 0;
+        const finalPrice = course.price - discountAmount;
+
+        // ساخت فاکتور
+        const invoice = await InvoiceModel.create({
+            userId: user._id,
+            courseId: course._id,
+            courseName: course.name,
+            originalPrice: course.price,
+            discountAmount,
+            finalPrice,
+            paymentMethod: "online", // به صورت پیش‌فرض
+            paymentStatus: "pending", // به صورت پیش‌فرض
+        });
+
+        res.status(201).json({
+            success: true,
+            message: "فاکتور با موفقیت ثبت شد",
+            invoice,
+        });
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message, 500));
+    }
+});
+
 
 
 const createActivationToken = (user: IRegistrationUserBody): IActivationToken => {
@@ -538,7 +559,6 @@ export {
     updatePassword,
     updateProfilePicture,
     createActivationToken,
-    getAllUsers,
-    updateUserRole,
-    deleteUser
+    getUserInvoices,
+    createInvoice
 }
