@@ -4,7 +4,6 @@ import ErrorHandler from "../utils/ErrorHandler";
 import CourseModel from "../models/course.model";
 import { redis } from "../utils/redis";
 import randomLetterGenerator from "../utils/randomName";
-import { error } from "console";
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 import Fuse from "fuse.js";
 import AcademyModel from "../models/academy.model";

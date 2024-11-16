@@ -226,7 +226,7 @@ const updateAccessToken = CatchAsyncError(async (req: Request, res: Response, ne
 const getUserInfo = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const userId = req.user?._id as string;
-        console.log(userId);
+         
         // دریافت کاربر با اطلاعات کامل از دیتابیس
         const user: any = await userModel.findById(userId).select('+password').populate("courses.courseId", "price").lean();
         if (!user) return next(new ErrorHandler('کاربر یافت نشد', 404));
@@ -251,7 +251,7 @@ const getUserInfo = CatchAsyncError(async (req: Request, res: Response, next: Ne
             password: ''
         }
         if (user?.password) newUser.password = '1';
-        console.log(user);
+ 
         res.status(200).json({
             success: true,
             user: newUser
@@ -366,7 +366,7 @@ const setPassword = CatchAsyncError(async (req: Request, res: Response, next: Ne
     try {
 
         const { password } = req.body;
-        console.log(req.body)
+        
         if (!password)
             return next(new ErrorHandler('لطفا پسور را وارد کنید', 400))
 
@@ -436,7 +436,7 @@ const updateProfilePicture = CatchAsyncError(async (req: Request, res: Response,
             imageUrl: `https://buckettest.storage.c2.liara.space/user/${imageName}`,
         };
 
-        console.log(user.avatar);
+  
         await user.save();
         await redis.set(userId as string, JSON.stringify(user));
 
@@ -459,7 +459,6 @@ const updateProfilePicture = CatchAsyncError(async (req: Request, res: Response,
     }
 });
 
-
 const getUserInvoices = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const userId = req.user?._id as string;
@@ -467,8 +466,11 @@ const getUserInvoices = CatchAsyncError(async (req: Request, res: Response, next
         // بررسی اگر userId موجود نیست
         if (!userId) return next(new ErrorHandler('کاربر یافت نشد', 404));
 
-        // دریافت فاکتورها از دیتابیس
-        const invoices = await InvoiceModel.find({ userId }).populate('courseId', 'name').lean();
+        // دریافت فاکتورها از دیتابیس و مرتب کردن بر اساس تاریخ (جدیدترین اول)
+        const invoices = await InvoiceModel.find({ userId })
+            .sort({ createdAt: -1 }) // مرتب‌سازی بر اساس جدیدترین
+            .select('courseName originalPrice discountAmount finalPrice createdAt') // فقط فیلدهای مورد نیاز
+            .lean();
 
         if (!invoices || invoices.length === 0) {
             return res.status(404).json({
@@ -486,6 +488,7 @@ const getUserInvoices = CatchAsyncError(async (req: Request, res: Response, next
         return next(new ErrorHandler(error.message, 400));
     }
 });
+
 
 const createInvoice = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -537,6 +540,87 @@ const createInvoice = CatchAsyncError(async (req: Request, res: Response, next: 
 });
 
 
+const getUserPaidCourses = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user?._id as string;
+
+        // پیدا کردن کاربر و دریافت لیست آیدی دوره‌ها
+        const user = await userModel.findById(userId).select('courses').lean();
+        if (!user || !user.courses || user.courses.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'هیچ دوره‌ای برای این کاربر یافت نشد'
+            });
+        }
+
+        
+
+        // استخراج آیدی دوره‌ها از فیلد courses
+        const courseIds = user.courses
+
+        // واکشی اطلاعات دوره‌های پولی
+        const paidCourses = await CourseModel.find({ _id: { $in: courseIds }, price: { $gt: 0 } })
+            .select('name thumbnail.imageUrl updatedAt')
+            .sort({ createdAt: -1 })
+            .lean();
+            console.log(paidCourses)
+
+        if (paidCourses.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'هیچ دوره پولی برای این کاربر یافت نشد'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            courses: paidCourses
+        });
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message, 500));
+    }
+});
+
+
+const getUserFreeCourses = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user?._id as string;
+
+        // پیدا کردن کاربر و دریافت لیست آیدی دوره‌ها
+        const user = await userModel.findById(userId).select('courses').lean();
+        if (!user || !user.courses || user.courses.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'هیچ دوره‌ای برای این کاربر یافت نشد'
+            });
+        }
+
+        // استخراج آیدی دوره‌ها از فیلد courses
+        const courseIds = user.courses;
+
+        // واکشی اطلاعات دوره‌های رایگان
+        const freeCourses = await CourseModel.find({ _id: { $in: courseIds }, price: 0 })
+            .select('name thumbnail.imageUrl updatedAt') // فیلدهای مورد نظر
+            .sort({ createdAt: -1 }) // مرتب‌سازی بر اساس جدیدترین
+            .lean();
+
+        if (freeCourses.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'هیچ دوره رایگانی برای این کاربر یافت نشد'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            courses: freeCourses
+        });
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message, 500));
+    }
+});
+
+
 
 const createActivationToken = (user: IRegistrationUserBody): IActivationToken => {
     const activationCode = Math.floor(1000 + Math.random() * 9000).toString();
@@ -560,5 +644,7 @@ export {
     updateProfilePicture,
     createActivationToken,
     getUserInvoices,
-    createInvoice
+    createInvoice,
+    getUserPaidCourses,
+    getUserFreeCourses
 }
