@@ -90,7 +90,7 @@ const getHomeLastCourses = CatchAsyncError(async (req: Request, res: Response, n
                 $sort: { updatedAt: -1 } // مرتب‌سازی بر اساس آخرین آپدیت
             },
             {
-                $limit: 16 // محدود به 16 دوره
+                $limit: 12 // محدود به 16 دوره
             },
             {
                 $lookup: {
@@ -178,7 +178,7 @@ const getHomeFavoritCourses = CatchAsyncError(async (req: Request, res: Response
                 }
             },
             {
-                $limit: 16 // محدود به 16 دوره
+                $limit: 12 
             },
             {
                 $lookup: {

@@ -28,7 +28,6 @@ userRouter.put('/set-user-password', isAuthenticated, setPassword);
 
 userRouter.put('/update-user-avatar', isAuthenticated, updateProfilePicture);
 
-
 userRouter.post('/create-invoice', isAuthenticated, createInvoice);
 
 userRouter.get('/get-invoice', isAuthenticated, getUserInvoices);
