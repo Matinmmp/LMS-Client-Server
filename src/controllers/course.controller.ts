@@ -13,6 +13,10 @@ import CategoryModel from "../models/category.model";
 require('dotenv').config();
 
 
+const REDIS_EXPIRATION_DAY = 86400; // یک روز (ثانیه)
+const REDIS_EXPIRATION_HOUR = 3600; // یک ساعت (ثانیه)
+const itemsPerPage = 12;
+
 const client = new S3Client({
     region: "default",
     endpoint: process.env.LIARA_ENDPOINT,
@@ -40,24 +44,114 @@ const getAllCourses = CatchAsyncError(async (req: Request, res: Response, next: 
 
 
 // get single course --- without purchasing
-const getCourseById = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const courseId = req.params.id;
+        const courseName = req.params.name;
+        const cacheKey = `course:${courseName}`; // کلید کش مخصوص این دوره
 
-        const course = await CourseModel.findById(courseId);
+        // بررسی کش Redis برای داده‌های موجود
+        const cachedCourse = await redis.get(cacheKey);
+        if (cachedCourse) {
+            return res.status(200).json({ success: true, courseData: JSON.parse(cachedCourse) });
+        }
 
-        res.status(201).json({
-            success: true,
-            course
-        })
+        // واکشی اطلاعات دوره
+        const courseData = await CourseModel.aggregate([
+            {
+                $match: { name: courseName }
+            },
+            {
+                $lookup: {
+                    from: 'teachers', // اتصال به جدول مدرسین
+                    localField: 'teacherId', // ارتباط با آیدی مدرس در دوره
+                    foreignField: '_id',
+                    as: 'teacherData'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'academies', // اتصال به جدول آکادمی‌ها
+                    localField: 'academyId', // ارتباط با آیدی آکادمی در دوره
+                    foreignField: '_id',
+                    as: 'academyData'
+                }
+            },
+            {
+                $addFields: {
+                    courseLength: {
+                        $sum: {
+                            $map: {
+                                input: "$courseData", // فیلد courseData که شامل ویدیوها است
+                                as: "courseItem",
+                                in: { $toInt: "$$courseItem.videoLength" } // جمع کردن طول ویدیوها
+                            }
+                        }
+                    },
+                    teacher: {
+                        engName: { $arrayElemAt: ["$teacherData.engName", 0] },
+                        faName: { $arrayElemAt: ["$teacherData.faName", 0] },
+                        description: { $arrayElemAt: ["$teacherData.description", 0] },
+                        avatar: {
+                            imageUrl: { $arrayElemAt: ["$teacherData.avatar.imageUrl", 0] }
+                        }
+                    },
+                    academy: {
+                        engName: { $arrayElemAt: ["$academyData.engName", 0] },
+                        faName: { $arrayElemAt: ["$academyData.faName", 0] },
+                        description: { $arrayElemAt: ["$academyData.description", 0] },
+                        avatar: {
+                            imageUrl: { $arrayElemAt: ["$academyData.avatar.imageUrl", 0] }
+                        }
+                    }
+                }
+            },
+            {
+                $project: {
+                    teacher: 1,
+                    academy: 1,
+                    course: {
+                        thumbnail: {
+                            imageUrl: "$thumbnail.imageUrl"
+                        },
+                        discount: "$discount",
+                        name: 1,
+                        description: 1,
+                        price: 1,
+                        estimatedPrice: 1,
+                        tags: 1,
+                        level: 1,
+                        benefits: 1,
+                        prerequisites: 1,
+                        ratings: 1,
+                        purchased: 1,
+                        status: 1,
+                        links: 1,
+                        releaseDate: 1,
+                        isInVirtualPlus: 1,
+                        totalVideos: 1,
+                        createdAt: 1,
+                        updatedAt: 1,
+                        courseLength: "$courseLength"
+                    }
+                }
+            }
+        ]);
 
+        if (!courseData || courseData.length === 0) {
+            return res.status(404).json({ success: false, message: 'دوره‌ای با این نام یافت نشد' });
+        }
 
-    }
-    catch (error: any) {
+        // ذخیره داده‌ها در کش با انقضای 24 ساعت
+        await redis.setex(cacheKey, 86400, JSON.stringify(courseData[0]));
+
+        // ارسال پاسخ
+        res.status(200).json({ success: true, courseData: courseData[0] });
+
+    } catch (error: any) {
         return next(new ErrorHandler(error.message, 500));
-
     }
-})
+});
+
 
 // edit course
 const editCourse = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
@@ -82,13 +176,6 @@ const editCourse = CatchAsyncError(async (req: Request, res: Response, next: Nex
         return next(new ErrorHandler(error.message, 500));
     }
 })
-
-
-
-const REDIS_EXPIRATION_DAY = 86400; // یک روز (ثانیه)
-const REDIS_EXPIRATION_HOUR = 3600; // یک ساعت (ثانیه)
-const itemsPerPage = 12;
-
 
 type searchCourses = {
     searchText: string,
@@ -278,7 +365,7 @@ const searchCourses = CatchAsyncError(async (req: Request, res: Response, next: 
 
 export {
     getAllCourses,
-    getCourseById,
+    getCourseByName,
     editCourse,
     searchCourses
 
