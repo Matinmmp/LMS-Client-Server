@@ -21,6 +21,7 @@ interface ICourseData extends Document {
 interface ICourse extends Document {
     name: string;//
     description: string;//
+    longDescription: string;
     academyId: mongoose.Schema.Types.ObjectId; // ارتباط با آکادمی    //@
     teacherId: mongoose.Schema.Types.ObjectId; // ارتباط با مدرس      //@
     categoryIds: mongoose.Schema.Types.ObjectId[]; // ارتباط با دسته‌بندی‌ها  //@
@@ -73,6 +74,11 @@ const courseSchema = new Schema<ICourse>({
     },
 
     description: {
+        type: String,
+        required: true,
+    },
+
+    longDescription: {
         type: String,
         required: true,
     },
@@ -150,7 +156,7 @@ const courseSchema = new Schema<ICourse>({
         type: Boolean,
         default: false
     },
-    
+
     totalVideos: Number
 }, { timestamps: true });
 

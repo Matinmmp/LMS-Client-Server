@@ -43,7 +43,6 @@ const getAllCourses = CatchAsyncError(async (req: Request, res: Response, next: 
 })
 
 
-// get single course --- without purchasing
 const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const courseName = req.params.name;
@@ -86,51 +85,43 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
                                 in: { $toInt: "$$courseItem.videoLength" } // جمع کردن طول ویدیوها
                             }
                         }
-                    },
-                    teacher: {
-                        engName: { $arrayElemAt: ["$teacherData.engName", 0] },
-                        faName: { $arrayElemAt: ["$teacherData.faName", 0] },
-                        description: { $arrayElemAt: ["$teacherData.description", 0] },
-                        avatar: {
-                            imageUrl: { $arrayElemAt: ["$teacherData.avatar.imageUrl", 0] }
-                        }
-                    },
-                    academy: {
-                        engName: { $arrayElemAt: ["$academyData.engName", 0] },
-                        faName: { $arrayElemAt: ["$academyData.faName", 0] },
-                        description: { $arrayElemAt: ["$academyData.description", 0] },
-                        avatar: {
-                            imageUrl: { $arrayElemAt: ["$academyData.avatar.imageUrl", 0] }
-                        }
                     }
                 }
             },
             {
                 $project: {
-                    teacher: 1,
-                    academy: 1,
+                    teacher: {
+                        engName: { $arrayElemAt: ["$teacherData.engName", 0] },
+                        faName: { $arrayElemAt: ["$teacherData.faName", 0] },
+                        description: { $arrayElemAt: ["$teacherData.description", 0] },
+                        avatar: { imageUrl: { $arrayElemAt: ["$teacherData.avatar.imageUrl", 0] } }
+                    },
+                    academy: {
+                        engName: { $arrayElemAt: ["$academyData.engName", 0] },
+                        faName: { $arrayElemAt: ["$academyData.faName", 0] },
+                        description: { $arrayElemAt: ["$academyData.description", 0] },
+                        avatar: { imageUrl: { $arrayElemAt: ["$academyData.avatar.imageUrl", 0] } }
+                    },
                     course: {
-                        thumbnail: {
-                            imageUrl: "$thumbnail.imageUrl"
-                        },
+                        thumbnail: { imageUrl: "$thumbnail.imageUrl" },
                         discount: "$discount",
-                        name: 1,
-                        description: 1,
-                        price: 1,
-                        estimatedPrice: 1,
-                        tags: 1,
-                        level: 1,
-                        benefits: 1,
-                        prerequisites: 1,
-                        ratings: 1,
-                        purchased: 1,
-                        status: 1,
-                        links: 1,
-                        releaseDate: 1,
-                        isInVirtualPlus: 1,
-                        totalVideos: 1,
-                        createdAt: 1,
-                        updatedAt: 1,
+                        name: "$name",
+                        description: "$description",
+                        price: "$price",
+                        estimatedPrice: "$estimatedPrice",
+                        tags: "$tags",
+                        level: "$level",
+                        benefits: "$benefits",
+                        prerequisites: "$prerequisites",
+                        ratings: "$ratings",
+                        purchased: "$purchased",
+                        status: "$status",
+                        links: "$links",
+                        releaseDate: "$releaseDate",
+                        isInVirtualPlus: "$isInVirtualPlus",
+                        totalVideos: "$totalVideos",
+                        createdAt: "$createdAt",
+                        updatedAt: "$updatedAt",
                         courseLength: "$courseLength"
                     }
                 }
@@ -151,6 +142,7 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
         return next(new ErrorHandler(error.message, 500));
     }
 });
+
 
 
 // edit course
@@ -348,15 +340,15 @@ const searchCourses = CatchAsyncError(async (req: Request, res: Response, next: 
         const paginatedCourses = filteredCourses.slice((pageNumber - 1) * itemsPerPage, pageNumber * itemsPerPage);
 
         // ارسال پاسخ
- 
-            res.status(201).json({
-                success: true,
-                courses: paginatedCourses,
-                currentPage: pageNumber,
-                totalPage: totalPages
-            });
-  
-        
+
+        res.status(201).json({
+            success: true,
+            courses: paginatedCourses,
+            currentPage: pageNumber,
+            totalPage: totalPages
+        });
+
+
 
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 500));
