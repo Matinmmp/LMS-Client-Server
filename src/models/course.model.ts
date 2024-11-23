@@ -18,31 +18,49 @@ interface ICourseData extends Document {
     videoName: string;
 }
 
-interface ICourse extends Document {
-    name: string;//
-    description: string;//
-    longDescription: string;
-    academyId: mongoose.Schema.Types.ObjectId; // ارتباط با آکادمی    //@
-    teacherId: mongoose.Schema.Types.ObjectId; // ارتباط با مدرس      //@
-    categoryIds: mongoose.Schema.Types.ObjectId[]; // ارتباط با دسته‌بندی‌ها  //@
-    discount: { percent: number, expireTime: Date, usageCount: number };    //@
-    price: number; //@
-    estimatedPrice?: number;//@
-    thumbnail: { imageName: string; imageUrl: string };//@
-    tags: string;//@
-    level: string;//@
-    benefits: { title: string }[];
-    prerequisites: { title: string }[];
-    courseData: ICourseData[];
-    ratings?: number; //*
-    purchased?: number; //*
-    links?: ILink[];
-    status: number; // 0 => ongoing , 1 => finished, 2 => stopped   //@
-    releaseDate: Date;//@
-    folderName: string;
-    isInVirtualPlus: boolean,
-    showCourse: boolean,
-    totalVideos: number
+export interface ICourse extends Document {
+    name: string; // نام دوره
+    description: string; // توضیح کوتاه دوره
+    longDescription: string; // توضیح طولانی دوره (HTML)
+    academyId: mongoose.Schema.Types.ObjectId; // شناسه آکادمی مرتبط
+    teacherId: mongoose.Schema.Types.ObjectId; // شناسه مدرس مرتبط
+    categoryIds: mongoose.Schema.Types.ObjectId[]; // شناسه دسته‌بندی‌ها
+    discount: {
+        percent: number;
+        expireTime: Date;
+        usageCount: number;
+    }; // اطلاعات تخفیف دوره
+    price: number; // قیمت دوره
+    estimatedPrice?: number; // قیمت تخمینی
+    thumbnail: {
+        imageName: string;
+        imageUrl: string;
+    }; // تصویر بندانگشتی دوره
+    tags: string; // برچسب‌های دوره
+    level: string; // سطح دوره (مثل مبتدی، متوسط، پیشرفته)
+    benefits: { title: string }[]; // مزایای شرکت در دوره
+    prerequisites: { title: string }[]; // پیش‌نیازهای دوره
+    courseData: ICourseData[]; // داده‌های جزئی‌تر دوره
+    ratings?: number; // امتیاز دوره
+    purchased?: number; // تعداد خریدهای دوره
+    links?: ILink[]; // لینک‌های مرتبط با دوره
+    status: number; // وضعیت دوره (0: ongoing, 1: finished, 2: stopped)
+    releaseDate: Date; // تاریخ انتشار دوره
+    folderName: string; // نام پوشه مربوط به دوره
+    isInVirtualPlus: boolean; // آیا دوره در برنامه Virtual Plus موجود است
+    showCourse: boolean; // آیا دوره برای کاربران قابل نمایش است
+    totalVideos: number; // تعداد ویدیوهای موجود در دوره
+    viewsCount: number; // تعداد بازدیدهای دوره
+    seoMeta: {
+        description: string;
+        keywords: string[];
+    }; // اطلاعات SEO دوره
+    previewVideoUrl?: string; // لینک ویدیوی پیش‌نمایش
+    relatedCourses?: mongoose.Schema.Types.ObjectId[];
+    relatedBlogs?: mongoose.Schema.Types.ObjectId[];
+    favoritesCount: Number;
+    lastContentUpdate: Date;
+    isPreOrder: Boolean
 }
 
 const linkSchema = new Schema<ILink>({
@@ -68,96 +86,42 @@ const courseDataSchema = new Schema<ICourseData>({
 })
 
 const courseSchema = new Schema<ICourse>({
-    name: {
-        type: String,
-        required: true
-    },
-
-    description: {
-        type: String,
-        required: true,
-    },
-
-    longDescription: {
-        type: String,
-        required: true,
-    },
-
-    price: {
-        type: Number,
-        required: true
-    },
-
-    estimatedPrice: {
-        type: Number,
-    },
-
-    thumbnail: {
-        imageName: String,
-        imageUrl: String
-    },
-
-    tags: {
-        type: String,
-        required: true,
-    },
-
-    level: {
-        type: String,
-        required: true,
-    },
-
-
-
+    name: { type: String, required: true },
+    description: { type: String, required: true },
+    longDescription: { type: String, required: true }, // پشتیبانی از HTML
+    price: { type: Number, required: true },
+    estimatedPrice: { type: Number },
+    thumbnail: { imageName: String, imageUrl: String },
+    tags: { type: String, required: true },
+    level: { type: String, required: true },
     benefits: [{ title: String }],
-
     prerequisites: [{ title: String }],
-
     courseData: [courseDataSchema],
-
-    ratings: {
-        type: Number,
-        default: 0
-    },
-
-    purchased: {
-        type: Number,
-        default: 0
-    },
-
-    status: {
-        type: Number,
-        default: 0
-    },
-
-    academyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Academy' }, // ارتباط با آکادمی
-    teacherId: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher' }, // ارتباط با مدرس
-    discount:
-    {
+    ratings: { type: Number, default: 0 },
+    purchased: { type: Number, default: 0 },
+    status: { type: Number, default: 0 },
+    academyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Academy' },
+    teacherId: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher' },
+    discount: {
         percent: Number,
-        usageCount: {
-            type: Number,
-            default: 0,
-        },
+        usageCount: { type: Number, default: 0 },
         expireTime: Date
-    }
-    ,
+    },
     links: [linkSchema],
-    categoryIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }], // ارتباط با دسته‌بندی‌ها
+    categoryIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],
     releaseDate: Date,
     folderName: String,
-
-    isInVirtualPlus: {
-        type: Boolean,
-        default: false
-    },
-
-    showCourse: {
-        type: Boolean,
-        default: false
-    },
-
-    totalVideos: Number
+    isInVirtualPlus: { type: Boolean, default: false },
+    showCourse: { type: Boolean, default: false },
+    totalVideos: Number,
+    viewsCount: { type: Number, default: 0 },
+    seoMeta: { description: String, keywords: [String] },
+    previewVideoUrl: { type: String },
+    relatedCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }], // دوره‌های مشابه
+    relatedBlogs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Blog' }], // بلاگ‌های پیشنهادی
+    favoritesCount: { type: Number, default: 0 }, // تعداد علاقه‌مندی‌ها
+    lastContentUpdate: { type: Date, default: Date.now }, // آخرین بروزرسانی محتوا
+    isPreOrder: { type: Boolean, default: false }, // پیش‌فروش
 }, { timestamps: true });
 
 
