@@ -36,6 +36,10 @@ export interface ICourse extends Document {
         imageName: string;
         imageUrl: string;
     }; // تصویر بندانگشتی دوره
+    bigThumbnail: {
+        imageName: string;
+        imageUrl: string;
+    }; // تصویر بندانگشتی دوره
     tags: string; // برچسب‌های دوره
     level: string; // سطح دوره (مثل مبتدی، متوسط، پیشرفته)
     benefits: { title: string }[]; // مزایای شرکت در دوره
@@ -60,7 +64,8 @@ export interface ICourse extends Document {
     relatedBlogs?: mongoose.Schema.Types.ObjectId[];
     favoritesCount: Number;
     lastContentUpdate: Date;
-    isPreOrder: Boolean
+    isPreOrder: Boolean;
+    holeCourseVideos: Number;//تعداد ویدیو هایی که دوره در نهایت باید داشته باشه برای تخمین درصد تکمیل دوره
 }
 
 const linkSchema = new Schema<ILink>({
@@ -92,6 +97,7 @@ const courseSchema = new Schema<ICourse>({
     price: { type: Number, required: true },
     estimatedPrice: { type: Number },
     thumbnail: { imageName: String, imageUrl: String },
+    bigThumbnail: { imageName: String, imageUrl: String },
     tags: { type: String, required: true },
     level: { type: String, required: true },
     benefits: [{ title: String }],
@@ -102,11 +108,7 @@ const courseSchema = new Schema<ICourse>({
     status: { type: Number, default: 0 },
     academyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Academy' },
     teacherId: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher' },
-    discount: {
-        percent: Number,
-        usageCount: { type: Number, default: 0 },
-        expireTime: Date
-    },
+    discount: { percent: Number, usageCount: { type: Number, default: 0 }, expireTime: Date },
     links: [linkSchema],
     categoryIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],
     releaseDate: Date,
@@ -122,6 +124,7 @@ const courseSchema = new Schema<ICourse>({
     favoritesCount: { type: Number, default: 0 }, // تعداد علاقه‌مندی‌ها
     lastContentUpdate: { type: Date, default: Date.now }, // آخرین بروزرسانی محتوا
     isPreOrder: { type: Boolean, default: false }, // پیش‌فروش
+    holeCourseVideos: { type: Number, default: 0 }
 }, { timestamps: true });
 
 
