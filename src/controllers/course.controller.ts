@@ -117,6 +117,8 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
                         purchased: "$purchased",
                         status: "$status",
                         links: "$links",
+                        lastContentUpdate:"$lastContentUpdate",
+                        holeCourseVideos:"$holeCourseVideos",
                         releaseDate: "$releaseDate",
                         isInVirtualPlus: "$isInVirtualPlus",
                         totalVideos: "$totalVideos",

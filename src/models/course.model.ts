@@ -36,10 +36,10 @@ export interface ICourse extends Document {
         imageName: string;
         imageUrl: string;
     }; // تصویر بندانگشتی دوره
-    bigThumbnail: {
-        imageName: string;
-        imageUrl: string;
-    }; // تصویر بندانگشتی دوره
+    // bigThumbnail: {
+    //     imageName: string;
+    //     imageUrl: string;
+    // };
     tags: string; // برچسب‌های دوره
     level: string; // سطح دوره (مثل مبتدی، متوسط، پیشرفته)
     benefits: { title: string }[]; // مزایای شرکت در دوره
@@ -97,7 +97,7 @@ const courseSchema = new Schema<ICourse>({
     price: { type: Number, required: true },
     estimatedPrice: { type: Number },
     thumbnail: { imageName: String, imageUrl: String },
-    bigThumbnail: { imageName: String, imageUrl: String },
+    // bigThumbnail: { imageName: String, imageUrl: String },
     tags: { type: String, required: true },
     level: { type: String, required: true },
     benefits: [{ title: String }],
