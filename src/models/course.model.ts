@@ -20,6 +20,7 @@ interface ICourseData extends Document {
 
 export interface ICourse extends Document {
     name: string; // نام دوره
+    faName: string; // نام دوره
     description: string; // توضیح کوتاه دوره
     longDescription: string; // توضیح طولانی دوره (HTML)
     academyId: mongoose.Schema.Types.ObjectId; // شناسه آکادمی مرتبط
@@ -92,6 +93,7 @@ const courseDataSchema = new Schema<ICourseData>({
 
 const courseSchema = new Schema<ICourse>({
     name: { type: String, required: true },
+    faName: { type: String, required: true },
     description: { type: String, required: true },
     longDescription: { type: String, required: true }, // پشتیبانی از HTML
     price: { type: Number, required: true },

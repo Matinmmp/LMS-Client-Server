@@ -3,12 +3,16 @@ import { CatchAsyncError } from "../middleware/catchAsyncErrors";
 import ErrorHandler from "../utils/ErrorHandler";
 import CourseModel from "../models/course.model";
 import { redis } from "../utils/redis";
-import randomLetterGenerator from "../utils/randomName";
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 import Fuse from "fuse.js";
 import AcademyModel from "../models/academy.model";
 import TeacherModel from "../models/teacher.model";
 import CategoryModel from "../models/category.model";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
+import userModel from "../models/user.model";
+import jwt from "jsonwebtoken";
+
 
 require('dotenv').config();
 
@@ -106,7 +110,9 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
                         thumbnail: { imageUrl: "$thumbnail.imageUrl" },
                         discount: "$discount",
                         name: "$name",
+                        faName: "$faName",
                         description: "$description",
+                        longDescription: "$longDescription",
                         price: "$price",
                         estimatedPrice: "$estimatedPrice",
                         tags: "$tags",
@@ -117,8 +123,8 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
                         purchased: "$purchased",
                         status: "$status",
                         links: "$links",
-                        lastContentUpdate:"$lastContentUpdate",
-                        holeCourseVideos:"$holeCourseVideos",
+                        lastContentUpdate: "$lastContentUpdate",
+                        holeCourseVideos: "$holeCourseVideos",
                         releaseDate: "$releaseDate",
                         isInVirtualPlus: "$isInVirtualPlus",
                         totalVideos: "$totalVideos",
@@ -142,6 +148,93 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
 
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 500));
+    }
+});
+
+// تولید لینک عمومی یا خصوصی
+const generateS3Url = async (key: string, isPublic: boolean) => {
+    if (isPublic) {
+        return `https://${process.env.LIARA_BUCKET_NAME}.storage.c2.liara.space/${key}`;
+    }
+
+    // لینک خصوصی 1 روزه (86400 ثانیه)
+    const params = {
+        Bucket: process.env.LIARA_BUCKET_NAME,
+        Key: key,
+    };
+    return await getSignedUrl(client, new GetObjectCommand(params), { expiresIn: 86400 });
+};
+
+
+
+export const getCourseData = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { name } = req.params;
+
+        // دریافت اکسس توکن از کوکی
+        const token = req.cookies?.accessToken;
+        let userId: string | null = null;
+
+        // بررسی اکسس توکن و استخراج اطلاعات کاربر
+        if (token) {
+            try {
+                const decoded: any = jwt.verify(token, process.env.ACCESS_TOKEN || "");
+                userId = decoded.id;
+            } catch (err) {
+                return res.status(401).json({ success: false, message: "توکن نامعتبر است" });
+            }
+        }
+
+        // یافتن اطلاعات دوره
+        const course = await CourseModel.findOne({ name }).lean();
+        if (!course) {
+            return res.status(404).json({ success: false, message: "دوره‌ای با این نام یافت نشد" });
+        }
+
+        // بررسی خرید دوره توسط کاربر
+        let hasPurchased = false;
+        if (userId) {
+            const user = await userModel.findById(userId).select("courses").lean();
+            if (user?.courses.some((c: any) => c.courseId === course._id.toString())) {
+                hasPurchased = true;
+            }
+        }
+
+        // پردازش courseData و لینک‌ها
+        const processedCourseData = await Promise.all(
+            course.courseData.map(async (data: any) => {
+                const processedLinks = await Promise.all(
+                    data.links?.map(async (link: any) => {
+                        const urlPath = `${course.folderName}/${link.url}`;
+                        if (hasPurchased || data.isFree) {
+                            // لینک کامل در صورت خرید یا رایگان بودن
+                            return {
+                                ...link,
+                                url: await generateS3Url(urlPath, !data.isFree),
+                            };
+                        } else if (!hasPurchased && !data.isFree) {
+                            // لینک دانلود حذف می‌شود
+                            return { ...link, url: null };
+                        }
+                        // لینک عمومی برای ویدیوهای رایگان
+                        return {
+                            ...link,
+                            url: await generateS3Url(urlPath, true),
+                        };
+                    }) || []
+                );
+
+                return {...data,links: processedLinks};
+            })
+        );
+
+        // ارسال پاسخ
+        res.status(200).json({
+            success: true,
+            courseData: processedCourseData,
+        });
+    } catch (error: any) {
+        return next(error);
     }
 });
 
