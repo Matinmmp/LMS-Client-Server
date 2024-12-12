@@ -3,14 +3,16 @@ import { CatchAsyncError } from "./catchAsyncErrors";
 import ErrorHandler from "../utils/ErrorHandler";
 import jwt, { JwtPayload } from 'jsonwebtoken'
 import { redis } from "../utils/redis";
+import userModel from "../models/user.model";
 require('dotenv').config();
 
 // authenticated user
 export const isAuthenticated = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
 
     const access_token = req.cookies.access_token;
-     
+
     if (!access_token) {
+
         return next(new ErrorHandler('لطفا وارد حساب خود شوید', 401))
     }
 
@@ -30,7 +32,24 @@ export const isAuthenticated = CatchAsyncError(async (req: Request, res: Respons
 
 })
 
+export const isAuthenticated2 = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
 
+    const access_token = req.cookies.access_token;
+    let decode: any;
+    let user: any;
+ 
+    if (access_token)
+        decode = jwt.verify(access_token, process.env.ACCESS_TOKEN as string) as any;
+
+    if (decode)
+        user = await userModel.findById(decode.id).lean()
+        
+    if (user)
+        req.user = user
+
+    next()
+
+})
 
 // validate user role
 export const authorizeRoles = (...roles: string[]) => {

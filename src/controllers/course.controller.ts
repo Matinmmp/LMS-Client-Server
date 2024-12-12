@@ -3,16 +3,16 @@ import { CatchAsyncError } from "../middleware/catchAsyncErrors";
 import ErrorHandler from "../utils/ErrorHandler";
 import CourseModel from "../models/course.model";
 import { redis } from "../utils/redis";
-const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const { S3Client } = require("@aws-sdk/client-s3");
 import Fuse from "fuse.js";
 import AcademyModel from "../models/academy.model";
 import TeacherModel from "../models/teacher.model";
 import CategoryModel from "../models/category.model";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import userModel from "../models/user.model";
 import jwt from "jsonwebtoken";
-
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { isAuthenticated, isAuthenticated2 } from "../middleware/auth";
 
 require('dotenv').config();
 
@@ -151,87 +151,133 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
     }
 });
 
-// تولید لینک عمومی یا خصوصی
-const generateS3Url = async (key: string, isPublic: boolean) => {
-    if (isPublic) {
+
+const generateS3Url = async (key: string, isPrivate: boolean): Promise<string> => {
+    if (!isPrivate) {
         return `https://${process.env.LIARA_BUCKET_NAME}.storage.c2.liara.space/${key}`;
     }
 
-    // لینک خصوصی 1 روزه (86400 ثانیه)
-    const params = {
+    const command = new GetObjectCommand({
         Bucket: process.env.LIARA_BUCKET_NAME,
-        Key: key,
-    };
-    return await getSignedUrl(client, new GetObjectCommand(params), { expiresIn: 86400 });
+        Key: key
+    });
+
+    // استفاده از getSignedUrl برای تولید لینک خصوصی
+    const signedUrl = await getSignedUrl(client, command, { expiresIn: 86400 }); // لینک یک روزه
+    return signedUrl;
 };
-
-
 
 export const getCourseData = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { name } = req.params;
+        const userId = req.user?._id;
+        let hasPurchased = false;
 
-        // دریافت اکسس توکن از کوکی
-        const token = req.cookies?.accessToken;
-        let userId: string | null = null;
-
-        // بررسی اکسس توکن و استخراج اطلاعات کاربر
-        if (token) {
-            try {
-                const decoded: any = jwt.verify(token, process.env.ACCESS_TOKEN || "");
-                userId = decoded.id;
-            } catch (err) {
-                return res.status(401).json({ success: false, message: "توکن نامعتبر است" });
-            }
-        }
-
-        // یافتن اطلاعات دوره
-        const course = await CourseModel.findOne({ name }).lean();
+        const course: any = await CourseModel.findOne({ name }).lean();
         if (!course) {
             return res.status(404).json({ success: false, message: "دوره‌ای با این نام یافت نشد" });
         }
 
-        // بررسی خرید دوره توسط کاربر
-        let hasPurchased = false;
-        if (userId) {
-            const user = await userModel.findById(userId).select("courses").lean();
-            if (user?.courses.some((c: any) => c.courseId === course._id.toString())) {
-                hasPurchased = true;
+        if (userId)
+            try {
+                // بررسی خرید دوره
+                const user = await userModel.findById(userId).select("courses").lean();
+                if (user?.courses.find((courseId) => courseId == course?._id)) {
+                    hasPurchased = true;
+                }
+            } catch (err) {
+                return res.status(401).json({ success: false, message: "توکن نامعتبر است" });
             }
-        }
 
-        // پردازش courseData و لینک‌ها
+
+        const folderName = course.folderName;
+
+        // پردازش courseData
         const processedCourseData = await Promise.all(
             course.courseData.map(async (data: any) => {
-                const processedLinks = await Promise.all(
-                    data.links?.map(async (link: any) => {
-                        const urlPath = `${course.folderName}/${link.url}`;
-                        if (hasPurchased || data.isFree) {
-                            // لینک کامل در صورت خرید یا رایگان بودن
-                            return {
-                                ...link,
-                                url: await generateS3Url(urlPath, !data.isFree),
-                            };
-                        } else if (!hasPurchased && !data.isFree) {
-                            // لینک دانلود حذف می‌شود
-                            return { ...link, url: null };
-                        }
-                        // لینک عمومی برای ویدیوهای رایگان
-                        return {
-                            ...link,
-                            url: await generateS3Url(urlPath, true),
-                        };
-                    }) || []
-                );
+                // ساخت لینک ویدیو
+                const videoUrl =
+                    hasPurchased || data.isFree
+                        ? await generateS3Url(`Courses/${folderName}/CourseVideos/${data.videoName}`, !data.isFree)
+                        : "true";
 
-                return {...data,links: processedLinks};
+                // ساخت لینک فایل‌های ویدیو
+                const videoFiles =
+                    hasPurchased || data.isFree
+                        ? await generateS3Url(`Courses/${folderName}/CourseFiles/${data.videoFiles}`, !data.isFree)
+                        : "true";
+
+                // ساخت لینک فایل‌های سکشن
+                const sectionFiles =
+                    hasPurchased || data.isFree
+                        ? await generateS3Url(`Courses/${folderName}/CourseFiles/${data.sectionFiles}`, !data.isFree)
+                        : "true";
+
+                // ساخت لینک‌های عمومی برای ویدیوها و سکشن‌ها
+                const videoLinks = data.videoLinks
+                    ? await Promise.all(
+                        data.videoLinks.map(async (link: any) => ({
+                            title: link.title,
+                            url: hasPurchased || data.isFree ? await generateS3Url(link.url, !data.isFree) : "true"
+                        }))
+                    )
+                    : null;
+
+                const sectionLinks = data.sectionLinks
+                    ? await Promise.all(
+                        data.sectionLinks.map(async (link: any) => ({
+                            title: link.title,
+                            url: hasPurchased || data.isFree ? await generateS3Url(link.url, !data.isFree) : "true"
+                        }))
+                    )
+                    : null;
+
+                return {
+                    isFree: data.isFree,
+                    title: data.title,
+                    description: data.description,
+                    videoSection: data.videoSection,
+                    videoLength: data.videoLength,
+                    videoLinks: videoLinks || undefined,
+                    sectionLinks: sectionLinks || undefined,
+                    videoFiles: videoFiles || undefined,
+                    sectionFiles: sectionFiles || undefined,
+                    videoUrl: videoUrl
+                };
             })
         );
+
+        // پردازش courseFiles
+        const courseFiles = course.courseFiles
+            ? await Promise.all(
+                course.courseFiles.map((file: string) =>
+                    hasPurchased
+                        ? generateS3Url(`Courses/${folderName}/CourseFiles/${file}`, true) // لینک پرایویت
+                        : null // فایل‌ها ارسال نشود
+                )
+            )
+            : undefined;
+
+        // حذف فایل‌های null از courseFiles
+        const filteredCourseFiles = courseFiles?.filter((file) => file !== null);
+
+        // پردازش courseLinks
+        const courseLinks = course?.courseLinks
+            ? await Promise.all(
+                course?.courseLinks?.map(async (link: any) => ({
+                    title: link.title,
+                    url: link.url
+                }))
+            )
+            : undefined;
 
         // ارسال پاسخ
         res.status(200).json({
             success: true,
+            isPurchased: hasPurchased,
             courseData: processedCourseData,
+            courseFiles: filteredCourseFiles || undefined,
+            courseLinks: courseLinks || undefined
         });
     } catch (error: any) {
         return next(error);
@@ -239,30 +285,6 @@ export const getCourseData = CatchAsyncError(async (req: Request, res: Response,
 });
 
 
-
-// edit course
-const editCourse = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
-    try {
-
-        const data = req.body;
-        const thumbnail = data.thumbnail;
-        const courseId = req.params.id;
-        const courseData = await CourseModel.findById(courseId) as any;
-
-
-        const course = await CourseModel.findByIdAndUpdate(courseId, { $set: data }, { new: true });
-
-
-        res.status(201).json({
-            success: true,
-            course
-        })
-
-
-    } catch (error: any) {
-        return next(new ErrorHandler(error.message, 500));
-    }
-})
 
 type searchCourses = {
     searchText: string,
@@ -453,7 +475,7 @@ const searchCourses = CatchAsyncError(async (req: Request, res: Response, next: 
 export {
     getAllCourses,
     getCourseByName,
-    editCourse,
     searchCourses
 
 }
+

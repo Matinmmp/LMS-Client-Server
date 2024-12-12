@@ -7,14 +7,17 @@ interface ILink extends Document {
     url: string;
 }
 
+
 interface ICourseData extends Document {
     title: string;//
     description: string;//
     videoSection: string;//
     videoLength: number;//
-    links?: ILink[];//
+    videoLinks?: ILink[];//
+    sectionLinks?: ILink[];//
+    videoFiles?: string;//
+    sectionFiles?: string;//
     isFree: boolean;//
-    useForDemo: boolean;//
     videoName: string;
 }
 
@@ -67,6 +70,8 @@ export interface ICourse extends Document {
     lastContentUpdate: Date;
     isPreOrder: Boolean;
     holeCourseVideos: Number;//تعداد ویدیو هایی که دوره در نهایت باید داشته باشه برای تخمین درصد تکمیل دوره
+    courseFiles:[string],
+    
 }
 
 const linkSchema = new Schema<ILink>({
@@ -79,15 +84,11 @@ const courseDataSchema = new Schema<ICourseData>({
     videoSection: String,
     description: String,
     videoLength: String,
-    useForDemo: {
-        type: Boolean,
-        default: false
-    },
-    isFree: {
-        type: Boolean,
-        default: false
-    },
-    links: [linkSchema],
+    isFree: {type: Boolean,default: false},
+    videoLinks: [linkSchema],
+    sectionLinks:[linkSchema],
+    videoFiles: String,
+    sectionFiles: String,
     videoName: String,
 })
 
@@ -99,7 +100,6 @@ const courseSchema = new Schema<ICourse>({
     price: { type: Number, required: true },
     estimatedPrice: { type: Number },
     thumbnail: { imageName: String, imageUrl: String },
-    // bigThumbnail: { imageName: String, imageUrl: String },
     tags: { type: String, required: true },
     level: { type: String, required: true },
     benefits: [{ title: String }],
@@ -126,7 +126,9 @@ const courseSchema = new Schema<ICourse>({
     favoritesCount: { type: Number, default: 0 }, // تعداد علاقه‌مندی‌ها
     lastContentUpdate: { type: Date, default: Date.now }, // آخرین بروزرسانی محتوا
     isPreOrder: { type: Boolean, default: false }, // پیش‌فروش
-    holeCourseVideos: { type: Number, default: 0 }
+    holeCourseVideos: { type: Number, default: 0 },
+    courseFiles:[String],
+ 
 }, { timestamps: true });
 
 
