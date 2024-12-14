@@ -10,9 +10,7 @@ import TeacherModel from "../models/teacher.model";
 import CategoryModel from "../models/category.model";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import userModel from "../models/user.model";
-import jwt from "jsonwebtoken";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { isAuthenticated, isAuthenticated2 } from "../middleware/auth";
 
 require('dotenv').config();
 
@@ -263,8 +261,8 @@ const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Res
             success: true,
             isPurchased: hasPurchased,
             courseData: processedCourseData,
-            courseFiles: filteredCourseFiles || undefined,
-            courseLinks: courseLinks || undefined
+            courseFiles: course?.courseFiles?.length ? 'true' : 'false',
+            courseLinks: courseLinks?.length ? 'true' : 'false',
         });
     } catch (error: any) {
         return next(error);
@@ -584,3 +582,206 @@ export {
 
 }
 
+const s = [
+    {
+        "isFree": false,
+        "title": "video title 1",
+        "description": "video Description",
+        "videoSection": "Section1",
+        "videoLength": "7111",
+        "videoLinks": [
+            {
+                "title": "Link ",
+                "url": "true"
+            }
+        ],
+        "sectionLinks": [
+            {
+                "title": "link1",
+                "url": "true"
+            },
+            {
+                "title": "link2",
+                "url": "true"
+            }
+        ],
+        "videoFiles": "true",
+        "sectionFiles": "true",
+        "videoUrl": "true"
+    },
+    {
+        "isFree": false,
+        "title": "video title 2",
+        "description": "video Description",
+        "videoSection": "Section1",
+        "videoLength": "5111",
+        "videoLinks": [
+            {
+                "title": "Link ",
+                "url": "true"
+            }
+        ],
+        "videoFiles": "true",
+        "sectionFiles": "true",
+        "videoUrl": "true"
+    },
+    {
+        "isFree": true,
+        "title": "video title 3",
+        "description": "video Description",
+        "videoSection": "Section2",
+        "videoLength": "2323",
+        "videoLinks": [
+            {
+                "title": "Link ",
+                "url": "https://buckettest.storage.c2.liara.space/Link "
+            }
+        ],
+        "sectionLinks": [
+            {
+                "title": "link1",
+                "url": "https://buckettest.storage.c2.liara.space/https://nextui.org/blog/v2.6.0"
+            },
+            {
+                "title": "link2",
+                "url": "https://buckettest.storage.c2.liara.space/https://nextui.org/blog/v2.6.0"
+            }
+        ],
+        "videoFiles": "https://buckettest.storage.c2.liara.space/Courses/TestCourse1/CourseFiles/video3file.rar",
+        "sectionFiles": "https://buckettest.storage.c2.liara.space/Courses/TestCourse1/CourseFiles/section2file.rar",
+        "videoUrl": "https://buckettest.storage.c2.liara.space/Courses/TestCourse1/CourseVideos/next3.mp4"
+    },
+    {
+        "isFree": false,
+        "title": "video title 4",
+        "description": "video Description",
+        "videoSection": "Section3",
+        "videoLength": "7777",
+        "videoLinks": [
+            {
+                "title": "Link ",
+                "url": "true"
+            }
+        ],
+        "sectionLinks": [
+            {
+                "title": "link1",
+                "url": "true"
+            },
+            {
+                "title": "link2",
+                "url": "true"
+            }
+        ],
+        "videoFiles": "true",
+        "sectionFiles": "true",
+        "videoUrl": "true"
+    }
+]
+
+const list = [
+    {
+        "videoSection": "Section1",
+        "sectionFiles": "true",
+        "totalLength": "12222",
+        "sectionLinks": [{ "title": "link1", "url": "true" }, { "title": "link2", "url": "true" }],
+        "videoList": [
+            {
+                "isFree": false,
+                "title": "video title 1",
+                "description": "video Description",
+                "videoLength": "7111",
+                "videoLinks": [
+                    {
+                        "title": "Link ",
+                        "url": "true"
+                    }
+                ],
+                "videoFiles": "true",
+                "videoUrl": "true"
+            },
+            {
+                "isFree": false,
+                "title": "video title 2",
+                "description": "video Description",
+                "videoLength": "5111",
+                "videoLinks": [
+                    {
+                        "title": "Link ",
+                        "url": "true"
+                    }
+                ],
+                "videoFiles": "true",
+
+                "videoUrl": "true"
+            },
+        ]
+    },
+    {
+        "videoSection": "Section2",
+        "sectionLinks": [
+            {
+                "title": "link1",
+                "url": "https://buckettest.storage.c2.liara.space/https://nextui.org/blog/v2.6.0"
+            },
+            {
+                "title": "link2",
+                "url": "https://buckettest.storage.c2.liara.space/https://nextui.org/blog/v2.6.0"
+            }
+        ],
+        "totalLength": "2323",
+        "sectionFiles": ["https://buckettest.storage.c2.liara.space/Courses/TestCourse1/CourseFiles/section2file.rar"],
+
+        "videoList": [
+            {
+                "isFree": true,
+                "title": "video title 3",
+                "description": "video Description",
+                "videoLength": "2323",
+                "videoLinks": [
+                    {
+                        "title": "Link ",
+                        "url": "https://buckettest.storage.c2.liara.space/Link "
+                    }
+                ],
+
+                "videoFiles": "https://buckettest.storage.c2.liara.space/Courses/TestCourse1/CourseFiles/video3file.rar",
+                "videoUrl": "https://buckettest.storage.c2.liara.space/Courses/TestCourse1/CourseVideos/next3.mp4"
+            },
+
+        ]
+    },
+    {
+        "videoSection": "Section3",
+        "totalLength": "7777",
+        "sectionLinks": [
+            {
+                "title": "link1",
+                "url": "true"
+            },
+            {
+                "title": "link2",
+                "url": "true"
+            }
+        ],
+        "sectionFiles": "true",
+
+        "videoList": [
+            {
+                "isFree": false,
+                "title": "video title 4",
+                "description": "video Description",
+                "videoSection": "Section3",
+                "videoLength": "7777",
+                "videoLinks": [
+                    {
+                        "title": "Link ",
+                        "url": "true"
+                    }
+                ],
+                "videoFiles": "true",
+                "videoUrl": "true"
+            }
+        ]
+    }
+]
