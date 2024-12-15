@@ -72,3 +72,7 @@ const LessonSchema = new Schema<ILesson>({
     notice: { type: String }, // یادداشت یا هشدار مرتبط با درس
     order: { type: Number, required: true }, // ترتیب نمایش درس
 }, { timestamps: true });
+
+const LessonModel: Model<ILesson> = mongoose.model<ILesson>("Lesson", LessonSchema);
+
+export default LessonModel;

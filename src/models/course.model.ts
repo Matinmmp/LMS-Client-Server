@@ -51,7 +51,7 @@ export interface ICourse extends Document {
     seoMeta: { description: string;keywords: string[];}; // اطلاعات SEO دوره
     previewVideoUrl?: string; // لینک ویدیوی پیش‌نمایش
     relatedCourses?: mongoose.Schema.Types.ObjectId[];
-    relatedBlogs?: mongoose.Schema.Types.ObjectId[];
+    // relatedBlogs?: mongoose.Schema.Types.ObjectId[];
     favoritesCount: Number;
     lastContentUpdate: Date;
     isPreOrder: Boolean;
@@ -90,7 +90,7 @@ const courseSchema = new Schema<ICourse>({
     seoMeta: { description: String, keywords: [String] },
     previewVideoUrl: { type: String },
     relatedCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }], // دوره‌های مشابه
-    relatedBlogs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Blog' }], // بلاگ‌های پیشنهادی
+    // relatedBlogs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Blog' }], // بلاگ‌های پیشنهادی
     favoritesCount: { type: Number, default: 0 }, // تعداد علاقه‌مندی‌ها
     lastContentUpdate: { type: Date, default: Date.now }, // آخرین بروزرسانی محتوا
     isPreOrder: { type: Boolean, default: false }, // پیش‌فروش

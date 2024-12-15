@@ -52,6 +52,6 @@ const SectionSchema = new Schema<ISection>({
 }, { timestamps: true })
 
 
-const SectionModel: Model<ISection> = mongoose.model<ISection>("Section", SectionSchema);
+const CourseSectionModel: Model<ISection> = mongoose.model<ISection>("CourseSection", SectionSchema);
 
-export default SectionModel;
+export default CourseSectionModel;

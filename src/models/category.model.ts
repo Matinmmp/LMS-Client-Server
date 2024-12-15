@@ -14,6 +14,14 @@ const categorySchema: Schema<ICategory> = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Category', // اشاره به دسته‌بندی والد
         default: null,
+        validate: {
+            validator: async function (value: mongoose.Schema.Types.ObjectId) {
+                if (!value) return true; // اگر مقدار خالی بود، مشکلی نیست
+                const category = await mongoose.model('Category').findById(value);
+                return !!category; // بررسی وجود دسته‌بندی با این شناسه
+            },
+            message: "دسته‌بندی والد معتبر نیست.",
+        },
     }
 }, { timestamps: true });
 

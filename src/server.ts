@@ -1,69 +1,189 @@
-const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
-const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
-import { DeleteObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { app } from "./app";
 import connectDB from './utils/db';
 require('dotenv').config();
+import AdminJS from 'adminjs'
+import AdminJSExpress from '@adminjs/express'
+import CourseModel from "./models/course.model";
+import AcademyModel from "./models/academy.model";
+import TeacherModel from "./models/teacher.model";
+import CategoryModel from "./models/category.model";
+import InvoiceModel from "./models/Invoice.model";
+import CourseSectionModel from "./models/courseSection.model";
+import LessonModel from "./models/sectionLesson.model";
+import userModel from "./models/user.model";
 
+import MongoStore from 'connect-mongo'
+import session from 'express-session'
+import mongoose from "mongoose";
+import * as AdminJSMongoose from "@adminjs/mongoose"
 
-const fs = require('fs');
-
-
-const client = new S3Client({
-    region: "default",
-    endpoint: process.env.LIARA_ENDPOINT,
-    credentials: {
-        accessKeyId: process.env.LIARA_ACCESS_KEY,
-        secretAccessKey: process.env.LIARA_SECRET_KEY
-    }
+AdminJS.registerAdapter({
+    Resource: AdminJSMongoose.Resource,
+    Database: AdminJSMongoose.Database,
 })
 
-const fileName = 'images.jpg';
-const filePath = `./${fileName}`
+ 
 
+const DEFAULT_ADMIN = {
+    email: 'matinmmp1381@gmail.com',
+    password: 'Matin.m.m.p.1381',
+}
 
-app.listen(process.env.PORT, async () => {
-    console.log('Server is listening on port: ' + process.env.PORT);
+const authenticate = async (email: string, password: string) => {
+    if (email === DEFAULT_ADMIN.email && password === DEFAULT_ADMIN.password) {
+        return Promise.resolve(DEFAULT_ADMIN)
+    }
+    return null
+}
+
+const adminOptions = {
+    resources: [
+        {
+            resource: CourseModel,
+            options: {
+                navigation: {
+                    name: 'Courses',
+                    icon: 'Book', // آیکون در سایدبار (از لیست آیکون‌های AdminJS)
+                },
+                properties: {
+                    description: { type: 'textarea' }, // تنظیم نمایش فیلد
+                },
+            },
+        },
+        {
+            resource: AcademyModel,
+            options: {
+                navigation: {
+                    name: 'Academies',
+                    icon: 'Book', // آیکون در سایدبار (از لیست آیکون‌های AdminJS)
+                },
+                properties: {
+                    description: { type: 'textarea' }, // تنظیم نمایش فیلد
+                },
+            },
+        },
+        {
+            resource: TeacherModel,
+            options: {
+                navigation: {
+                    name: 'Teachers',
+                    icon: 'Book', // آیکون در سایدبار (از لیست آیکون‌های AdminJS)
+                },
+                properties: {
+                    description: { type: 'textarea' }, // تنظیم نمایش فیلد
+                },
+            },
+        },
+        {
+            resource: CategoryModel,
+            options: {
+                navigation: {
+                    name: 'Categories',
+                    icon: 'Book', // آیکون در سایدبار (از لیست آیکون‌های AdminJS)
+                },
+                properties: {
+                    description: { type: 'textarea' }, // تنظیم نمایش فیلد
+                },
+            },
+        },
+        {
+            resource: InvoiceModel,
+            options: {
+                navigation: {
+                    name: 'Invoices',
+                    icon: 'Book', // آیکون در سایدبار (از لیست آیکون‌های AdminJS)
+                },
+                properties: {
+                    description: { type: 'textarea' }, // تنظیم نمایش فیلد
+                },
+            },
+        },
+        {
+            resource: CourseSectionModel,
+            options: {
+                navigation: {
+                    name: 'Section',
+                    icon: 'Book', // آیکون در سایدبار (از لیست آیکون‌های AdminJS)
+                },
+                properties: {
+                    description: { type: 'textarea' }, // تنظیم نمایش فیلد
+                },
+            },
+        },
+        {
+            resource: LessonModel,
+            options: {
+                navigation: {
+                    name: 'leccons',
+                    icon: 'Book', // آیکون در سایدبار (از لیست آیکون‌های AdminJS)
+                },
+                properties: {
+                    description: { type: 'textarea' }, // تنظیم نمایش فیلد
+                },
+            },
+        },
+        {
+            resource: userModel,
+            options: {
+                navigation: {
+                    name: 'users',
+                    icon: 'Book', // آیکون در سایدبار (از لیست آیکون‌های AdminJS)
+                },
+                properties: {
+                    description: { type: 'textarea' }, // تنظیم نمایش فیلد
+                },
+            },
+        },
+    ],
+
+    rootPath: '/admin',
+};
+
+const start = async () => {
+    const admin = new AdminJS(adminOptions);
     connectDB();
 
-    // const params = {
-    //     Bucket: process.env.LIARA_BUCKET_NAME,
-    //     Key: 'images.jpg3'
-    // }
-    // try {
-    //     const command = new GetObjectCommand(params);
-    //     const url = await getSignedUrl(client, command, { expiresIn: 3600 }); // لینک معتبر به مدت 1 ساعت
-    //     console.log('Presigned URL:', url);
-    // } catch (error) {
-    //     console.log('Error generating presigned URL:', error);
-    // }
+    const sessionStore = MongoStore.create({
+        client: mongoose.connection.getClient(),
+        collectionName: "session",
+        stringify: false,
+        autoRemove: "interval",
+        autoRemoveInterval: 1
+    });
 
-    // client.send(new DeleteObjectCommand(params), (error:any, data:any) => {
-    //     if (error) {
-    //         console.log(error);
-    //     } else {
-    //         console.log("File deleted successfully");
-    //     }
-    // });
 
-    // fs.readFile(filePath, async (err: any, fileContent: any) => {
-    //     if (err) {
-    //         console.error('Error reading the file:', err);
-    //         return;
-    //     }
 
-    //     const params = {
-    //         Body: fileContent,
-    //         Bucket: process.env.LIARA_BUCKET_NAME,
-    //         Key: `${fileName}3`,
-    //         ACL: 'public-read'
-    //     };
+    const adminRouter = AdminJSExpress.buildAuthenticatedRouter(admin,
+        {
+            authenticate,
+            cookieName: 'adminjs',
+            cookiePassword: 'sessionsecret',
+        },
+        null,
+        {
+            store: sessionStore,
+            resave: true,
+            saveUninitialized: true,
+            secret: 'sessionsecret',
+            cookie: {
+                httpOnly: process.env.NODE_ENV === 'production',
+                secure: process.env.NODE_ENV === 'production',
+            },
+            name: 'adminjs',
+        }
+    )
 
-    //     try {
-    //         await client.send(new PutObjectCommand(params));
-    //         console.log('File uploaded successfully');
-    //     } catch (error) {
-    //         console.log('Error uploading file:', error);
-    //     }
-    // });
-});
+    app.use(admin.options.rootPath, adminRouter);
+
+
+
+    app.listen(process.env.PORT, () => {
+        console.log(`AdminJS started on http://localhost:${process.env.PORT}${admin.options.rootPath}`);
+    })
+}
+
+start()
+
+
+
+
