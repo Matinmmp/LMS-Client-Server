@@ -1,25 +1,26 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
 import { Date } from "mongoose";
 
-
 interface ILink extends Document {
     title: string;
     url: string;
 }
-
-
-interface ICourseData extends Document {
-    title: string;//
-    description: string;//
-    videoSection: string;//
-    videoLength: number;//
-    videoLinks?: ILink[];//
-    sectionLinks?: ILink[];//
-    videoFiles?: string;//
-    sectionFiles?: string;//
-    isFree: boolean;//
-    videoName: string;
+interface IFile extends Document {
+    fileTitle: string,//اسمش لحظه ی دانلود
+    fileName: string;//اسمش داخل باکت
+    fileDescription:string;
 }
+
+const fileSchema = new Schema<IFile>({
+    fileTitle: String,//اسمش لحظه ی دانلود
+    fileName: String,//اسمش داخل باکت
+    fileDescription:String,
+})
+
+const linkSchema = new Schema<ILink>({
+    title: String,
+    url: String
+})
 
 export interface ICourse extends Document {
     name: string; // نام دوره
@@ -29,26 +30,14 @@ export interface ICourse extends Document {
     academyId: mongoose.Schema.Types.ObjectId; // شناسه آکادمی مرتبط
     teacherId: mongoose.Schema.Types.ObjectId; // شناسه مدرس مرتبط
     categoryIds: mongoose.Schema.Types.ObjectId[]; // شناسه دسته‌بندی‌ها
-    discount: {
-        percent: number;
-        expireTime: Date;
-        usageCount: number;
-    }; // اطلاعات تخفیف دوره
+    discount: {percent: number;expireTime: Date;usageCount: number;}; // اطلاعات تخفیف دوره
     price: number; // قیمت دوره
     estimatedPrice?: number; // قیمت تخمینی
-    thumbnail: {
-        imageName: string;
-        imageUrl: string;
-    }; // تصویر بندانگشتی دوره
-    // bigThumbnail: {
-    //     imageName: string;
-    //     imageUrl: string;
-    // };
+    thumbnail: {imageName: string;imageUrl: string;}; // تصویر بندانگشتی دوره
     tags: string; // برچسب‌های دوره
     level: string; // سطح دوره (مثل مبتدی، متوسط، پیشرفته)
     benefits: { title: string }[]; // مزایای شرکت در دوره
     prerequisites: { title: string }[]; // پیش‌نیازهای دوره
-    courseData: ICourseData[]; // داده‌های جزئی‌تر دوره
     ratings?: number; // امتیاز دوره
     purchased?: number; // تعداد خریدهای دوره
     links?: ILink[]; // لینک‌های مرتبط با دوره
@@ -59,10 +48,7 @@ export interface ICourse extends Document {
     showCourse: boolean; // آیا دوره برای کاربران قابل نمایش است
     totalVideos: number; // تعداد ویدیوهای موجود در دوره
     viewsCount: number; // تعداد بازدیدهای دوره
-    seoMeta: {
-        description: string;
-        keywords: string[];
-    }; // اطلاعات SEO دوره
+    seoMeta: { description: string;keywords: string[];}; // اطلاعات SEO دوره
     previewVideoUrl?: string; // لینک ویدیوی پیش‌نمایش
     relatedCourses?: mongoose.Schema.Types.ObjectId[];
     relatedBlogs?: mongoose.Schema.Types.ObjectId[];
@@ -70,28 +56,10 @@ export interface ICourse extends Document {
     lastContentUpdate: Date;
     isPreOrder: Boolean;
     holeCourseVideos: Number;//تعداد ویدیو هایی که دوره در نهایت باید داشته باشه برای تخمین درصد تکمیل دوره
-    courseFiles:[string],
+    courseFiles:[IFile],
     notice:string
-    
 }
 
-const linkSchema = new Schema<ILink>({
-    title: String,
-    url: String
-})
-
-const courseDataSchema = new Schema<ICourseData>({
-    title: String,
-    videoSection: String,
-    description: String,
-    videoLength: String,
-    isFree: {type: Boolean,default: false},
-    videoLinks: [linkSchema],
-    sectionLinks:[linkSchema],
-    videoFiles: String,
-    sectionFiles: String,
-    videoName: String,
-})
 
 const courseSchema = new Schema<ICourse>({
     name: { type: String, required: true },
@@ -105,7 +73,6 @@ const courseSchema = new Schema<ICourse>({
     level: { type: String, required: true },
     benefits: [{ title: String }],
     prerequisites: [{ title: String }],
-    courseData: [courseDataSchema],
     ratings: { type: Number, default: 0 },
     purchased: { type: Number, default: 0 },
     status: { type: Number, default: 0 },
@@ -128,7 +95,7 @@ const courseSchema = new Schema<ICourse>({
     lastContentUpdate: { type: Date, default: Date.now }, // آخرین بروزرسانی محتوا
     isPreOrder: { type: Boolean, default: false }, // پیش‌فروش
     holeCourseVideos: { type: Number, default: 0 },
-    courseFiles:[String],
+    courseFiles:[fileSchema],
     notice:String,
  
 }, { timestamps: true });
