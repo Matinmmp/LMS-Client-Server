@@ -263,15 +263,12 @@ const generateS3Url = async (key: string, isPrivate: boolean): Promise<string> =
 const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { name } = req.params;
-
         // دریافت دوره
         const course: any = await CourseModel.findOne({ name }).lean();
         if (!course) {
             return res.status(404).json({ success: false, message: "دوره‌ای با این نام یافت نشد" });
         }
-
-        // بررسی وضعیت رایگان بودن کل دوره
-        const isCourseFree = course.isFree;
+        const isFree = course.price == 0;
         const folderName = course.folderName;
 
         // دریافت سکشن‌های مربوط به دوره
@@ -284,10 +281,10 @@ const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Res
                 // پردازش فایل‌ها و لینک‌های سکشن
                 const sectionFiles =
                     section.sectionFiles?.length ? await Promise.all(
-                        section.sectionFiles.map(async (file) => section.isFree ?
+                        section.sectionFiles.map(async (file) => isFree||section.isFree ?
                             {
                                 fileTitle: file.fileTitle,
-                                fileName: await generateS3Url(`Courses/${folderName}CourseFiles/${file.fileName}`, !(section.isFree)),
+                                fileName: await generateS3Url(`Courses/${folderName}CourseFiles/${file.fileName}`, !(isFree||section.isFree)),
                             }
                             : true
                         )
@@ -295,7 +292,7 @@ const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Res
 
                 const sectionLinks = section.sectionLinks?.length
                     ?
-                    await Promise.all(section.sectionLinks.map(async (link) => section.isFree ? { title: link.title, url: link.url } : true)
+                    await Promise.all(section.sectionLinks.map(async (link) => section.isFree || isFree ? { title: link.title, url: link.url } : true)
                     ) : false;
 
                 // دریافت درس‌های مربوط به سکشن
@@ -306,10 +303,10 @@ const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Res
                     lessons.map(async (lesson) => {
                         const lessonFile = lesson.lessonFile
                             ?
-                            isCourseFree || lesson.isFree
+                            isFree || lesson.isFree
                                 ? {
                                     fileTitle: lesson.lessonFile.fileTitle,
-                                    fileName: await generateS3Url(`Courses/${course?.folderName}/CourseLessons/${lesson.lessonFile.fileName}`, !(isCourseFree || lesson.isFree)),
+                                    fileName: await generateS3Url(`Courses/${course?.folderName}/CourseLessons/${lesson.lessonFile.fileName}`, !(isFree || lesson.isFree)),
                                     fileDescription: lesson.lessonFile.fileDescription,
                                 }
                                 : true
@@ -319,7 +316,7 @@ const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Res
                         const attachedFiles = lesson.attachedFile?.length
                             ? await Promise.all(
                                 lesson.attachedFile.map(async (file) =>
-                                    lesson.isFree
+                                    lesson.isFree || isFree
                                         ? {
                                             fileTitle: file.fileTitle,
                                             fileName: await generateS3Url(`Courses/${course?.folderName}/CourseFiles/${file.fileName}`, !(lesson.isFree)),
@@ -365,22 +362,20 @@ const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Res
 
 
         const courseFiles = course.courseFiles?.length ? await Promise.all(
-            course.courseFiles.map(async (file: any) => course.isFree ?
+            course.courseFiles.map(async (file: any) => isFree ?
                 {
                     fileTitle: file.fileTitle,
-                    fileName: await generateS3Url(`Courses/${folderName}CourseFiles/${file.fileName}`, !(course.isFree)),
+                    fileName: await generateS3Url(`Courses/${folderName}CourseFiles/${file.fileName}`, !(isFree)),
                 }
                 : true
             )
         ) : false;
 
         const courseLinks = course.links?.length ?
-            await Promise.all(course.links.map(async (link:any) => course.isFree ? { title: link.title, url: link.url } : true)
+            await Promise.all(course.links.map(async (link: any) => isFree ? { title: link.title, url: link.url } : true)
             ) : false;
 
-        if (course.isFree) {
-
-        }
+  
 
         res.status(200).json({
             success: true,

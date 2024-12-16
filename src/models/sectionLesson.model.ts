@@ -13,7 +13,7 @@ interface ILessonFile extends Document {
 
 interface ILesson extends Document {
     courseId: mongoose.Schema.Types.ObjectId,
-    sectionId: mongoose.Schema.Types.ObjectId,
+    courseSectionId: mongoose.Schema.Types.ObjectId,
 
     lessonType: string;
     lessonTitle: string,
@@ -56,9 +56,9 @@ const LessonSchema = new Schema<ILesson>({
         ref: "Course",
         required: true
     },
-    sectionId: {
+    courseSectionId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Section",
+        ref: "CourseSection",
         required: true
     },
     lessonTitle: { type: String, required: true },
