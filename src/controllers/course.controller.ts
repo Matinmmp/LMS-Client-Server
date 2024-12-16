@@ -11,6 +11,8 @@ import CategoryModel from "../models/category.model";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import userModel from "../models/user.model";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import CourseSectionModel from "../models/courseSection.model";
+import LessonModel from "../models/sectionLesson.model";
 
 require('dotenv').config();
 
@@ -116,7 +118,7 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
                         createdAt: "$createdAt",
                         updatedAt: "$updatedAt",
                         courseLength: "$courseLength",
-                        totalLessons:'$totalLessons'
+                        totalLessons: '$totalLessons'
                     }
                 }
             }
@@ -153,107 +155,242 @@ const generateS3Url = async (key: string, isPrivate: boolean): Promise<string> =
     return signedUrl;
 };
 
+// const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//         const { name } = req.params;
+//         let hasPurchased = false;
+
+//         const course: any = await CourseModel.findOne({ name }).lean();
+//         if (!course) {
+//             return res.status(404).json({ success: false, message: "دوره‌ای با این نام یافت نشد" });
+//         }
+
+//         const folderName = course.folderName;
+
+//         // پردازش courseData
+//         const processedCourseData = await Promise.all(
+//             course.courseData.map(async (data: any) => {
+//                 // ساخت لینک ویدیو
+//                 const videoUrl =
+//                     hasPurchased || data.isFree
+//                         ? await generateS3Url(`Courses/${folderName}/CourseVideos/${data.videoName}`, !data.isFree)
+//                         : "true";
+
+//                 // ساخت لینک فایل‌های ویدیو
+//                 const videoFiles =
+//                     hasPurchased || data.isFree
+//                         ? await generateS3Url(`Courses/${folderName}/CourseFiles/${data.videoFiles}`, !data.isFree)
+//                         : "true";
+
+//                 // ساخت لینک فایل‌های سکشن
+//                 const sectionFiles =
+//                     hasPurchased || data.isFree
+//                         ? await generateS3Url(`Courses/${folderName}/CourseFiles/${data.sectionFiles}`, !data.isFree)
+//                         : "true";
+
+//                 // ساخت لینک‌های عمومی برای ویدیوها و سکشن‌ها
+//                 const videoLinks = data.videoLinks
+//                     ? await Promise.all(
+//                         data.videoLinks.map(async (link: any) => ({
+//                             title: link.title,
+//                             url: hasPurchased || data.isFree ? await generateS3Url(link.url, !data.isFree) : "true"
+//                         }))
+//                     )
+//                     : null;
+
+//                 const sectionLinks = data.sectionLinks
+//                     ? await Promise.all(
+//                         data.sectionLinks.map(async (link: any) => ({
+//                             title: link.title,
+//                             url: hasPurchased || data.isFree ? await generateS3Url(link.url, !data.isFree) : "true"
+//                         }))
+//                     )
+//                     : null;
+
+//                 return {
+//                     isFree: data.isFree,
+//                     title: data.title,
+//                     description: data.description,
+//                     videoSection: data.videoSection,
+//                     videoLength: data.videoLength,
+//                     videoLinks: videoLinks || undefined,
+//                     sectionLinks: sectionLinks || undefined,
+//                     videoFiles: videoFiles || undefined,
+//                     sectionFiles: sectionFiles || undefined,
+//                     videoUrl: videoUrl
+//                 };
+//             })
+//         );
+
+//         // پردازش courseFiles
+//         const courseFiles = course.courseFiles
+//             ? await Promise.all(
+//                 course.courseFiles.map((file: string) =>
+//                     hasPurchased
+//                         ? generateS3Url(`Courses/${folderName}/CourseFiles/${file}`, true) // لینک پرایویت
+//                         : null // فایل‌ها ارسال نشود
+//                 )
+//             )
+//             : undefined;
+
+//         // حذف فایل‌های null از courseFiles
+//         const filteredCourseFiles = courseFiles?.filter((file) => file !== null);
+
+//         // پردازش courseLinks
+//         const courseLinks = course?.courseLinks
+//             ? await Promise.all(
+//                 course?.courseLinks?.map(async (link: any) => ({
+//                     title: link.title,
+//                     url: link.url
+//                 }))
+//             )
+//             : undefined;
+
+//         // ارسال پاسخ
+//         res.status(200).json({
+//             success: true,
+//             isPurchased: hasPurchased,
+//             courseData: processedCourseData,
+//             courseFiles: course?.courseFiles?.length ? 'true' : 'false',
+//             courseLinks: courseLinks?.length ? 'true' : 'false',
+//         });
+//     } catch (error: any) {
+//         return next(error);
+//     }
+// });
+
+
 const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { name } = req.params;
-        let hasPurchased = false;
 
+        // دریافت دوره
         const course: any = await CourseModel.findOne({ name }).lean();
         if (!course) {
             return res.status(404).json({ success: false, message: "دوره‌ای با این نام یافت نشد" });
         }
 
+        // بررسی وضعیت رایگان بودن کل دوره
+        const isCourseFree = course.isFree;
         const folderName = course.folderName;
 
-        // پردازش courseData
-        const processedCourseData = await Promise.all(
-            course.courseData.map(async (data: any) => {
-                // ساخت لینک ویدیو
-                const videoUrl =
-                    hasPurchased || data.isFree
-                        ? await generateS3Url(`Courses/${folderName}/CourseVideos/${data.videoName}`, !data.isFree)
-                        : "true";
+        // دریافت سکشن‌های مربوط به دوره
+        const sections = await CourseSectionModel.find({ courseId: course._id }).sort({ order: 1 }).lean();
 
-                // ساخت لینک فایل‌های ویدیو
-                const videoFiles =
-                    hasPurchased || data.isFree
-                        ? await generateS3Url(`Courses/${folderName}/CourseFiles/${data.videoFiles}`, !data.isFree)
-                        : "true";
+        // پردازش سکشن‌ها
+        const processedSections = await Promise.all(
+            sections.map(async (section) => {
 
-                // ساخت لینک فایل‌های سکشن
+                // پردازش فایل‌ها و لینک‌های سکشن
                 const sectionFiles =
-                    hasPurchased || data.isFree
-                        ? await generateS3Url(`Courses/${folderName}/CourseFiles/${data.sectionFiles}`, !data.isFree)
-                        : "true";
+                    section.sectionFiles?.length ? await Promise.all(
+                        section.sectionFiles.map(async (file) => section.isFree ?
+                            {
+                                fileTitle: file.fileTitle,
+                                fileName: await generateS3Url(`Courses/${folderName}CourseFiles/${file.fileName}`, !(section.isFree)),
+                            }
+                            : true
+                        )
+                    ) : false;
 
-                // ساخت لینک‌های عمومی برای ویدیوها و سکشن‌ها
-                const videoLinks = data.videoLinks
-                    ? await Promise.all(
-                        data.videoLinks.map(async (link: any) => ({
-                            title: link.title,
-                            url: hasPurchased || data.isFree ? await generateS3Url(link.url, !data.isFree) : "true"
-                        }))
-                    )
-                    : null;
+                const sectionLinks = section.sectionLinks?.length
+                    ?
+                    await Promise.all(section.sectionLinks.map(async (link) => section.isFree ? { title: link.title, url: link.url } : true)
+                    ) : false;
 
-                const sectionLinks = data.sectionLinks
-                    ? await Promise.all(
-                        data.sectionLinks.map(async (link: any) => ({
-                            title: link.title,
-                            url: hasPurchased || data.isFree ? await generateS3Url(link.url, !data.isFree) : "true"
-                        }))
-                    )
-                    : null;
+                // دریافت درس‌های مربوط به سکشن
+                const lessons = await LessonModel.find({ sectionId: section._id }).sort({ order: 1 }).lean();
+
+                // پردازش درس‌ها
+                const processedLessons = await Promise.all(
+                    lessons.map(async (lesson) => {
+                        const lessonFile = lesson.lessonFile
+                            ?
+                            isCourseFree || lesson.isFree
+                                ? {
+                                    fileTitle: lesson.lessonFile.fileTitle,
+                                    fileName: await generateS3Url(`Courses/${course?.folderName}/CourseLessons/${lesson.lessonFile.fileName}`, !(isCourseFree || lesson.isFree)),
+                                    fileDescription: lesson.lessonFile.fileDescription,
+                                }
+                                : true
+                            : false;
+
+                        // فایل‌های پیوست‌شده
+                        const attachedFiles = lesson.attachedFile?.length
+                            ? await Promise.all(
+                                lesson.attachedFile.map(async (file) =>
+                                    lesson.isFree
+                                        ? {
+                                            fileTitle: file.fileTitle,
+                                            fileName: await generateS3Url(`Courses/${course?.folderName}/CourseFiles/${file.fileName}`, !(lesson.isFree)),
+                                            fileDescription: file.fileDescription,
+                                        }
+                                        : true
+                                )
+                            )
+                            : false;
+
+                        // لینک‌های مرتبط با درس
+                        const lessonLinks = lesson.links?.length
+                            ? await Promise.all(lesson.links.map(async (link) => lesson.isFree ? { title: link.title, url: link.url } : true))
+                            : false;
+
+                        return {
+                            lessonType: lesson.lessonType,
+                            lessonTitle: lesson.lessonTitle,
+                            lessonFile: lessonFile,
+                            attachedFile: attachedFiles,
+                            links: lessonLinks,
+                            lessonLength: lesson.lessonLength || 0,
+                            isFree: lesson.isFree,
+                            additionalInfo: lesson.additionalInfo || "",
+                            notice: lesson.notice || "",
+                        };
+                    })
+                );
 
                 return {
-                    isFree: data.isFree,
-                    title: data.title,
-                    description: data.description,
-                    videoSection: data.videoSection,
-                    videoLength: data.videoLength,
-                    videoLinks: videoLinks || undefined,
-                    sectionLinks: sectionLinks || undefined,
-                    videoFiles: videoFiles || undefined,
-                    sectionFiles: sectionFiles || undefined,
-                    videoUrl: videoUrl
+                    isFree: section.isFree,
+                    sectionName: section.sectionName,
+                    sectionLinks: sectionLinks || false,
+                    sectionFiles: sectionFiles || false,
+                    totalLessons: section.totalLessons || 0,
+                    totalLength: section.totalLength || 0,
+                    additionalInfo: section.additionalInfo || "",
+                    notice: section.notice || "",
+                    lessonsList: processedLessons,
                 };
             })
         );
 
-        // پردازش courseFiles
-        const courseFiles = course.courseFiles
-            ? await Promise.all(
-                course.courseFiles.map((file: string) =>
-                    hasPurchased
-                        ? generateS3Url(`Courses/${folderName}/CourseFiles/${file}`, true) // لینک پرایویت
-                        : null // فایل‌ها ارسال نشود
-                )
+
+        const courseFiles = course.courseFiles?.length ? await Promise.all(
+            course.courseFiles.map(async (file: any) => course.isFree ?
+                {
+                    fileTitle: file.fileTitle,
+                    fileName: await generateS3Url(`Courses/${folderName}CourseFiles/${file.fileName}`, !(course.isFree)),
+                }
+                : true
             )
-            : undefined;
+        ) : false;
 
-        // حذف فایل‌های null از courseFiles
-        const filteredCourseFiles = courseFiles?.filter((file) => file !== null);
+        const courseLinks = course.links?.length ?
+            await Promise.all(course.links.map(async (link:any) => course.isFree ? { title: link.title, url: link.url } : true)
+            ) : false;
 
-        // پردازش courseLinks
-        const courseLinks = course?.courseLinks
-            ? await Promise.all(
-                course?.courseLinks?.map(async (link: any) => ({
-                    title: link.title,
-                    url: link.url
-                }))
-            )
-            : undefined;
+        if (course.isFree) {
 
-        // ارسال پاسخ
+        }
+
         res.status(200).json({
             success: true,
-            isPurchased: hasPurchased,
-            courseData: processedCourseData,
-            courseFiles: course?.courseFiles?.length ? 'true' : 'false',
-            courseLinks: courseLinks?.length ? 'true' : 'false',
+            isPurchased: false,
+            courseData: processedSections,
+            courseFiles,
+            courseLinks,
         });
     } catch (error: any) {
-        return next(error);
+        next(error);
     }
 });
 
@@ -447,7 +584,7 @@ const searchCourses = CatchAsyncError(async (req: Request, res: Response, next: 
                     }
                 },
                 {
-                    $addFields: {              
+                    $addFields: {
                         teacher: {
                             teacherEngName: { $arrayElemAt: ["$teacherData.engName", 0] },
                             teacherId: { $arrayElemAt: ["$teacherData._id", 0] }
@@ -480,7 +617,7 @@ const searchCourses = CatchAsyncError(async (req: Request, res: Response, next: 
                         courseLength: 1,
                         price: 1,
                         purchased: 1,
-                        totalLessons:1,
+                        totalLessons: 1,
                     }
                 }
             ]);
@@ -562,209 +699,146 @@ export {
 
 }
 
-// const s = [
-//     {
-//         "isFree": false,
-//         "title": "video title 1",
-//         "description": "video Description",
-//         "videoSection": "Section1",
-//         "videoLength": "7111",
-//         "videoLinks": [
-//             {
-//                 "title": "Link ",
-//                 "url": "true"
-//             }
-//         ],
-//         "sectionLinks": [
-//             {
-//                 "title": "link1",
-//                 "url": "true"
-//             },
-//             {
-//                 "title": "link2",
-//                 "url": "true"
-//             }
-//         ],
-//         "videoFiles": "true",
-//         "sectionFiles": "true",
-//         "videoUrl": "true"
-//     },
-//     {
-//         "isFree": false,
-//         "title": "video title 2",
-//         "description": "video Description",
-//         "videoSection": "Section1",
-//         "videoLength": "5111",
-//         "videoLinks": [
-//             {
-//                 "title": "Link ",
-//                 "url": "true"
-//             }
-//         ],
-//         "videoFiles": "true",
-//         "sectionFiles": "true",
-//         "videoUrl": "true"
-//     },
-//     {
-//         "isFree": true,
-//         "title": "video title 3",
-//         "description": "video Description",
-//         "videoSection": "Section2",
-//         "videoLength": "2323",
-//         "videoLinks": [
-//             {
-//                 "title": "Link ",
-//                 "url": "https://buckettest.storage.c2.liara.space/Link "
-//             }
-//         ],
-//         "sectionLinks": [
-//             {
-//                 "title": "link1",
-//                 "url": "https://buckettest.storage.c2.liara.space/https://nextui.org/blog/v2.6.0"
-//             },
-//             {
-//                 "title": "link2",
-//                 "url": "https://buckettest.storage.c2.liara.space/https://nextui.org/blog/v2.6.0"
-//             }
-//         ],
-//         "videoFiles": "https://buckettest.storage.c2.liara.space/Courses/TestCourse1/CourseFiles/video3file.rar",
-//         "sectionFiles": "https://buckettest.storage.c2.liara.space/Courses/TestCourse1/CourseFiles/section2file.rar",
-//         "videoUrl": "https://buckettest.storage.c2.liara.space/Courses/TestCourse1/CourseVideos/next3.mp4"
-//     },
-//     {
-//         "isFree": false,
-//         "title": "video title 4",
-//         "description": "video Description",
-//         "videoSection": "Section3",
-//         "videoLength": "7777",
-//         "videoLinks": [
-//             {
-//                 "title": "Link ",
-//                 "url": "true"
-//             }
-//         ],
-//         "sectionLinks": [
-//             {
-//                 "title": "link1",
-//                 "url": "true"
-//             },
-//             {
-//                 "title": "link2",
-//                 "url": "true"
-//             }
-//         ],
-//         "videoFiles": "true",
-//         "sectionFiles": "true",
-//         "videoUrl": "true"
-//     }
-// ]
+const s = [
+    {
+        "isFree": false,
+        "title": "video title 1",
+        "description": "video Description",
+        "videoSection": "Section1",
+        "videoLength": "7111",
+        "videoLinks": [
+            {
+                "title": "Link ",
+                "url": "true"
+            }
+        ],
+        "sectionLinks": [
+            {
+                "title": "link1",
+                "url": "true"
+            },
+            {
+                "title": "link2",
+                "url": "true"
+            }
+        ],
+        "videoFiles": "true",
+        "sectionFiles": "true",
+        "videoUrl": "true"
+    },
+    {
+        "isFree": false,
+        "title": "video title 2",
+        "description": "video Description",
+        "videoSection": "Section1",
+        "videoLength": "5111",
+        "videoLinks": [
+            {
+                "title": "Link ",
+                "url": "true"
+            }
+        ],
+        "videoFiles": "true",
+        "sectionFiles": "true",
+        "videoUrl": "true"
+    },
+    {
+        "isFree": true,
+        "title": "video title 3",
+        "description": "video Description",
+        "videoSection": "Section2",
+        "videoLength": "2323",
+        "videoLinks": [
+            {
+                "title": "Link ",
+                "url": "https://buckettest.storage.c2.liara.space/Link "
+            }
+        ],
+        "sectionLinks": [
+            {
+                "title": "link1",
+                "url": "https://buckettest.storage.c2.liara.space/https://nextui.org/blog/v2.6.0"
+            },
+            {
+                "title": "link2",
+                "url": "https://buckettest.storage.c2.liara.space/https://nextui.org/blog/v2.6.0"
+            }
+        ],
+        "videoFiles": "https://buckettest.storage.c2.liara.space/Courses/TestCourse1/CourseFiles/video3file.rar",
+        "sectionFiles": "https://buckettest.storage.c2.liara.space/Courses/TestCourse1/CourseFiles/section2file.rar",
+        "videoUrl": "https://buckettest.storage.c2.liara.space/Courses/TestCourse1/CourseVideos/next3.mp4"
+    },
+    {
+        "isFree": false,
+        "title": "video title 4",
+        "description": "video Description",
+        "videoSection": "Section3",
+        "videoLength": "7777",
+        "videoLinks": [
+            {
+                "title": "Link ",
+                "url": "true"
+            }
+        ],
+        "sectionLinks": [
+            {
+                "title": "link1",
+                "url": "true"
+            },
+            {
+                "title": "link2",
+                "url": "true"
+            }
+        ],
+        "videoFiles": "true",
+        "sectionFiles": "true",
+        "videoUrl": "true"
+    }
+]
 
-// const list = [
-//     {
-//         "videoSection": "Section1",
-//         "sectionFiles": "true",
-//         "totalLength": "12222",
-//         "sectionLinks": [{ "title": "link1", "url": "true" }, { "title": "link2", "url": "true" }],
-//         "videoList": [
-//             {
-//                 "isFree": false,
-//                 "title": "video title 1",
-//                 "description": "video Description",
-//                 "videoLength": "7111",
-//                 "videoLinks": [
-//                     {
-//                         "title": "Link ",
-//                         "url": "true"
-//                     }
-//                 ],
-//                 "videoFiles": "true",
-//                 "videoUrl": "true"
-//             },
-//             {
-//                 "isFree": false,
-//                 "title": "video title 2",
-//                 "description": "video Description",
-//                 "videoLength": "5111",
-//                 "videoLinks": [
-//                     {
-//                         "title": "Link ",
-//                         "url": "true"
-//                     }
-//                 ],
-//                 "videoFiles": "true",
+const list = [
+    {
+        "isFree": false,
+        "sectionName": "Section1",
+        "sectionLinks": [{ "title": "link1", "url": true }, { "title": "link2", "url": true }],
+        "sectionFiles": [{ fileTitle: "file title", fileName: "file name", }],
+        "totalLessons": 2,
+        "totalLength": "12222",
+        "additionalInfo": '',
+        "notice": "",
+        "lessonsList": [
+            {
+                lessonType: "",
+                lessonTitle: "",
 
-//                 "videoUrl": "true"
-//             },
-//         ]
-//     },
-//     {
-//         "videoSection": "Section2",
-//         "sectionLinks": [
-//             {
-//                 "title": "link1",
-//                 "url": "https://buckettest.storage.c2.liara.space/https://nextui.org/blog/v2.6.0"
-//             },
-//             {
-//                 "title": "link2",
-//                 "url": "https://buckettest.storage.c2.liara.space/https://nextui.org/blog/v2.6.0"
-//             }
-//         ],
-//         "totalLength": "2323",
-//         "sectionFiles": ["https://buckettest.storage.c2.liara.space/Courses/TestCourse1/CourseFiles/section2file.rar"],
+                //اینا مربوط به خوده درس هستن
+                lessonFile: {
+                    fileTitle: "",
+                    fileName: "",
+                    fileDescription: ""
+                },//چه ویدیو چه فایل باشه میره این
 
-//         "videoList": [
-//             {
-//                 "isFree": true,
-//                 "title": "video title 3",
-//                 "description": "video Description",
-//                 "videoLength": "2323",
-//                 "videoLinks": [
-//                     {
-//                         "title": "Link ",
-//                         "url": "https://buckettest.storage.c2.liara.space/Link "
-//                     }
-//                 ],
+                //اینا مربوط به اینه که اگه درس همزمان فایلی هم داشت
+                attachedFile: [{
+                    fileTitle: "",
+                    fileName: "",
+                    fileDescription: ""
+                }],
 
-//                 "videoFiles": "https://buckettest.storage.c2.liara.space/Courses/TestCourse1/CourseFiles/video3file.rar",
-//                 "videoUrl": "https://buckettest.storage.c2.liara.space/Courses/TestCourse1/CourseVideos/next3.mp4"
-//             },
 
-//         ]
-//     },
-//     {
-//         "videoSection": "Section3",
-//         "totalLength": "7777",
-//         "sectionLinks": [
-//             {
-//                 "title": "link1",
-//                 "url": "true"
-//             },
-//             {
-//                 "title": "link2",
-//                 "url": "true"
-//             }
-//         ],
-//         "sectionFiles": "true",
+                //اگه این درس لینکی داره
+                links: [{ "title": "link1", "url": true }, { "title": "link2", "url": true }],
 
-//         "videoList": [
-//             {
-//                 "isFree": false,
-//                 "title": "video title 4",
-//                 "description": "video Description",
-//                 "videoSection": "Section3",
-//                 "videoLength": "7777",
-//                 "videoLinks": [
-//                     {
-//                         "title": "Link ",
-//                         "url": "true"
-//                     }
-//                 ],
-//                 "videoFiles": "true",
-//                 "videoUrl": "true"
-//             }
-//         ]
-//     }
-// ]
+                lessonLength: 400,
+
+                isFree: false,
+
+                additionalInfo: "",
+                notice: "",
+            }
+        ]
+    },
+]
 
 const sample = {
     "_id": {
