@@ -240,7 +240,7 @@ const getTeacherCoursesByEngName = CatchAsyncError(async (req: Request, res: Res
                 }
             },
             {
-                $limit: 8 // محدود کردن به 8 دوره برتر
+                $limit: 8 
             },
             {
                 $lookup: {
@@ -260,17 +260,8 @@ const getTeacherCoursesByEngName = CatchAsyncError(async (req: Request, res: Res
             },
             {
                 $addFields: {
-                    courseLength: {
-                        $sum: {
-                            $map: {
-                                input: "$courseData", // فیلد courseData که شامل ویدیوها است
-                                as: "courseItem",
-                                in: { $toInt: "$$courseItem.videoLength" } // جمع کردن طول ویدیوها
-                            }
-                        }
-                    },
                     teacher: {
-                        teacherFaName: { $arrayElemAt: ["$teacherData.faName", 0] },
+                        teacherEngName: { $arrayElemAt: ["$teacherData.engName", 0] },
                         teacherId: { $arrayElemAt: ["$teacherData._id", 0] },
                     },
                     academy: {
@@ -294,7 +285,8 @@ const getTeacherCoursesByEngName = CatchAsyncError(async (req: Request, res: Res
                     teacher: 1,
                     academy: 1,
                     courseLength: 1,
-                    price: 1
+                    price: 1,
+                    totalLessons:1
                 }
             }
         ]);

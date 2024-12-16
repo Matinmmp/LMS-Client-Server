@@ -5,19 +5,8 @@ import AcademyModel from "../models/academy.model";
 import { redis } from "../utils/redis";
 import CourseModel from "../models/course.model";
 import TeacherModel from "../models/teacher.model";
-const { S3Client, } = require("@aws-sdk/client-s3");
 
 require('dotenv').config();
-
-
-const client = new S3Client({
-    region: "default",
-    endpoint: process.env.LIARA_ENDPOINT,
-    credentials: {
-        accessKeyId: process.env.LIARA_ACCESS_KEY,
-        secretAccessKey: process.env.LIARA_SECRET_KEY
-    }
-})
 
 
 const CACHE_EXPIRATION = 86400; // 24 ساعت (86400 ثانیه)
@@ -180,7 +169,7 @@ const getAcademyCoursesByEngName = CatchAsyncError(async (req: Request, res: Res
                 }
             },
             {
-                $limit: 8 // محدود به 16 دوره
+                $limit: 8 
             },
             {
                 $lookup: {
@@ -200,18 +189,9 @@ const getAcademyCoursesByEngName = CatchAsyncError(async (req: Request, res: Res
             },
             {
                 $addFields: {
-                    courseLength: {
-                        $sum: {
-                            $map: {
-                                input: "$courseData", // فیلد courseData که شامل ویدیوها است
-                                as: "courseItem",
-                                in: { $toInt: "$$courseItem.videoLength" } // جمع کردن طول ویدیوها
-                            }
-                        }
-                    },
 
                     teacher: {
-                        teacherFaName: { $arrayElemAt: ["$teacherData.faName", 0] },
+                        teacherEngName: { $arrayElemAt: ["$teacherData.engName", 0] },
                         teacherId: { $arrayElemAt: ["$teacherData._id", 0] },
                     },
                     academy: {
@@ -236,6 +216,7 @@ const getAcademyCoursesByEngName = CatchAsyncError(async (req: Request, res: Res
                     academy: 1,
                     courseLength: 1,
                     price: 1,
+                    totalLessons:1,
 
                 }
             }

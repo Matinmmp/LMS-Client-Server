@@ -78,19 +78,6 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
                 }
             },
             {
-                $addFields: {
-                    courseLength: {
-                        $sum: {
-                            $map: {
-                                input: "$courseData", // فیلد courseData که شامل ویدیوها است
-                                as: "courseItem",
-                                in: { $toInt: "$$courseItem.videoLength" } // جمع کردن طول ویدیوها
-                            }
-                        }
-                    }
-                }
-            },
-            {
                 $project: {
                     teacher: {
                         engName: { $arrayElemAt: ["$teacherData.engName", 0] },
@@ -128,7 +115,8 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
                         totalVideos: "$totalVideos",
                         createdAt: "$createdAt",
                         updatedAt: "$updatedAt",
-                        courseLength: "$courseLength"
+                        courseLength: "$courseLength",
+                        totalLessons:'$totalLessons'
                     }
                 }
             }
@@ -387,7 +375,7 @@ const getCourseDataByNameLoged = CatchAsyncError(async (req: Request, res: Respo
 });
 
 
-type searchCourses = {
+type searchCoursesTypes = {
     searchText: string,
     order: string, //key='1'=>'جدید‌ترین' ,key= '2'=>'قدیمی‌ترین' ,key= '3'=>'تمام شده' ,key='4'=>'درحال برگزاری' ,key='5'=>'محبوبترین',key='6'=>'پرفروش ترین',can be null if was null just bring order by newst
     price: string // key='1'=>'all',key='2'=>'only free',key='3'=>'only with price',key='4'=>'first bring courses with offers then other courses but bring all of them'
@@ -459,18 +447,9 @@ const searchCourses = CatchAsyncError(async (req: Request, res: Response, next: 
                     }
                 },
                 {
-                    $addFields: {
-                        courseLength: {
-                            $sum: {
-                                $map: {
-                                    input: "$courseData",
-                                    as: "courseItem",
-                                    in: { $toInt: "$$courseItem.videoLength" }
-                                }
-                            }
-                        },
+                    $addFields: {              
                         teacher: {
-                            teacherFaName: { $arrayElemAt: ["$teacherData.faName", 0] },
+                            teacherEngName: { $arrayElemAt: ["$teacherData.engName", 0] },
                             teacherId: { $arrayElemAt: ["$teacherData._id", 0] }
                         },
                         academy: {
@@ -500,7 +479,8 @@ const searchCourses = CatchAsyncError(async (req: Request, res: Response, next: 
                         categories: 1, // افزودن فیلد دسته‌بندی به خروجی نهایی
                         courseLength: 1,
                         price: 1,
-                        purchased: 1
+                        purchased: 1,
+                        totalLessons:1,
                     }
                 }
             ]);
