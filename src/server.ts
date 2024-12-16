@@ -13,7 +13,7 @@ import LessonModel from "./models/sectionLesson.model";
 import userModel from "./models/user.model";
 
 import MongoStore from 'connect-mongo'
-import session from 'express-session'
+
 import mongoose from "mongoose";
 import * as AdminJSMongoose from "@adminjs/mongoose"
 

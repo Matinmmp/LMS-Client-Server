@@ -46,7 +46,7 @@ export interface ICourse extends Document {
     folderName: string; // نام پوشه مربوط به دوره
     isInVirtualPlus: boolean; // آیا دوره در برنامه Virtual Plus موجود است
     showCourse: boolean; // آیا دوره برای کاربران قابل نمایش است
-    totalVideos: number; // تعداد ویدیوهای موجود در دوره
+    totalLessons: number; // تعداد ویدیوهای موجود در دوره
     viewsCount: number; // تعداد بازدیدهای دوره
     seoMeta: { description: string;keywords: string[];}; // اطلاعات SEO دوره
     previewVideoUrl?: string; // لینک ویدیوی پیش‌نمایش
@@ -57,7 +57,8 @@ export interface ICourse extends Document {
     isPreOrder: Boolean;
     holeCourseVideos: Number;//تعداد ویدیو هایی که دوره در نهایت باید داشته باشه برای تخمین درصد تکمیل دوره
     courseFiles:[IFile],
-    notice:string
+    notice:string,
+    courseLength:number//زمان دوره به ثانیه
 }
 
 
@@ -85,7 +86,7 @@ const courseSchema = new Schema<ICourse>({
     folderName: String,
     isInVirtualPlus: { type: Boolean, default: false },
     showCourse: { type: Boolean, default: false },
-    totalVideos: Number,
+    totalLessons: Number,
     viewsCount: { type: Number, default: 0 },
     seoMeta: { description: String, keywords: [String] },
     previewVideoUrl: { type: String },
@@ -97,6 +98,7 @@ const courseSchema = new Schema<ICourse>({
     holeCourseVideos: { type: Number, default: 0 },
     courseFiles:[fileSchema],
     notice:String,
+    courseLength:Number,
  
 }, { timestamps: true });
 

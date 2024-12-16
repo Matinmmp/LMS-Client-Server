@@ -582,206 +582,411 @@ export {
 
 }
 
-const s = [
-    {
-        "isFree": false,
-        "title": "video title 1",
-        "description": "video Description",
-        "videoSection": "Section1",
-        "videoLength": "7111",
-        "videoLinks": [
-            {
-                "title": "Link ",
-                "url": "true"
-            }
-        ],
-        "sectionLinks": [
-            {
-                "title": "link1",
-                "url": "true"
-            },
-            {
-                "title": "link2",
-                "url": "true"
-            }
-        ],
-        "videoFiles": "true",
-        "sectionFiles": "true",
-        "videoUrl": "true"
-    },
-    {
-        "isFree": false,
-        "title": "video title 2",
-        "description": "video Description",
-        "videoSection": "Section1",
-        "videoLength": "5111",
-        "videoLinks": [
-            {
-                "title": "Link ",
-                "url": "true"
-            }
-        ],
-        "videoFiles": "true",
-        "sectionFiles": "true",
-        "videoUrl": "true"
-    },
-    {
-        "isFree": true,
-        "title": "video title 3",
-        "description": "video Description",
-        "videoSection": "Section2",
-        "videoLength": "2323",
-        "videoLinks": [
-            {
-                "title": "Link ",
-                "url": "https://buckettest.storage.c2.liara.space/Link "
-            }
-        ],
-        "sectionLinks": [
-            {
-                "title": "link1",
-                "url": "https://buckettest.storage.c2.liara.space/https://nextui.org/blog/v2.6.0"
-            },
-            {
-                "title": "link2",
-                "url": "https://buckettest.storage.c2.liara.space/https://nextui.org/blog/v2.6.0"
-            }
-        ],
-        "videoFiles": "https://buckettest.storage.c2.liara.space/Courses/TestCourse1/CourseFiles/video3file.rar",
-        "sectionFiles": "https://buckettest.storage.c2.liara.space/Courses/TestCourse1/CourseFiles/section2file.rar",
-        "videoUrl": "https://buckettest.storage.c2.liara.space/Courses/TestCourse1/CourseVideos/next3.mp4"
-    },
-    {
-        "isFree": false,
-        "title": "video title 4",
-        "description": "video Description",
-        "videoSection": "Section3",
-        "videoLength": "7777",
-        "videoLinks": [
-            {
-                "title": "Link ",
-                "url": "true"
-            }
-        ],
-        "sectionLinks": [
-            {
-                "title": "link1",
-                "url": "true"
-            },
-            {
-                "title": "link2",
-                "url": "true"
-            }
-        ],
-        "videoFiles": "true",
-        "sectionFiles": "true",
-        "videoUrl": "true"
-    }
-]
+// const s = [
+//     {
+//         "isFree": false,
+//         "title": "video title 1",
+//         "description": "video Description",
+//         "videoSection": "Section1",
+//         "videoLength": "7111",
+//         "videoLinks": [
+//             {
+//                 "title": "Link ",
+//                 "url": "true"
+//             }
+//         ],
+//         "sectionLinks": [
+//             {
+//                 "title": "link1",
+//                 "url": "true"
+//             },
+//             {
+//                 "title": "link2",
+//                 "url": "true"
+//             }
+//         ],
+//         "videoFiles": "true",
+//         "sectionFiles": "true",
+//         "videoUrl": "true"
+//     },
+//     {
+//         "isFree": false,
+//         "title": "video title 2",
+//         "description": "video Description",
+//         "videoSection": "Section1",
+//         "videoLength": "5111",
+//         "videoLinks": [
+//             {
+//                 "title": "Link ",
+//                 "url": "true"
+//             }
+//         ],
+//         "videoFiles": "true",
+//         "sectionFiles": "true",
+//         "videoUrl": "true"
+//     },
+//     {
+//         "isFree": true,
+//         "title": "video title 3",
+//         "description": "video Description",
+//         "videoSection": "Section2",
+//         "videoLength": "2323",
+//         "videoLinks": [
+//             {
+//                 "title": "Link ",
+//                 "url": "https://buckettest.storage.c2.liara.space/Link "
+//             }
+//         ],
+//         "sectionLinks": [
+//             {
+//                 "title": "link1",
+//                 "url": "https://buckettest.storage.c2.liara.space/https://nextui.org/blog/v2.6.0"
+//             },
+//             {
+//                 "title": "link2",
+//                 "url": "https://buckettest.storage.c2.liara.space/https://nextui.org/blog/v2.6.0"
+//             }
+//         ],
+//         "videoFiles": "https://buckettest.storage.c2.liara.space/Courses/TestCourse1/CourseFiles/video3file.rar",
+//         "sectionFiles": "https://buckettest.storage.c2.liara.space/Courses/TestCourse1/CourseFiles/section2file.rar",
+//         "videoUrl": "https://buckettest.storage.c2.liara.space/Courses/TestCourse1/CourseVideos/next3.mp4"
+//     },
+//     {
+//         "isFree": false,
+//         "title": "video title 4",
+//         "description": "video Description",
+//         "videoSection": "Section3",
+//         "videoLength": "7777",
+//         "videoLinks": [
+//             {
+//                 "title": "Link ",
+//                 "url": "true"
+//             }
+//         ],
+//         "sectionLinks": [
+//             {
+//                 "title": "link1",
+//                 "url": "true"
+//             },
+//             {
+//                 "title": "link2",
+//                 "url": "true"
+//             }
+//         ],
+//         "videoFiles": "true",
+//         "sectionFiles": "true",
+//         "videoUrl": "true"
+//     }
+// ]
 
-const list = [
-    {
-        "videoSection": "Section1",
-        "sectionFiles": "true",
-        "totalLength": "12222",
-        "sectionLinks": [{ "title": "link1", "url": "true" }, { "title": "link2", "url": "true" }],
-        "videoList": [
-            {
-                "isFree": false,
-                "title": "video title 1",
-                "description": "video Description",
-                "videoLength": "7111",
-                "videoLinks": [
-                    {
-                        "title": "Link ",
-                        "url": "true"
+// const list = [
+//     {
+//         "videoSection": "Section1",
+//         "sectionFiles": "true",
+//         "totalLength": "12222",
+//         "sectionLinks": [{ "title": "link1", "url": "true" }, { "title": "link2", "url": "true" }],
+//         "videoList": [
+//             {
+//                 "isFree": false,
+//                 "title": "video title 1",
+//                 "description": "video Description",
+//                 "videoLength": "7111",
+//                 "videoLinks": [
+//                     {
+//                         "title": "Link ",
+//                         "url": "true"
+//                     }
+//                 ],
+//                 "videoFiles": "true",
+//                 "videoUrl": "true"
+//             },
+//             {
+//                 "isFree": false,
+//                 "title": "video title 2",
+//                 "description": "video Description",
+//                 "videoLength": "5111",
+//                 "videoLinks": [
+//                     {
+//                         "title": "Link ",
+//                         "url": "true"
+//                     }
+//                 ],
+//                 "videoFiles": "true",
+
+//                 "videoUrl": "true"
+//             },
+//         ]
+//     },
+//     {
+//         "videoSection": "Section2",
+//         "sectionLinks": [
+//             {
+//                 "title": "link1",
+//                 "url": "https://buckettest.storage.c2.liara.space/https://nextui.org/blog/v2.6.0"
+//             },
+//             {
+//                 "title": "link2",
+//                 "url": "https://buckettest.storage.c2.liara.space/https://nextui.org/blog/v2.6.0"
+//             }
+//         ],
+//         "totalLength": "2323",
+//         "sectionFiles": ["https://buckettest.storage.c2.liara.space/Courses/TestCourse1/CourseFiles/section2file.rar"],
+
+//         "videoList": [
+//             {
+//                 "isFree": true,
+//                 "title": "video title 3",
+//                 "description": "video Description",
+//                 "videoLength": "2323",
+//                 "videoLinks": [
+//                     {
+//                         "title": "Link ",
+//                         "url": "https://buckettest.storage.c2.liara.space/Link "
+//                     }
+//                 ],
+
+//                 "videoFiles": "https://buckettest.storage.c2.liara.space/Courses/TestCourse1/CourseFiles/video3file.rar",
+//                 "videoUrl": "https://buckettest.storage.c2.liara.space/Courses/TestCourse1/CourseVideos/next3.mp4"
+//             },
+
+//         ]
+//     },
+//     {
+//         "videoSection": "Section3",
+//         "totalLength": "7777",
+//         "sectionLinks": [
+//             {
+//                 "title": "link1",
+//                 "url": "true"
+//             },
+//             {
+//                 "title": "link2",
+//                 "url": "true"
+//             }
+//         ],
+//         "sectionFiles": "true",
+
+//         "videoList": [
+//             {
+//                 "isFree": false,
+//                 "title": "video title 4",
+//                 "description": "video Description",
+//                 "videoSection": "Section3",
+//                 "videoLength": "7777",
+//                 "videoLinks": [
+//                     {
+//                         "title": "Link ",
+//                         "url": "true"
+//                     }
+//                 ],
+//                 "videoFiles": "true",
+//                 "videoUrl": "true"
+//             }
+//         ]
+//     }
+// ]
+
+const sample = {
+    "_id": {
+        "$oid": "66ca02117a3cf2a90b4ee655"
+    },
+    "name": "100 Days of Code: The Complete Python Pro Bootcamp",
+    "description": "حیف نیست محبوب ترین زبان برنامه نویسی دنیا رو  ناقص و بی هدف یادبگیری؟ آموزش پایتون از زیر صفر و پایه ترین مبحث شروع میشه تا تخصصی ترین و پیشرفته ترین مباحث، هر قسمت کلی پروژه و تمرین حل می کنیم، برات تکلیف مشخص می کنیم، کاربردشو تو دنیای واقعی نشون میدیم و در آخرحیف نیست محبوب ترین زبان برنامه نویسی دنیا رو  ناقص و بی هدف یادبگیری؟ آموزش پایتون از زیر صفر و پایه ترین مبحث شروع میشه تا تخصصی ترین و پیشرفته ترین مباحث، هر قسمت کلی پروژه و تمرین حل می کنیم، برات تکلیف مشخص می کنیم، کاربردشو تو دنیای واقعی نشون میدیم و در آخر",
+    "price": 0,
+    "estimatedPrice": 0,
+    "thumbnail": {
+        "imageName": "TJDEJAUHTPUdEUuVGziR-Course Name.png",
+        "imageUrl": "https://buckettest.storage.c2.liara.space/trash/21752382117.png"
+    },
+    "tags": "1 2 3 react ",
+    "level": "1",
+    "benefits": [
+        {
+            "title": "what are benefites1",
+            "_id": {
+                "$oid": "66ca1a2a3269ab9acf626c2b"
+            }
+        }
+    ],
+    "prerequisites": [
+        {
+            "title": "what are prerequisites1",
+            "_id": {
+                "$oid": "66ca1a2a3269ab9acf626c2a"
+            }
+        }
+    ],
+    "courseData": [
+        {
+            "title": "Downloadable Resources and Tips for Taking the Course",
+            "videoSection": "فصل اول : اموزش پایتون بصورت کاربردی با دیدگاه یک هکر",
+            "description": "video Description",
+            "videoLength": "7111",
+            "isFree": true,
+            "videoName": "next1.mp4",
+            "_id": {
+                "$oid": "66ca1a293269ab9acf626c26"
+            },
+            "sectionLinks": [
+                {
+                    "title": "link1",
+                    "url": "https://nextui.org/blog/v2.6.0"
+                },
+                {
+                    "title": "link2",
+                    "url": "https://nextui.org/blog/v2.6.0"
+                }
+            ],
+            "videoLinks": [
+                {
+                    "title": "Link ",
+                    "url": "Link ",
+                    "_id": {
+                        "$oid": "66ca1a293269ab9acf626c27"
                     }
-                ],
-                "videoFiles": "true",
-                "videoUrl": "true"
+                }
+            ],
+            "sectionFiles": "section1file.rar",
+            "videoFiles": "video1file.rar"
+        },
+        {
+            "title": "video title 2",
+            "videoSection": "فصل اول : اموزش پایتون بصورت کاربردی با دیدگاه یک هکر",
+            "description": "video Description",
+            "videoLength": "5111",
+            "isFree": true,
+            "videoName": "next2.mp4",
+            "_id": {
+                "$oid": "66ca1a293269ab9acf626f27"
             },
-            {
-                "isFree": false,
-                "title": "video title 2",
-                "description": "video Description",
-                "videoLength": "5111",
-                "videoLinks": [
-                    {
-                        "title": "Link ",
-                        "url": "true"
+            "videoLinks": [
+                {
+                    "title": "Link ",
+                    "url": "Link ",
+                    "_id": {
+                        "$oid": "66ca1a293269ab9acf626c28"
                     }
-                ],
-                "videoFiles": "true",
-
-                "videoUrl": "true"
+                }
+            ],
+            "videoFiles": "video2file.rar"
+        },
+        {
+            "title": "video title 3",
+            "videoSection": "فصل دوم : کلی مینی پروژه سناریو محور",
+            "description": "video Description",
+            "videoLength": "2323",
+            "isFree": true,
+            "videoName": "next3.mp4",
+            "_id": {
+                "$oid": "66ca1a293269ab9acf626c37"
             },
-        ]
+            "sectionLinks": [
+                {
+                    "title": "link1",
+                    "url": "https://nextui.org/blog/v2.6.0"
+                },
+                {
+                    "title": "link2",
+                    "url": "https://nextui.org/blog/v2.6.0"
+                }
+            ],
+            "videoLinks": [
+                {
+                    "title": "Link ",
+                    "url": "Link ",
+                    "_id": {
+                        "$oid": "66ca1a293269ab9acf626c27"
+                    }
+                }
+            ],
+            "sectionFiles": "section2file.rar",
+            "videoFiles": "video3file.rar"
+        },
+        {
+            "title": "video title 4",
+            "videoSection": "فصل سوم : نوشتن ابزار استورم بریکر",
+            "description": "video Description",
+            "videoLength": "7777",
+            "isFree": true,
+            "videoName": "next4.mp4",
+            "_id": {
+                "$oid": "66ca1a293269ab9acf626c37"
+            },
+            "sectionLinks": [
+                {
+                    "title": "link1",
+                    "url": "https://nextui.org/blog/v2.6.0"
+                },
+                {
+                    "title": "link2",
+                    "url": "https://nextui.org/blog/v2.6.0"
+                }
+            ],
+            "videoLinks": [
+                {
+                    "title": "Link ",
+                    "url": "Link ",
+                    "_id": {
+                        "$oid": "66ca1a293269ab9acf626c27"
+                    }
+                }
+            ],
+            "sectionFiles": "section3file.rar",
+            "videoFiles": "video4file.rar"
+        }
+    ],
+    "ratings": 0,
+    "purchased": 0,
+    "status": 1,
+    "academyId": {
+        "$oid": "66dffd45b979073314e6ef61"
     },
-    {
-        "videoSection": "Section2",
-        "sectionLinks": [
-            {
-                "title": "link1",
-                "url": "https://buckettest.storage.c2.liara.space/https://nextui.org/blog/v2.6.0"
-            },
-            {
-                "title": "link2",
-                "url": "https://buckettest.storage.c2.liara.space/https://nextui.org/blog/v2.6.0"
-            }
-        ],
-        "totalLength": "2323",
-        "sectionFiles": ["https://buckettest.storage.c2.liara.space/Courses/TestCourse1/CourseFiles/section2file.rar"],
-
-        "videoList": [
-            {
-                "isFree": true,
-                "title": "video title 3",
-                "description": "video Description",
-                "videoLength": "2323",
-                "videoLinks": [
-                    {
-                        "title": "Link ",
-                        "url": "https://buckettest.storage.c2.liara.space/Link "
-                    }
-                ],
-
-                "videoFiles": "https://buckettest.storage.c2.liara.space/Courses/TestCourse1/CourseFiles/video3file.rar",
-                "videoUrl": "https://buckettest.storage.c2.liara.space/Courses/TestCourse1/CourseVideos/next3.mp4"
-            },
-
-        ]
+    "teacherId": {
+        "$oid": "66dffc41b979073314e6ef58"
     },
-    {
-        "videoSection": "Section3",
-        "totalLength": "7777",
-        "sectionLinks": [
-            {
-                "title": "link1",
-                "url": "true"
-            },
-            {
-                "title": "link2",
-                "url": "true"
+    "discount": {
+        "percent": 100,
+        "usageCount": 40,
+        "expireTime": {
+            "$date": "2024-12-21T15:47:58.002Z"
+        }
+    },
+    "links": [
+        {
+            "title": "Link 1",
+            "url": "Link 1",
+            "_id": {
+                "$oid": "66ca02117a3cf2a90b4ee65c"
             }
-        ],
-        "sectionFiles": "true",
-
-        "videoList": [
-            {
-                "isFree": false,
-                "title": "video title 4",
-                "description": "video Description",
-                "videoSection": "Section3",
-                "videoLength": "7777",
-                "videoLinks": [
-                    {
-                        "title": "Link ",
-                        "url": "true"
-                    }
-                ],
-                "videoFiles": "true",
-                "videoUrl": "true"
-            }
-        ]
-    }
-]
+        }
+    ],
+    "categoryIds": [
+        {
+            "$oid": "66e06ec8b979073314e6efa1"
+        },
+        {
+            "$oid": "66e06f52b979073314e6efcb"
+        }
+    ],
+    "releaseDate": {
+        "$date": "2024-08-24T15:46:30.324Z"
+    },
+    "folderName": "TestCourse1",
+    "isInVirtualPlus": false,
+    "showCourse": true,
+    "totalVideos": 2,
+    "createdAt": {
+        "$date": "2024-08-24T15:53:53.313Z"
+    },
+    "updatedAt": {
+        "$date": "2024-08-24T17:36:41.999Z"
+    },
+    "__v": 0,
+    "lastContentUpdate": "2024-08-24T15:46:30.324+00:00",
+    "holeCourseVideos": 75,
+    "longDescription": "<div class=\"relative overflow-hidden\">\n\t\t\t\t\t\t\t<div class=\"course-content wp-content max-h-[800px]\" style=\"max-height: 100%;\">\n\t\t\t\t\t\t\t\t\n<meta charset=\"utf8\"><p>قبل از اینکه بخواین این دوره رو ببینید اگر دوره <strong><a href=\"https://sabzlearn.ir/course/python/\">آموزش پایتون</a></strong> رو ندیدین حتما دوره رو ببینید که خیلی خیلی بهتون کمک خواهد کرد.</p>\n<p><img decoding=\"async\" loading=\"lazy\" class=\"alignnone size-full wp-image-3590\" src=\"https://sabzlearn.ir/wp-content/uploads/2024/01/%D9%BE%D8%A7%DB%8C%D8%AA%D9%88%D9%86-%D8%B3%DB%8C%D8%A7%D9%87.webp\" alt=\"آموزش پایتون با گرایش امنیت\" width=\"1920\" height=\"1080\"></p>\n<p><span style=\"font-weight: 400\">اگر به کار کردن در زمینه امنیت سایبری علاقه دارید، آشنایی با زبان‎‌های برنامه‎‌نویسی مختلف و شرکت در دوره‎‌هایی مانند دوره آموزشی هک با پایتون به پیشرفت شما کمک زیادی می‌کند. پایتون فقط یک راه سریع و آسان برای تجزیه و تحلیل داده‌‎ها، برنامه‎‌نویسی وب و توسعه اپلیکیشن‎‌ها نیست، بلکه برای موفقیت در حوزه هک و امنیت نیز باید کدنویسی با حداقل یک زبان برنامه‌نویسی مانند پایتون را بلد باشید. معمولا افراد تازه کار در حوزه امنیت سایبری به‌جای تقویت دانش خود در زمینه برنامه‎نویسی به سراغ یادگیری مباحث مرتبط با نفوذ می‌‎روند و از ضعف دانش خود در برنامه‌‎نویسی غافل هستند!</span></p>\n<p><span style=\"font-weight: 400\">درحالی‌‌که لازمه موفقیت در حوزه امنیت، درک منطق آن چیزی است که قصد نفوذ به آن را دارید و این موضوع فقط با یادگیری زبان‎‌های برنامه‎‌نویسی حاصل می‌‎شود. یادگیری و استفاده از پایتون به شما کمک می‌‌کند تا خلاقیت و توانایی حل مسئله خود در مباحث امنیتی را افزایش دهید و درک عمیق‌‎تری از برنامه‎‌ها برای جلوگیری از نفوذ یا هک داشته باشید. با شرکت در دوره آموزشی پایتون سیاه سبزلرن علاوه‌‎بر یادگیری مفاهیم ابتدایی زبان برنامه‌‎نویسی پایتون، این فرصت را دارید تا دانش لازم برای شناخت بهتر ذهنیت هکرها و راه‌‎های نفوذ به سیستم‎‌ها مختلف را با مثال‌‎های کاربردی به‌‎دست آورید.</span></p>\n<h2 id=\"h_1\"><b>دوره آموزش هک با پایتون برای چه کسانی مناسب است؟</b></h2>\n<p><span style=\"font-weight: 400\">پایتون یکی از زبان‎های ساده برنامه‌‎نویسی است که امکان یادگیری آن در کوتاه مدت وجود دارد. در دنیای دیجیتال بسیاری از اپلیکیشن‌‎ها و سیستم‎‌ها به واسطه برنامه‌‌‎نویسی با زبان پایتون طراحی می‌شوند، بنابراین تا وقتی که به‎‌عنوان یک فرد علاقه‎‌مند به حوزه امنیت دانش برنامه‌‎نویسی خود را تقویت نکنید، در این حوزه موفق نخواهید شد.</span></p>\n<p><span style=\"font-weight: 400\">خرید دوره آموزش هک با پایتون به کسانی توصیه می‎‌شود که در زمینه امنیت فعالیت می‌‎کنند یا قصد شناخت باگ‎‌های امنیتی سیستم‎‌های مختلف برای جلوگیری از نفوذ را دارند. همچنین می‎‌توان شرکت در دوره پایتون سیاه را به افراد زیر نیز برای کسب درآمد یا پیشرفت شغلی توصیه کرد:</span></p>\n<ul>\n<li style=\"font-weight: 400\"><span style=\"font-weight: 400\">علاقه‌‌‌مندان به مباحث مربوط به امنیت سایبری؛</span></li>\n<li style=\"font-weight: 400\"><span style=\"font-weight: 400\">دانشجویان و افراد جویای کار در حوزه امنیت سایبری؛</span></li>\n<li style=\"font-weight: 400\"><span style=\"font-weight: 400\">هکرهای کلاه‌‌سفید و افرادی که در حوزه تست نفوذ فعالیت می‌‌کنند و می‌‌خواهند ابزارها و اسکریپت‌‌های اختصاصی خود را بسازند.</span></li>\n<li style=\"font-weight: 400\"><span style=\"font-weight: 400\">افرادی که به دنبال افزایش مهارت‌‌های خود در حوزه برنامه‌‌نویسی و امنیت هستند.</span></li>\n</ul>\n<h2 id=\"h_2\"><b>چرا دوره سبزلرن بهترین گزینه برای یادگیری هک با پایتون است؟</b></h2>\n<p><span style=\"font-weight: 400\">در این دوره همه مباحث به‌‎صورت کاملا کاربردی تدریس می‌‎شود و مدرس دوره به‌جای پرداختن به مثال‌‌های تئوری که ممکن است برای دانشجویان جذاب نباشد، آموزش‌‌های خود را بر روی مثال‌‌های واقعی ارائه می‌‎کند. بنابراین دانشجویان می‎‌توانند به‌‎سرعت مهارت‌‌های لازم را به‌‎صورت عملی یاد بگیرند و از آن‌‌ها در شرایط واقعی استفاده کنند.</span></p>\n<p><span style=\"font-weight: 400\">این تمرکز خاص بر مثال‎‌های کاربردی که براساس سال‎‌ها تجربه مدرس دوره به‎ دست آمده است، باعث می‌‌شود که دانشجویان به‌جای یادگیری کلیات زبان پایتون با ابزارها و سناریوهای مرتبط با امنیت سایبری بیشتر آشنا شوند و بتوانند آن‌‌ها را در پروژه‌های خود به کار گیرند. همچنین در فصل نهایی این دوره یکی از ابزارهای اختصاصی مدرس دوره جناب آقای «یلمه» در گیت هاب که در حال حاضر ۲ هزار و ۹۰۰ استار در گیت هاب دارد به‌‎عنوان پروژه عملی تدریس خواهد شد. به‌‎صورت کلی مزایای شرکت در دوره «پایتون سیاه» بر اساس توضیحات ارائه‌ شده به شرح زیر است:</span></p>\n<ul>\n<li style=\"font-weight: 400\"><span style=\"font-weight: 400\">آموزش کاربردی و واقع‌‌گرایانه؛</span></li>\n<li style=\"font-weight: 400\"><span style=\"font-weight: 400\">تمرکز بر مفاهیم امنیتی؛</span></li>\n<li style=\"font-weight: 400\"><span style=\"font-weight: 400\">آموزش مباحث با زبانی ساده؛</span></li>\n<li style=\"font-weight: 400\"><span style=\"font-weight: 400\">افزایش مهارت برنامه‌‌نویسی از طریق پروژه‌های واقعی؛</span></li>\n<li style=\"font-weight: 400\"><span style=\"font-weight: 400\">آموزش مطابق با الگوی ذهنی علاقه‌مندان به هک و امنیت؛</span></li>\n<li style=\"font-weight: 400\"><span style=\"font-weight: 400\">ارتقای خلاقیت و توانایی توسعه ابزارهای هک؛</span></li>\n</ul>\n<h2 id=\"h_3\"><b>نتایج شرکت در دوره آموزش هک با پایتون چیست؟</b></h2>\n<p><span style=\"font-weight: 400\">در پایان این دوره دانشجویان می‎‌توانند علاوه‎‌بر برنامه‎‌نویسی به زبان پایتون، از ترکیب کدهای این زبان برنامه‎‌نویسی با زبان‌‎های دیگر مانند پی اچ پی (PHP) و جاوا اسکریپت (js) برای ارائه راهکارهای ابتکاری مقابله با نفوذ استفاده کنند. همچنین بعد از گذراندن دوره آموزش هک با پایتون، دانشجو به سطحی می‌‌رسد که توانایی‌‌های زیر را خواهد داشت:</span></p>\n<ul>\n<li style=\"font-weight: 400\"><b>درک پایه از برنامه‌‌نویسی:</b><span style=\"font-weight: 400\"> افرادی که در دوره شرکت می‌‎کنند، اصول برنامه‌‌نویسی را درک کرده و می‎توانند از زبان پایتون در پروژه‌‌های مختلف استفاده کنند.</span></li>\n<li style=\"font-weight: 400\"><b>ترکیب زبان‌‌های مختلف با پایتون:</b><span style=\"font-weight: 400\"> با شرکت در این دوره دانشجو می‎تواند زبان‌های برنامه‌نویسی مختلفی مانند “PHP” و “JavaScript” را با پایتون ترکیب کرده و ابزارهای چند منظوره را توسعه دهد. همچنین به‌‌دلیل تجربه عملی که در این دوره برای دانشجویان حاصل می‎‌شود، یادگیری زبان‌‌های برنامه‌نویسی دیگر برای توسعه انواع اپلیکیشن‌‌ها برای آن‌‌‌ها ساده‌‌تر خواهد بود.</span></li>\n<li style=\"font-weight: 400\"><b>توسعه ابزار و انتشار:</b><span style=\"font-weight: 400\"> دانشجویان توانایی نوشتن و توسعه ابزارهای کاربردی را خواهند داشت و می‌‌توانند این ابزارها را در گیت‌هاب خود منتشر کرده و اعتبار کسب کنند.</span></li>\n<li style=\"font-weight: 400\"><b>آمادگی برای ورود به حوزه‌های جدید:</b><span style=\"font-weight: 400\"> دانشجویان به‌‌دلیل تمرین و دست‌ به‌ کد شدن در طول دوره، در ورود به حوزه‌‌های مختلف مانند وب هکینگ، توسعه اسکریپت‌‌های مختلف و یادگیری زبان‌‌های مرتبط با وب، با چالش‌‌های کمتری مواجه می‌‎شوند و اعتماد به نفس بالاتری برای گرفتن پروژه‎‌‌های مختلف خواهند داشت.</span></li>\n</ul>\n<h2 id=\"h_4\"><b>با شرکت نکردن در دوره پایتون سیاه چه چیزی را از دست می‎دهید؟</b></h2>\n<p><span style=\"font-weight: 400\">با شرکت نکردن در دوره «پایتون سیاه» فرصت مهمی برای کسب دانش برنامه‌‌نویسی که در مسیر هک و امنیت بسیار حیاتی است را از دست می‌دهید. شرکت در این دوره می‌‌تواند به میزان قابل توجهی زاویه دید شما در یادگیری پایتون و کاربرد آن در امنیت سایبری تقویت کند و باعث پیشرفت شغلی شما در این زمینه شود.</span></p>\n<p><span style=\"font-weight: 400\">اگرچه دیدن این دوره ضروری نیست و ممکن است زبان برنامه‌نویسی دیگری را برای یادگیری انتخاب کنید، اما اگر به‌‏‎دنبال مسیری سریع و آسان برای یادگیری هک در پایتون هستید، شرکت در این دوره به شدت توصیه می‌‌شود. زیرا در دوره‎‌های آکادمی سبزلرن صفر تا صد مطالب به‌صورت کاملا کاربردی و با مثال‌‎های واقعی تدریس می‎‌شود تا دانشجویان بتوانند به‎‌راحتی در دنیای واقعی از مطالب دوره برای پیاده‎‌سازی سیستم‎‌های امنیتی استفاده کنند.</span></p>\n<h2 id=\"h_5\"><b>آیا با شرکت در دوره پایتون سیاه می‌‌توان به درآمد رسید؟</b></h2>\n<p><span style=\"font-weight: 400\">اگر شما پیش‌نیاز‌هایی مانند شبکه، لینوکس، هکر قانونمند (CEH) و تست نفوذ با کالی لینوکس را گذرانده باشید و در این دوره نیز شرکت کنید، بدون شک می‌‌توانید بلافاصله وارد بازار کار شوید و به پیشرفت چشمگیری در این حوزه دست پیدا کنید. این دوره به شما مهارت‌‌های توسعه ابزارهای امنیتی را می‌‌آموزد که در دنیای واقعی بسیار ارزشمند است و می‌‌تواند مسیر حرفه‌‌ای شما را به طرز چشمگیری ارتقا دهد.</span><span style=\"font-weight: 400\"> همچنین می‎توانید برای کسب درآمد یا ارزیابی و رفع ایرادات پروژه‌‌های خود با کارشناسان سبزلرن ارتباط بگیرید تا همکاران ما در اسرع وقت شما را در این زمینه راهنمایی کنند.</span></p>\n<h2 id=\"h_6\"><b>چطور می‌‌‎توان از این دوره بهترین نتیجه را گرفت؟</b></h2>\n<p><span style=\"font-weight: 400\">دانشجو زمانی می‌‎تواند از دوره پایتون سیاه بهترین نتیجه را بگیرند که برای تمرین و مرور مباحث زمان کافی بگذارد، بر روی مطالب تمرکز کند. تعامل مستمر با مدرس دوره و پیگیری دقیق مباحث، به دانشجویان کمک می‌‌کند تا بتوانند از آموزش‌‌های کاربردی لذت ببرند و به نتیجه مطلوب دست یابند. ثبات در یادگیری، پشتکار و تمرین مستمر اصلی‌‎ترین نکاتی است که با رعایت آن‌‎ها می‎‌توان از شرکت در این دوره به نتیجه مطلوب یعنی کسب درآمد رسید.</span></p>\n<h2 id=\"h_7\"><b>مدرس دوره آموزش هک با پایتون کیست؟</b></h2>\n<p><span style=\"font-weight: 400\">مدرس دوره آموزش هک با پایتون جناب آقای «قدیر یلمه» هستند که از سال ۲۰۱۷ وارد عرصه هک و امنیت شده‎‌اند. آقای یلمه فردی علاقه‌‌مند به این حوزه پرچالش است و در محتوا‌های دوره نیز همواره سعی می‌‌کند تجربیات شخصی خود را به‌‎صورت کاملا شفاف با دانشجویان به اشتراک بگذارد. مدرس دوره معتقد است که اصل هر محتوایی برای آموزش مباحث مختلف را می‌توان به آسانی در اینترنت پیدا کرد، اما دانشجویان دوره‌های سبزلرن برای کسب تجربه متفاوت هزینه می‌‌کنند و به‌ همین دلیل بیان تجربیات در حین تدریس برای وی اهمیت ویژه‌‌ای دارد.</span></p>\n<h2 id=\"h_8\"><b>پیش نیاز دوره آموزش هک با پایتون</b></h2>\n<p><span style=\"font-weight: 400\">پیش‌نیازهای دوره آموزش هک با پایتون شامل تسلط پایه به زبان انگلیسی و گذراندن مباحثی همچون شبکه، لینوکس، دوره هکر قانونمند (CEH) و تست نفوذ با کالی لینوکس است. پیش نیازهای این دوره صرفا برای درک بهتر مطالب پیشرفته‌‌تر دوره ضروری هستند و به دانشجویان کمک می‌‌کنند تا درک بهتری نسبت به آموزش‎‌های این دوره داشته باشند.</span></p>\n<h2 id=\"h_9\"><b>جمع‌بندی دوره آموزش هک با پایتون</b></h2>\n<p><span style=\"font-weight: 400\">دوره آموزش هک با پایتون در سبزلرن یک دوره جامع و کاربردی است که دانشجویان را با مفاهیم پایه‌‌ای و پیشرفته برنامه‌نویسی پایتون در زمینه هک و امنیت آشنا می‌‌کند. این دوره شامل سناریوهای واقعی، پروژه‌‌های عملی و توسعه ابزارهای امنیتی است که با دانشجویان با گذراندن آن می‌‎توانند مهارت‌‌های خود را به سطحی برسانند که در اسرع وقت وارد بازار کار شوند یا ابزارهای خود را برای کسب درآمد توسعه دهند. با گذراندن دوره پایتون سیاه دانشجویان نه تنها به درک عمیقی از پایتون و امنیت اطلاعات می‌‌رسند، بلکه توانایی ترکیب آن با دیگر زبان‌‌های برنامه‌نویسی و توسعه ابزارهای کاربردی را نیز کسب می‌‌کنند.</span></p>\n\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div class=\"course-content-shadow absolute bottom-0 right-0 left-0 h-[160px] bg-gradient-to-t from-white dark:from-darker from-0% via-white/[55%] dark:via-darker/[55%] via-70% to-white/0 dark:to-darker/0 to-100% hidden\"></div>\n\t\t\t\t\t\t</div>",
+    "courseFiles": [
+        "CourseFile1.rar",
+        "CourseFile2.rar"
+    ]
+}
