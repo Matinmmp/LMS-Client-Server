@@ -1,7 +1,7 @@
 import { app } from "./app";
 import connectDB from './utils/db';
 require('dotenv').config();
-import AdminJS from 'adminjs'
+import AdminJS, { List } from 'adminjs'
 import AdminJSExpress from '@adminjs/express'
 import CourseModel from "./models/course.model";
 import AcademyModel from "./models/academy.model";
@@ -16,13 +16,14 @@ import MongoStore from 'connect-mongo'
 
 import mongoose from "mongoose";
 import * as AdminJSMongoose from "@adminjs/mongoose"
+import AdminOptions from "./utils/adminOptions";
 
 AdminJS.registerAdapter({
     Resource: AdminJSMongoose.Resource,
     Database: AdminJSMongoose.Database,
 })
 
- 
+
 
 const DEFAULT_ADMIN = {
     email: 'matinmmp1381@gmail.com',
@@ -36,111 +37,9 @@ const authenticate = async (email: string, password: string) => {
     return null
 }
 
-const adminOptions = {
-    resources: [
-        {
-            resource: CourseModel,
-            options: {
-                navigation: {
-                    name: 'Courses',
-                    icon: 'Book', // آیکون در سایدبار (از لیست آیکون‌های AdminJS)
-                },
-                properties: {
-                    description: { type: 'textarea' }, // تنظیم نمایش فیلد
-                },
-            },
-        },
-        {
-            resource: AcademyModel,
-            options: {
-                navigation: {
-                    name: 'Academies',
-                    icon: 'Book', // آیکون در سایدبار (از لیست آیکون‌های AdminJS)
-                },
-                properties: {
-                    description: { type: 'textarea' }, // تنظیم نمایش فیلد
-                },
-            },
-        },
-        {
-            resource: TeacherModel,
-            options: {
-                navigation: {
-                    name: 'Teachers',
-                    icon: 'Book', // آیکون در سایدبار (از لیست آیکون‌های AdminJS)
-                },
-                properties: {
-                    description: { type: 'textarea' }, // تنظیم نمایش فیلد
-                },
-            },
-        },
-        {
-            resource: CategoryModel,
-            options: {
-                navigation: {
-                    name: 'Categories',
-                    icon: 'Book', // آیکون در سایدبار (از لیست آیکون‌های AdminJS)
-                },
-                properties: {
-                    description: { type: 'textarea' }, // تنظیم نمایش فیلد
-                },
-            },
-        },
-        {
-            resource: InvoiceModel,
-            options: {
-                navigation: {
-                    name: 'Invoices',
-                    icon: 'Book', // آیکون در سایدبار (از لیست آیکون‌های AdminJS)
-                },
-                properties: {
-                    description: { type: 'textarea' }, // تنظیم نمایش فیلد
-                },
-            },
-        },
-        {
-            resource: CourseSectionModel,
-            options: {
-                navigation: {
-                    name: 'Section',
-                    icon: 'Book', // آیکون در سایدبار (از لیست آیکون‌های AdminJS)
-                },
-                properties: {
-                    description: { type: 'textarea' }, // تنظیم نمایش فیلد
-                },
-            },
-        },
-        {
-            resource: LessonModel,
-            options: {
-                navigation: {
-                    name: 'leccons',
-                    icon: 'Book', // آیکون در سایدبار (از لیست آیکون‌های AdminJS)
-                },
-                properties: {
-                    description: { type: 'textarea' }, // تنظیم نمایش فیلد
-                },
-            },
-        },
-        {
-            resource: userModel,
-            options: {
-                navigation: {
-                    name: 'users',
-                    icon: 'Book', // آیکون در سایدبار (از لیست آیکون‌های AdminJS)
-                },
-                properties: {
-                    description: { type: 'textarea' }, // تنظیم نمایش فیلد
-                },
-            },
-        },
-    ],
-
-    rootPath: '/admin',
-};
 
 const start = async () => {
-    const admin = new AdminJS(adminOptions);
+    const admin = new AdminJS(AdminOptions);
     connectDB();
 
     const sessionStore = MongoStore.create({

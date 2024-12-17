@@ -296,8 +296,8 @@ const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Res
                     ) : false;
 
                 // دریافت درس‌های مربوط به سکشن
-                const lessons = await LessonModel.find({ sectionId: section._id }).sort({ order: 1 }).lean();
-
+                const lessons = await LessonModel.find({ courseSectionId: section._id }).sort({ order: 1 }).lean();
+                console.log(lessons);
                 // پردازش درس‌ها
                 const processedLessons = await Promise.all(
                     lessons.map(async (lesson) => {
