@@ -8,7 +8,7 @@ import Fuse from "fuse.js";
 import AcademyModel from "../models/academy.model";
 import TeacherModel from "../models/teacher.model";
 import CategoryModel from "../models/category.model";
-import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { CopyObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import userModel from "../models/user.model";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import CourseSectionModel from "../models/courseSection.model";
@@ -27,7 +27,7 @@ const client = new S3Client({
     credentials: {
         accessKeyId: process.env.LIARA_ACCESS_KEY,
         secretAccessKey: process.env.LIARA_SECRET_KEY
-    }
+    },
 })
 
 
@@ -118,7 +118,8 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
                         createdAt: "$createdAt",
                         updatedAt: "$updatedAt",
                         courseLength: "$courseLength",
-                        totalLessons: '$totalLessons'
+                        totalLessons: '$totalLessons',
+                        previewVideoUrl:'$previewVideoUrl'
                     }
                 }
             }
@@ -140,124 +141,22 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
 });
 
 
-const generateS3Url = async (key: string, isPrivate: boolean): Promise<string> => {
-    if (!isPrivate) {
-        return `https://${process.env.LIARA_BUCKET_NAME}.storage.c2.liara.space/${key}`;
-    }
-
-    const command = new GetObjectCommand({
-        Bucket: process.env.LIARA_BUCKET_NAME,
-        Key: key
-    });
-
-    // استفاده از getSignedUrl برای تولید لینک خصوصی
-    const signedUrl = await getSignedUrl(client, command, { expiresIn: 86400 }); // لینک یک روزه
-    return signedUrl;
+const generateS3Url = async (key: string, isPrivate: boolean): Promise<string> => { 
+    if (!isPrivate) { 
+        return `https://${process.env.LIARA_BUCKET_NAME}.storage.c2.liara.space/${key}`; 
+    } 
+ 
+    // دستور برای دریافت شیء از S3 
+    const command = new GetObjectCommand({ 
+        Bucket: process.env.LIARA_BUCKET_NAME, 
+        Key: key, 
+        ResponseContentDisposition: 'attachment; filename="' + key + '"' // تنظیم هدر Content-Disposition 
+    }); 
+ 
+    // تولید لینک امضا شده 
+    const signedUrl = await getSignedUrl(client, command, { expiresIn: 86400 }); // لینک یک روزه 
+    return signedUrl; 
 };
-
-// const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
-//     try {
-//         const { name } = req.params;
-//         let hasPurchased = false;
-
-//         const course: any = await CourseModel.findOne({ name }).lean();
-//         if (!course) {
-//             return res.status(404).json({ success: false, message: "دوره‌ای با این نام یافت نشد" });
-//         }
-
-//         const folderName = course.folderName;
-
-//         // پردازش courseData
-//         const processedCourseData = await Promise.all(
-//             course.courseData.map(async (data: any) => {
-//                 // ساخت لینک ویدیو
-//                 const videoUrl =
-//                     hasPurchased || data.isFree
-//                         ? await generateS3Url(`Courses/${folderName}/CourseVideos/${data.videoName}`, !data.isFree)
-//                         : "true";
-
-//                 // ساخت لینک فایل‌های ویدیو
-//                 const videoFiles =
-//                     hasPurchased || data.isFree
-//                         ? await generateS3Url(`Courses/${folderName}/CourseFiles/${data.videoFiles}`, !data.isFree)
-//                         : "true";
-
-//                 // ساخت لینک فایل‌های سکشن
-//                 const sectionFiles =
-//                     hasPurchased || data.isFree
-//                         ? await generateS3Url(`Courses/${folderName}/CourseFiles/${data.sectionFiles}`, !data.isFree)
-//                         : "true";
-
-//                 // ساخت لینک‌های عمومی برای ویدیوها و سکشن‌ها
-//                 const videoLinks = data.videoLinks
-//                     ? await Promise.all(
-//                         data.videoLinks.map(async (link: any) => ({
-//                             title: link.title,
-//                             url: hasPurchased || data.isFree ? await generateS3Url(link.url, !data.isFree) : "true"
-//                         }))
-//                     )
-//                     : null;
-
-//                 const sectionLinks = data.sectionLinks
-//                     ? await Promise.all(
-//                         data.sectionLinks.map(async (link: any) => ({
-//                             title: link.title,
-//                             url: hasPurchased || data.isFree ? await generateS3Url(link.url, !data.isFree) : "true"
-//                         }))
-//                     )
-//                     : null;
-
-//                 return {
-//                     isFree: data.isFree,
-//                     title: data.title,
-//                     description: data.description,
-//                     videoSection: data.videoSection,
-//                     videoLength: data.videoLength,
-//                     videoLinks: videoLinks || undefined,
-//                     sectionLinks: sectionLinks || undefined,
-//                     videoFiles: videoFiles || undefined,
-//                     sectionFiles: sectionFiles || undefined,
-//                     videoUrl: videoUrl
-//                 };
-//             })
-//         );
-
-//         // پردازش courseFiles
-//         const courseFiles = course.courseFiles
-//             ? await Promise.all(
-//                 course.courseFiles.map((file: string) =>
-//                     hasPurchased
-//                         ? generateS3Url(`Courses/${folderName}/CourseFiles/${file}`, true) // لینک پرایویت
-//                         : null // فایل‌ها ارسال نشود
-//                 )
-//             )
-//             : undefined;
-
-//         // حذف فایل‌های null از courseFiles
-//         const filteredCourseFiles = courseFiles?.filter((file) => file !== null);
-
-//         // پردازش courseLinks
-//         const courseLinks = course?.courseLinks
-//             ? await Promise.all(
-//                 course?.courseLinks?.map(async (link: any) => ({
-//                     title: link.title,
-//                     url: link.url
-//                 }))
-//             )
-//             : undefined;
-
-//         // ارسال پاسخ
-//         res.status(200).json({
-//             success: true,
-//             isPurchased: hasPurchased,
-//             courseData: processedCourseData,
-//             courseFiles: course?.courseFiles?.length ? 'true' : 'false',
-//             courseLinks: courseLinks?.length ? 'true' : 'false',
-//         });
-//     } catch (error: any) {
-//         return next(error);
-//     }
-// });
 
 
 const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
@@ -281,10 +180,10 @@ const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Res
                 // پردازش فایل‌ها و لینک‌های سکشن
                 const sectionFiles =
                     section.sectionFiles?.length ? await Promise.all(
-                        section.sectionFiles.map(async (file) => isFree||section.isFree ?
+                        section.sectionFiles.map(async (file) => isFree || section.isFree ?
                             {
                                 fileTitle: file.fileTitle,
-                                fileName: await generateS3Url(`Courses/${folderName}CourseFiles/${file.fileName}`, !(isFree||section.isFree)),
+                                fileName: await generateS3Url(`Courses/${folderName}CourseFiles/${file.fileName}`, !(isFree || section.isFree)),
                             }
                             : true
                         )
@@ -375,10 +274,11 @@ const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Res
             await Promise.all(course.links.map(async (link: any) => isFree ? { title: link.title, url: link.url } : true)
             ) : false;
 
-  
+
 
         res.status(200).json({
             success: true,
+            isCourseFree: course.price == 0,
             isPurchased: false,
             courseData: processedSections,
             courseFiles,

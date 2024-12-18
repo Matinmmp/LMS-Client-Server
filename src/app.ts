@@ -7,11 +7,14 @@ import academyRouter from "./routes/academy.route";
 import courseRouter from "./routes/course.route";
 import dashboardRoute from "./routes/dashboard.route";
 import homeRouter from "./routes/home.route";
+import { CopyObjectCommand } from "@aws-sdk/client-s3";
 const express = require('express')
 const cors = require('cors')
 const cookieParser = require('cookie-parser')
 require('dotenv').config();
 
+const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
 export const app = express();
 
@@ -57,6 +60,72 @@ app.get("/test", (req: Request, res: Response, next: NextFunction) => {
 //     err.statusCode = 404;
 //     next(err)
 // })
+
+
+
+
+
+const client = new S3Client({
+    region: "default",
+    endpoint: process.env.LIARA_ENDPOINT,
+    credentials: {
+        accessKeyId: process.env.LIARA_ACCESS_KEY,
+        secretAccessKey: process.env.LIARA_SECRET_KEY,
+    },
+});
+
+
+// app.get("/download", async (req: Request, res: Response) => {
+//     const { key } = req.query as any;
+
+//     if (!key) {
+//         return res.status(400).send("Key is required");
+//     }
+
+//     const command = new GetObjectCommand({
+//         Bucket: process.env.LIARA_BUCKET_NAME,
+//         Key: key,
+//     });
+
+//     const signedUrl = await getSignedUrl(client, command, { expiresIn: 86400 });
+
+//     res.setHeader("Content-Disposition", `attachment; filename="${key.split("/").pop()}"`);
+//     res.redirect(signedUrl); // یا به طور مستقیم فایل را دانلود کنید
+// });
+
+
+const setHeadersForFile = async (key: string) => {
+    const command = new CopyObjectCommand({
+        Bucket: process.env.LIARA_BUCKET_NAME,
+        CopySource: `${process.env.LIARA_BUCKET_NAME}/${key}`, // منبع فایل
+        Key: key,
+        MetadataDirective: "REPLACE", // بازنویسی متادیتا
+        ContentDisposition: "attachment", // تنظیم هدر موردنظر
+    });
+
+    await client.send(command);
+    console.log(`Headers updated for ${key}`);
+}
+
+ 
+
+app.get("/download", async (req: Request, res: Response) => {
+    
+   try{
+    const s =await setHeadersForFile('Courses/TestCourse1/CourseLessons/next1.mp4');
+    console.log(s)
+    res.json({
+        success:true
+    })
+   }catch{
+    res.json({
+        success:false
+    })
+   }
+    
+});
+
+
 
 
 
