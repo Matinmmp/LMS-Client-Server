@@ -13,6 +13,8 @@ const cors = require('cors')
 const cookieParser = require('cookie-parser')
 require('dotenv').config();
 
+import fs from 'fs'
+import axios from "axios";
 const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
@@ -107,22 +109,32 @@ const setHeadersForFile = async (key: string) => {
     console.log(`Headers updated for ${key}`);
 }
 
- 
+
 
 app.get("/download", async (req: Request, res: Response) => {
-    
-   try{
-    const s =await setHeadersForFile('Courses/TestCourse1/CourseLessons/next1.mp4');
-    console.log(s)
-    res.json({
-        success:true
-    })
-   }catch{
-    res.json({
-        success:false
-    })
-   }
-    
+
+    try {
+        const { key } = req.query;
+        const s = `https://buckettest.storage.c2.liara.space/${key}`
+        const response = await axios.get(s, {
+            responseType: 'stream' // دریافت داده‌ها به صورت استریم
+        });
+       
+        res.redirect(s); 
+
+  
+        res.setHeader('Content-Disposition', `attachment; filename="next1.mp4"`);
+        res.setHeader('Content-Type', `response.headers['content-type']`);
+
+     
+        response.data.pipe(res);
+ 
+    } catch {
+        res.json({
+            success: false
+        })
+    }
+
 });
 
 
