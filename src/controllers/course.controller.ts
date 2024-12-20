@@ -153,8 +153,6 @@ const generateS3Url = async (key: string, isPrivate: boolean, fileName: string):
         ResponseContentDisposition: 'attachment; filename="' + fileName + '"' // تنظیم هدر Content-Disposition 
     });
 
-
-
     if (!isPrivate) {
 
         // return `https://${process.env.LIARA_BUCKET_NAME}.storage.c2.liara.space/${key}`; 
@@ -163,10 +161,9 @@ const generateS3Url = async (key: string, isPrivate: boolean, fileName: string):
 
     }
 
-  
     // const signedUrl = encodeText(await getSignedUrl(client, command, { expiresIn: 86400 }));
-    const signedUrl =await getSignedUrl(client, command, { expiresIn: 86400 }); // لینک یک روزه 
-     // لینک یک روزه 
+    const signedUrl = await getSignedUrl(client, command, { expiresIn: 86400 }); // لینک یک روزه 
+    // لینک یک روزه 
     return signedUrl;
 };
 
@@ -187,7 +184,7 @@ const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Res
 
         // پردازش سکشن‌ها
         const processedSections = await Promise.all(
-            sections.map(async (section,sectionIndex) => {
+            sections.map(async (section, sectionIndex) => {
 
                 // پردازش فایل‌ها و لینک‌های سکشن
                 const sectionFiles =
@@ -208,16 +205,16 @@ const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Res
 
                 // دریافت درس‌های مربوط به سکشن
                 const lessons = await LessonModel.find({ courseSectionId: section._id }).sort({ order: 1 }).lean();
-               
+
                 // پردازش درس‌ها
                 const processedLessons = await Promise.all(
-                    lessons.map(async (lesson,lessonIndex) => {
+                    lessons.map(async (lesson, lessonIndex) => {
                         const lessonFile = lesson.lessonFile
                             ?
                             isFree || lesson.isFree
                                 ? {
                                     fileTitle: lesson.lessonFile.fileTitle,
-                                    fileName: await generateS3Url(`Courses/${course?.folderName}/CourseLessons/${lesson.lessonFile.fileName}`, !(isFree || lesson.isFree),`section_${sectionIndex+1}_lesson_${lessonIndex+1}_${lesson.lessonFile.fileName}` ),
+                                    fileName: await generateS3Url(`Courses/${course?.folderName}/CourseLessons/${lesson.lessonFile.fileName}`, !(isFree || lesson.isFree), `section_${sectionIndex + 1}_lesson_${lessonIndex + 1}_${lesson.lessonFile.fileName}`),
                                     fileDescription: lesson.lessonFile.fileDescription,
                                 }
                                 : true
@@ -251,8 +248,10 @@ const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Res
                             links: lessonLinks,
                             lessonLength: lesson.lessonLength || 0,
                             isFree: lesson.isFree,
-                            additionalInfo: lesson.additionalInfo || "",
-                            notice: lesson.notice || "",
+                            error: lesson.error || "",
+                            warning: lesson.warning || "",
+                            info: lesson.info || "",
+
                         };
                     })
                 );
@@ -264,8 +263,9 @@ const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Res
                     sectionFiles: sectionFiles || false,
                     totalLessons: section.totalLessons || 0,
                     totalLength: section.totalLength || 0,
-                    additionalInfo: section.additionalInfo || "",
-                    notice: section.notice || "",
+                    error: section.error || "",
+                    warning: section.warning || "",
+                    info: section.info || "",
                     lessonsList: processedLessons,
                 };
             })
@@ -295,6 +295,9 @@ const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Res
             courseData: processedSections,
             courseFiles,
             courseLinks,
+            error: course.error || "",
+            warning: course.warning || "",
+            info: course.info || "",
         });
     } catch (error: any) {
         next(error);

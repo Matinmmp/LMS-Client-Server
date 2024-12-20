@@ -57,7 +57,9 @@ export interface ICourse extends Document {
     isPreOrder: Boolean;
     holeCourseVideos: Number;//تعداد ویدیو هایی که دوره در نهایت باید داشته باشه برای تخمین درصد تکمیل دوره
     courseFiles:[IFile],
-    notice:string,
+    info:string,
+    warning:string,
+    error:string,
     courseLength:number//زمان دوره به ثانیه
 }
 
@@ -97,7 +99,9 @@ const courseSchema = new Schema<ICourse>({
     isPreOrder: { type: Boolean, default: false }, // پیش‌فروش
     holeCourseVideos: { type: Number, default: 0 },
     courseFiles:[fileSchema],
-    notice:String,
+    info:String,
+    warning:String,
+    error:String,
     courseLength:Number,
  
 }, { timestamps: true });

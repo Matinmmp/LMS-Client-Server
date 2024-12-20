@@ -19,8 +19,9 @@ interface ISection extends Document {
     totalLength: number,
     order: number,
     isFree: boolean,
-    additionalInfo: string,
-    notice: string
+    info:string,
+    warning:string,
+    error:string,
 }
 
 
@@ -47,8 +48,9 @@ const SectionSchema = new Schema<ISection>({
     totalLength: Number,
     order: { type: Number, required: true },
     isFree: { type: Boolean, default: false },
-    additionalInfo: { type: String },
-    notice: String
+    info:String,
+    warning:String,
+    error:String,
 }, { timestamps: true })
 
 

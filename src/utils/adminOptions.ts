@@ -67,9 +67,7 @@ const AdminOptions: AdminJSOptions = {
                     courseFiles: {
                         isVisible: { list: false, filter: false, show: true, edit: true },
                     },
-                    notice: {
-                        type: 'textarea',
-                    },
+                   
                 },
             },
         },
@@ -218,9 +216,6 @@ const AdminOptions: AdminJSOptions = {
                     },
                     additionalInfo: {
                         isVisible: { list: false, filter: false, show: true, edit: true },
-                    },
-                    notice: {
-                        type: 'textarea',
                     },
                     isFree: {
                         type: 'boolean',

@@ -31,8 +31,9 @@ interface ILesson extends Document {
     lessonLength?: number,
     isFree: boolean,
 
-    additionalInfo: string,
-    notice: string,
+    info:string,
+    warning:string,
+    error:string,
 
     order: number,
 
@@ -68,8 +69,9 @@ const LessonSchema = new Schema<ILesson>({
     links: [linkSchema], // لینک‌های مرتبط با درس
     lessonLength: { type: Number }, // مدت زمان درس (بر حسب ثانیه یا دقیقه)
     isFree: { type: Boolean, default: false }, // آیا درس رایگان است؟
-    additionalInfo: { type: String }, // توضیحات اضافه درس
-    notice: { type: String }, // یادداشت یا هشدار مرتبط با درس
+    info:String,
+    warning:String,
+    error:String,
     order: { type: Number, required: true }, // ترتیب نمایش درس
 }, { timestamps: true });
 
