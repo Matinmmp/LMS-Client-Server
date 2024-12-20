@@ -187,21 +187,27 @@ const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Res
             sections.map(async (section, sectionIndex) => {
 
                 // پردازش فایل‌ها و لینک‌های سکشن
-                const sectionFiles =
-                    section.sectionFiles?.length ? await Promise.all(
-                        section.sectionFiles.map(async (file) => isFree || section.isFree ?
-                            {
-                                fileTitle: file.fileTitle,
-                                fileName: await generateS3Url(`Courses/${folderName}CourseFiles/${file.fileName}`, !(isFree || section.isFree), file.fileName),
-                            }
-                            : true
-                        )
-                    ) : false;
+                let sectionFiles: any = section.sectionFiles?.length ? true : false;
 
-                const sectionLinks = section.sectionLinks?.length
-                    ?
-                    await Promise.all(section.sectionLinks.map(async (link) => section.isFree || isFree ? { title: link.title, url: link.url } : true)
-                    ) : false;
+                if (section.sectionFiles?.length && section.isFree)
+                    sectionFiles = section.sectionFiles?.length ?
+                        await Promise.all(section.sectionFiles.map(async (file) =>
+                            section.isFree ?
+                                {
+                                    fileTitle: file.fileTitle,
+                                    fileName: await generateS3Url(`Courses/${folderName}CourseFiles/${file.fileName}`, !(section.isFree), file.fileName),
+                                }
+                                : true
+                        )
+                        ) : false;
+
+
+                let sectionLinks: any = section.sectionLinks?.length ? true : false;
+                if (section.sectionLinks?.length && section.isFree)
+                    sectionLinks = section.sectionLinks?.length
+                        ?
+                        await Promise.all(section.sectionLinks.map(async (link) => section.isFree ? { title: link.title, url: link.url } : true)
+                        ) : false;
 
                 // دریافت درس‌های مربوط به سکشن
                 const lessons = await LessonModel.find({ courseSectionId: section._id }).sort({ order: 1 }).lean();
@@ -211,34 +217,42 @@ const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Res
                     lessons.map(async (lesson, lessonIndex) => {
                         const lessonFile = lesson.lessonFile
                             ?
-                            isFree || lesson.isFree
+                            lesson.isFree
                                 ? {
                                     fileTitle: lesson.lessonFile.fileTitle,
-                                    fileName: await generateS3Url(`Courses/${course?.folderName}/CourseLessons/${lesson.lessonFile.fileName}`, !(isFree || lesson.isFree), `section_${sectionIndex + 1}_lesson_${lessonIndex + 1}_${lesson.lessonFile.fileName}`),
+                                    fileName: await generateS3Url(`Courses/${course?.folderName}/CourseLessons/${lesson.lessonFile.fileName}`, !(lesson.isFree), `section_${sectionIndex + 1}_lesson_${lessonIndex + 1}_${lesson.lessonFile.fileName}`),
                                     fileDescription: lesson.lessonFile.fileDescription,
                                 }
                                 : true
                             : false;
 
+
                         // فایل‌های پیوست‌شده
-                        const attachedFiles = lesson.attachedFile?.length
-                            ? await Promise.all(
-                                lesson.attachedFile.map(async (file) =>
-                                    lesson.isFree || isFree
-                                        ? {
-                                            fileTitle: file.fileTitle,
-                                            fileName: await generateS3Url(`Courses/${course?.folderName}/CourseFiles/${file.fileName}`, !(lesson.isFree), file.fileName),
-                                            fileDescription: file.fileDescription,
-                                        }
-                                        : true
+                        let attachedFiles: any = lesson.attachedFile?.length ? true : false;
+
+                        if (lesson.attachedFile?.length && lesson.isFree)
+                            attachedFiles = lesson.attachedFile?.length
+                                ? await Promise.all(
+                                    lesson.attachedFile.map(async (file) =>
+                                        lesson.isFree
+                                            ? {
+                                                fileTitle: file.fileTitle,
+                                                fileName: await generateS3Url(`Courses/${course?.folderName}/CourseFiles/${file.fileName}`, !(lesson.isFree), file.fileName),
+                                                fileDescription: file.fileDescription,
+                                            }
+                                            : true
+                                    )
                                 )
-                            )
-                            : false;
+                                : false;
+
 
                         // لینک‌های مرتبط با درس
-                        const lessonLinks = lesson.links?.length
-                            ? await Promise.all(lesson.links.map(async (link) => lesson.isFree || isFree ? { title: link.title, url: link.url } : true))
-                            : false;
+                        let lessonLinks: any = lesson.links?.length ? true : false;
+
+                        if (lesson.links?.length && lesson.isFree)
+                            lessonLinks = lesson.links?.length
+                                ? await Promise.all(lesson.links.map(async (link) => lesson.isFree || isFree ? { title: link.title, url: link.url } : true))
+                                : false;
 
                         return {
                             lessonType: lesson.lessonType,
@@ -272,25 +286,29 @@ const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Res
         );
 
 
-        const courseFiles = course.courseFiles?.length ? await Promise.all(
-            course.courseFiles.map(async (file: any) => isFree ?
-                {
-                    fileTitle: file.fileTitle,
-                    fileName: await generateS3Url(`Courses/${folderName}CourseFiles/${file.fileName}`, !(isFree), file.fileName),
-                }
-                : true
-            )
-        ) : false;
+        const courseFiles = course.courseFiles?.length ? true : false;
 
-        const courseLinks = course.links?.length ?
-            await Promise.all(course.links.map(async (link: any) => isFree ? { title: link.title, url: link.url } : true)
-            ) : false;
 
+        const courseLinks = course.links?.length ? true : false;
+
+        // const courseLinks = course.links?.length ?
+        //     await Promise.all(course.links.map(async (link: any) => isFree ? { title: link.title, url: link.url } : true)
+        //     ) : false;
+
+        // const courseFiles = course.courseFiles?.length ? await Promise.all(
+        //     course.courseFiles.map(async (file: any) => isFree ?
+        //         {
+        //             fileTitle: file.fileTitle,
+        //             fileName: await generateS3Url(`Courses/${folderName}CourseFiles/${file.fileName}`, !(isFree), file.fileName),
+        //         }
+        //         : true
+        //     )
+        // ) : false;
 
 
         res.status(200).json({
             success: true,
-            isCourseFree: course.price == 0,
+            // isCourseFree: course.price == 0,
             isPurchased: false,
             courseData: processedSections,
             courseFiles,
