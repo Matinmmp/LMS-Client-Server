@@ -42,6 +42,11 @@ const AdminOptions: AdminJSOptions = {
                         isArray: true, // چون relatedCourses آرایه است
                         isVisible: { list: false, filter: true, show: true, edit: true },
                     },
+                    tags: {
+  
+                        isArray: true, // چون relatedCourses آرایه است
+                        isVisible: { list: false, filter: false, show: true, edit: true },
+                    },
                     description: {
                         type: 'textarea', // نمایش توضیحات به صورت textarea
                         isVisible: { list: false, filter: true, show: true, edit: true },

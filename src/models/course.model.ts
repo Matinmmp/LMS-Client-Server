@@ -8,13 +8,13 @@ interface ILink extends Document {
 interface IFile extends Document {
     fileTitle: string,//اسمش لحظه ی دانلود
     fileName: string;//اسمش داخل باکت
-    fileDescription:string;
+    fileDescription: string;
 }
 
 const fileSchema = new Schema<IFile>({
     fileTitle: String,//اسمش لحظه ی دانلود
     fileName: String,//اسمش داخل باکت
-    fileDescription:String,
+    fileDescription: String,
 })
 
 const linkSchema = new Schema<ILink>({
@@ -23,6 +23,7 @@ const linkSchema = new Schema<ILink>({
 })
 
 export interface ICourse extends Document {
+    urlName: string;
     name: string; // نام دوره
     faName: string; // نام دوره
     description: string; // توضیح کوتاه دوره
@@ -30,11 +31,11 @@ export interface ICourse extends Document {
     academyId: mongoose.Schema.Types.ObjectId; // شناسه آکادمی مرتبط
     teacherId: mongoose.Schema.Types.ObjectId; // شناسه مدرس مرتبط
     categoryIds: mongoose.Schema.Types.ObjectId[]; // شناسه دسته‌بندی‌ها
-    discount: {percent: number;expireTime: Date;usageCount: number;}; // اطلاعات تخفیف دوره
+    discount: { percent: number; expireTime: Date; usageCount: number; }; // اطلاعات تخفیف دوره
     price: number; // قیمت دوره
     estimatedPrice?: number; // قیمت تخمینی
-    thumbnail: {imageName: string;imageUrl: string;}; // تصویر بندانگشتی دوره
-    tags: string; // برچسب‌های دوره
+    thumbnail: { imageName: string; imageUrl: string; }; // تصویر بندانگشتی دوره
+    tags: [string]; // برچسب‌های دوره
     level: string; // سطح دوره (مثل مبتدی، متوسط، پیشرفته)
     benefits: { title: string }[]; // مزایای شرکت در دوره
     prerequisites: { title: string }[]; // پیش‌نیازهای دوره
@@ -48,7 +49,7 @@ export interface ICourse extends Document {
     showCourse: boolean; // آیا دوره برای کاربران قابل نمایش است
     totalLessons: number; // تعداد ویدیوهای موجود در دوره
     viewsCount: number; // تعداد بازدیدهای دوره
-    seoMeta: { description: string;keywords: string[];}; // اطلاعات SEO دوره
+    seoMeta: { description: string; keywords: string[]; }; // اطلاعات SEO دوره
     previewVideoUrl?: string; // لینک ویدیوی پیش‌نمایش
     relatedCourses?: mongoose.Schema.Types.ObjectId[];
     // relatedBlogs?: mongoose.Schema.Types.ObjectId[];
@@ -56,15 +57,16 @@ export interface ICourse extends Document {
     lastContentUpdate: Date;
     isPreOrder: Boolean;
     holeCourseVideos: Number;//تعداد ویدیو هایی که دوره در نهایت باید داشته باشه برای تخمین درصد تکمیل دوره
-    courseFiles:[IFile],
-    info:string,
-    warning:string,
-    error:string,
-    courseLength:number//زمان دوره به ثانیه
+    courseFiles: [IFile],
+    info: string,
+    warning: string,
+    error: string,
+    courseLength: number//زمان دوره به ثانیه
 }
 
 
 const courseSchema = new Schema<ICourse>({
+    urlName: { type: String, required: true },
     name: { type: String, required: true },
     faName: { type: String, required: true },
     description: { type: String, required: true },
@@ -72,7 +74,7 @@ const courseSchema = new Schema<ICourse>({
     price: { type: Number, required: true },
     estimatedPrice: { type: Number },
     thumbnail: { imageName: String, imageUrl: String },
-    tags: { type: String, required: true },
+    tags: { type: [String], required: true },
     level: { type: String, required: true },
     benefits: [{ title: String }],
     prerequisites: [{ title: String }],
@@ -98,12 +100,12 @@ const courseSchema = new Schema<ICourse>({
     lastContentUpdate: { type: Date, default: Date.now }, // آخرین بروزرسانی محتوا
     isPreOrder: { type: Boolean, default: false }, // پیش‌فروش
     holeCourseVideos: { type: Number, default: 0 },
-    courseFiles:[fileSchema],
-    info:String,
-    warning:String,
-    error:String,
-    courseLength:Number,
- 
+    courseFiles: [fileSchema],
+    info: String,
+    warning: String,
+    error: String,
+    courseLength: Number,
+
 }, { timestamps: true });
 
 
