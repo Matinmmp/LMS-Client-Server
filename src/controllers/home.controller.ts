@@ -137,6 +137,7 @@ const getHomeLastCourses = CatchAsyncError(async (req: Request, res: Response, n
                     academy: 1,
                     courseLength: 1,
                     price: 1,
+                    urlName:1,
 
                 }
             }
@@ -216,6 +217,7 @@ const getHomeFavoritCourses = CatchAsyncError(async (req: Request, res: Response
                     academy: 1,
                     courseLength: 1,
                     price: 1,
+                    urlName:1
 
                 }
             }
@@ -427,7 +429,7 @@ const homeSearch = CatchAsyncError(async (req: Request, res: Response, next: Nex
 
         // 2. کش کردن داده‌های دوره‌ها با اطلاعات مربی و فیلد tags برای جستجو
         const courses = await getOrSetCache("courses_for_home_search", () =>
-            CourseModel.find({}, 'name thumbnail.imageUrl tags ratings teacherId') // انتخاب tags برای جستجو و teacherId برای مربی
+            CourseModel.find({}, 'name urlName thumbnail.imageUrl tags ratings teacherId') // انتخاب tags برای جستجو و teacherId برای مربی
                 .populate('teacherId', 'engName faName') // اضافه کردن اطلاعات مربی بدون _id
                 .lean()
         );

@@ -146,12 +146,12 @@ const getAcademyByEngName = CatchAsyncError(async (req: Request, res: Response, 
 const getAcademyCoursesByEngName = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const academyEngName = req.params.name;
-        const cacheKey = `academy:${academyEngName}:topCourses`;
+        // const cacheKey = `academy:${academyEngName}:topCourses`;
 
-        const cachedCourses = await redis.get(cacheKey);
-        if (cachedCourses) {
-            return res.status(200).json({ success: true, courses: JSON.parse(cachedCourses) });
-        }
+        // const cachedCourses = await redis.get(cacheKey);
+        // if (cachedCourses) {
+        //     return res.status(200).json({ success: true, courses: JSON.parse(cachedCourses) });
+        // }
         const academy = await AcademyModel.findOne({ engName: academyEngName }).lean();
 
         if (!academy) {
@@ -217,12 +217,12 @@ const getAcademyCoursesByEngName = CatchAsyncError(async (req: Request, res: Res
                     courseLength: 1,
                     price: 1,
                     totalLessons:1,
-
+                    urlName:1
                 }
             }
         ]);
 
-        await redis.setex(cacheKey, CACHE_EXPIRATION, JSON.stringify(courses));
+        // await redis.setex(cacheKey, CACHE_EXPIRATION, JSON.stringify(courses));
 
         res.status(200).json({ success: true, courses });
 

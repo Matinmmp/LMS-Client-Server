@@ -80,6 +80,7 @@ const getTeachers = CatchAsyncError(async (req: Request, res: Response, next: Ne
 const getTeacherByEngName = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const teacherEngName = req.params.name; 
+        console.log(teacherEngName);
         const cacheKey = `teacher:${teacherEngName}`;
 
         const cachedTeacher = await redis.get(cacheKey);
@@ -286,7 +287,8 @@ const getTeacherCoursesByEngName = CatchAsyncError(async (req: Request, res: Res
                     academy: 1,
                     courseLength: 1,
                     price: 1,
-                    totalLessons:1
+                    totalLessons:1,
+                    urlName:1,
                 }
             }
         ]);
