@@ -12,12 +12,13 @@ const CACHE_EXPIRATION = 86400; // 24 ساعت (86400 ثانیه)
 
 const getTeachers = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const cacheKey = 'teachers_all';
+        // const cacheKey = 'teachers_all';
 
-        const cachedTeachers = await redis.get(cacheKey);
-        if (cachedTeachers) {
-            return res.status(200).json({ teachers: JSON.parse(cachedTeachers), success: true });
-        }
+        // const cachedTeachers = await redis.get(cacheKey);
+        // if (cachedTeachers) {
+        //     return res.status(200).json({ teachers: JSON.parse(cachedTeachers), success: true });
+        // }
+
 
 
         const teachers = await TeacherModel.aggregate([
@@ -68,7 +69,7 @@ const getTeachers = CatchAsyncError(async (req: Request, res: Response, next: Ne
             }
         ]);
 
-        await redis.setex(cacheKey, CACHE_EXPIRATION, JSON.stringify(teachers));
+        // await redis.setex(cacheKey, CACHE_EXPIRATION, JSON.stringify(teachers));
 
         res.status(200).json({ teachers, success: true });
 
@@ -80,13 +81,12 @@ const getTeachers = CatchAsyncError(async (req: Request, res: Response, next: Ne
 const getTeacherByEngName = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const teacherEngName = req.params.name; 
-        console.log(teacherEngName);
-        const cacheKey = `teacher:${teacherEngName}`;
 
-        const cachedTeacher = await redis.get(cacheKey);
-        if (cachedTeacher) {
-            return res.status(200).json({ success: true, teacher: JSON.parse(cachedTeacher) });
-        }
+        // const cacheKey = `teacher:${teacherEngName}`;
+        // const cachedTeacher = await redis.get(cacheKey);
+        // if (cachedTeacher) {
+        //     return res.status(200).json({ success: true, teacher: JSON.parse(cachedTeacher) });
+        // }
 
         const teachers = await TeacherModel.aggregate([
             {
@@ -136,7 +136,7 @@ const getTeacherByEngName = CatchAsyncError(async (req: Request, res: Response, 
             return res.status(404).json({ success: false, message: "Teacher not found" });
         }
 
-        await redis.setex(cacheKey, CACHE_EXPIRATION, JSON.stringify(teacher));
+        // await redis.setex(cacheKey, CACHE_EXPIRATION, JSON.stringify(teacher));
 
         res.status(200).json({ success: true, teacher });
 
@@ -148,12 +148,13 @@ const getTeacherByEngName = CatchAsyncError(async (req: Request, res: Response, 
 const getTeachersAcademiesByEngName = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const teacherEngName = req.params.name; 
-        const cacheKey = `teacher:${teacherEngName}:academies`; 
 
-        const cachedAcademies = await redis.get(cacheKey);
-        if (cachedAcademies) {
-            return res.status(200).json({ success: true, academies: JSON.parse(cachedAcademies) });
-        }
+        // const cacheKey = `teacher:${teacherEngName}:academies`; 
+
+        // const cachedAcademies = await redis.get(cacheKey);
+        // if (cachedAcademies) {
+        //     return res.status(200).json({ success: true, academies: JSON.parse(cachedAcademies) });
+        // }
 
         const teacher = await TeacherModel.findOne({ engName: teacherEngName }).lean();
 
@@ -206,7 +207,7 @@ const getTeachersAcademiesByEngName = CatchAsyncError(async (req: Request, res: 
             return res.status(404).json({ success: false, message: "No academies found for this teacher" });
         }
 
-        await redis.setex(cacheKey, CACHE_EXPIRATION, JSON.stringify(academies));
+        // await redis.setex(cacheKey, CACHE_EXPIRATION, JSON.stringify(academies));
 
         res.status(200).json({ success: true, academies });
 
@@ -218,12 +219,13 @@ const getTeachersAcademiesByEngName = CatchAsyncError(async (req: Request, res: 
 const getTeacherCoursesByEngName = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const teacherEngName = req.params.name; 
-        const cacheKey = `teacher:${teacherEngName}:topCourses`; 
 
-        const cachedCourses = await redis.get(cacheKey);
-        if (cachedCourses) {
-            return res.status(200).json({ success: true, courses: JSON.parse(cachedCourses) });
-        }
+        // const cacheKey = `teacher:${teacherEngName}:topCourses`; 
+
+        // const cachedCourses = await redis.get(cacheKey);
+        // if (cachedCourses) {
+        //     return res.status(200).json({ success: true, courses: JSON.parse(cachedCourses) });
+        // }
         const teacher = await TeacherModel.findOne({ engName: teacherEngName }).lean();
 
         if (!teacher) {
@@ -297,7 +299,7 @@ const getTeacherCoursesByEngName = CatchAsyncError(async (req: Request, res: Res
             return res.status(404).json({ success: false, message: "No courses found for this teacher" });
         }
 
-        await redis.setex(cacheKey, CACHE_EXPIRATION, JSON.stringify(courses));
+        // await redis.setex(cacheKey, CACHE_EXPIRATION, JSON.stringify(courses));
 
         res.status(200).json({ success: true, courses });
 
@@ -309,17 +311,16 @@ const getTeacherCoursesByEngName = CatchAsyncError(async (req: Request, res: Res
 
 const getAllTeachersName = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const cacheKey = 'teachers_name_all'; 
+        // const cacheKey = 'teachers_name_all';
 
-
-        const cachedTeachers = await redis.get(cacheKey);
-        if (cachedTeachers) {
-            return res.status(200).json({ teachersName: JSON.parse(cachedTeachers), success: true });
-        }
+        // const cachedTeachers = await redis.get(cacheKey);
+        // if (cachedTeachers) {
+        //     return res.status(200).json({ teachersName: JSON.parse(cachedTeachers), success: true });
+        // }
 
         const teachersName = await TeacherModel.find({}).select("engName -_id")
 
-        await redis.setex(cacheKey, CACHE_EXPIRATION, JSON.stringify(teachersName));
+        // await redis.setex(cacheKey, CACHE_EXPIRATION, JSON.stringify(teachersName));
 
         res.status(200).json({ teachersName, success: true });
 

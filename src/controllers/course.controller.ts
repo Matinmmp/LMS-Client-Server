@@ -34,7 +34,6 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
     try {
         const courseName = req.params.name;
         // const cacheKey = `course:${courseName}`; // کلید کش مخصوص این دوره
-        console.log(courseName)
 
         // بررسی کش Redis برای داده‌های موجود
         // const cachedCourse = await redis.get(cacheKey);
@@ -105,6 +104,7 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
                         totalLessons: '$totalLessons',
                         previewVideoUrl: '$previewVideoUrl',
                         urlName: '$urlName',
+                        isPreOrder:'$isPreOrder'
                     }
                 }
             }
@@ -501,11 +501,11 @@ const searchCourses = CatchAsyncError(async (req: Request, res: Response, next: 
             await CategoryModel.find({}).select("name _id").lean()
         );
 
-        let allCourses: any = await redis.get("all_courses");
-        if (allCourses) {
-            allCourses = JSON.parse(allCourses);
-        } else {
-            allCourses = await CourseModel.aggregate([
+        // let allCourses: any = await redis.get("all_courses");
+        // if (allCourses) {
+        //     allCourses = JSON.parse(allCourses);
+        // } else {
+            let allCourses = await CourseModel.aggregate([
                 { $match: { showCourse: true } },
                 {
                     $lookup: {
@@ -571,8 +571,8 @@ const searchCourses = CatchAsyncError(async (req: Request, res: Response, next: 
                 }
             ]);
 
-            await redis.setex("all_courses", REDIS_EXPIRATION_HOUR, JSON.stringify(allCourses));
-        }
+        //     await redis.setex("all_courses", REDIS_EXPIRATION_HOUR, JSON.stringify(allCourses));
+        // }
 
         // فیلتر کردن براساس پارامترها
         let filteredCourses = allCourses;
@@ -639,8 +639,21 @@ const searchCourses = CatchAsyncError(async (req: Request, res: Response, next: 
     }
 });
 
-export {
 
+const getAllCourseUrlNames = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+
+        const courseUrlNames = await CourseModel.find({}).select("urlName -_id")
+
+        res.status(200).json({ courseUrlNames, success: true });
+
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message, 400));
+    }
+});
+
+export {
+    getAllCourseUrlNames,
     getCourseByName,
     getCourseDataByNameNoLoged,
     getCourseDataByNameLoged,

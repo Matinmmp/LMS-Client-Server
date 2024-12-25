@@ -4,7 +4,6 @@ import ErrorHandler from "../utils/ErrorHandler";
 import CategoryModel from "../models/category.model";
 import AcademyModel from "../models/academy.model";
 import TeacherModel from "../models/teacher.model";
-import { redis } from "../utils/redis";
 
 const getCat_Ac_Teach = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {

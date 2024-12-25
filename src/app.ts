@@ -13,15 +13,31 @@ const cors = require('cors')
 const cookieParser = require('cookie-parser')
 require('dotenv').config();
 
-import fs from 'fs'
-import axios from "axios";
-const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
-const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
-
 export const app = express();
 
 // cors => cross origin rsourse sharing
-app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
+// app.use(cors({ origin: ['http://localhost:3000'], credentials: true }));
+
+app.use(cors({
+    origin: ['http://localhost:3000'], // دامنه‌های مجاز
+    credentials: true, // اجازه ارسال کوکی‌ها
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // متدهای مجاز
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'], // هدرهای مجاز
+}));
+
+
+app.use((req: Request, res: Response, next: NextFunction) => {
+    res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200); // پاسخ سریع برای درخواست‌های OPTIONS
+    }
+    next();
+});
+
+ 
 
 
 // body parser
@@ -42,11 +58,6 @@ app.use('/api/v1', homeRouter);
 
 
 
-
-
-
-
-
 // testing api
 app.get("/test", (req: Request, res: Response, next: NextFunction) => {
     res.status(200).json({
@@ -62,81 +73,6 @@ app.get("/test", (req: Request, res: Response, next: NextFunction) => {
 //     err.statusCode = 404;
 //     next(err)
 // })
-
-
-
-
-
-const client = new S3Client({
-    region: "default",
-    endpoint: process.env.LIARA_ENDPOINT,
-    credentials: {
-        accessKeyId: process.env.LIARA_ACCESS_KEY,
-        secretAccessKey: process.env.LIARA_SECRET_KEY,
-    },
-});
-
-
-// app.get("/download", async (req: Request, res: Response) => {
-//     const { key } = req.query as any;
-
-//     if (!key) {
-//         return res.status(400).send("Key is required");
-//     }
-
-//     const command = new GetObjectCommand({
-//         Bucket: process.env.LIARA_BUCKET_NAME,
-//         Key: key,
-//     });
-
-//     const signedUrl = await getSignedUrl(client, command, { expiresIn: 86400 });
-
-//     res.setHeader("Content-Disposition", `attachment; filename="${key.split("/").pop()}"`);
-//     res.redirect(signedUrl); // یا به طور مستقیم فایل را دانلود کنید
-// });
-
-
-const setHeadersForFile = async (key: string) => {
-    const command = new CopyObjectCommand({
-        Bucket: process.env.LIARA_BUCKET_NAME,
-        CopySource: `${process.env.LIARA_BUCKET_NAME}/${key}`, // منبع فایل
-        Key: key,
-        MetadataDirective: "REPLACE", // بازنویسی متادیتا
-        ContentDisposition: "attachment", // تنظیم هدر موردنظر
-    });
-
-    await client.send(command);
-    console.log(`Headers updated for ${key}`);
-}
-
-
-
-app.get("/download", async (req: Request, res: Response) => {
-
-    try {
-        const { key } = req.query;
-        const s = `https://buckettest.storage.c2.liara.space/${key}`
-        const response = await axios.get(s, {
-            responseType: 'stream' // دریافت داده‌ها به صورت استریم
-        });
-       
-        res.redirect(s); 
-
-  
-        res.setHeader('Content-Disposition', `attachment; filename="next1.mp4"`);
-        res.setHeader('Content-Type', `response.headers['content-type']`);
-
-     
-        response.data.pipe(res);
- 
-    } catch {
-        res.json({
-            success: false
-        })
-    }
-
-});
-
 
 
 

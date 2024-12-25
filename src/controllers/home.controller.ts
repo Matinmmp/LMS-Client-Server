@@ -421,11 +421,11 @@ const homeSearch = CatchAsyncError(async (req: Request, res: Response, next: Nex
         }
 
         // 1. بررسی cache برای جستجوی دوره‌ها
-        const cacheKey = `courses:search:${query}`;
-        const cachedCourses = await redis.get(cacheKey);
-        if (cachedCourses) {
-            return res.status(200).json({ success: true, courses: JSON.parse(cachedCourses) });
-        }
+        // const cacheKey = `courses:search:${query}`;
+        // const cachedCourses = await redis.get(cacheKey);
+        // if (cachedCourses) {
+        //     return res.status(200).json({ success: true, courses: JSON.parse(cachedCourses) });
+        // }
 
         // 2. کش کردن داده‌های دوره‌ها با اطلاعات مربی و فیلد tags برای جستجو
         const courses = await getOrSetCache("courses_for_home_search", () =>
@@ -465,9 +465,9 @@ const homeSearch = CatchAsyncError(async (req: Request, res: Response, next: Nex
         });
 
         // 6. ذخیره نتایج در cache فقط در صورتی که نتایج خالی نباشند
-        if (resultData.length > 0) {
-            await redis.setex(cacheKey, CACHE_EXPIRATION, JSON.stringify(resultData));
-        }
+        // if (resultData.length > 0) {
+        //     await redis.setex(cacheKey, CACHE_EXPIRATION, JSON.stringify(resultData));
+        // }
 
         // 7. ارسال نتایج به کاربر
         res.status(200).json({ success: true, courses: resultData });
