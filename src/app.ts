@@ -16,26 +16,26 @@ require('dotenv').config();
 export const app = express();
 
 // cors => cross origin rsourse sharing
-// app.use(cors({ origin: ['http://localhost:3000'], credentials: true }));
+app.use(cors({ origin: ['http://localhost:3000'], credentials: true }));
 
-app.use(cors({
-    origin: ['http://localhost:3000'], // دامنه‌های مجاز
-    credentials: true, // اجازه ارسال کوکی‌ها
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // متدهای مجاز
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'], // هدرهای مجاز
-}));
+// app.use(cors({
+//     origin: ['http://localhost:3000'], // دامنه‌های مجاز
+//     credentials: true, // اجازه ارسال کوکی‌ها
+//     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // متدهای مجاز
+//     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'], // هدرهای مجاز
+// }));
 
 
-app.use((req: Request, res: Response, next: NextFunction) => {
-    res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    if (req.method === 'OPTIONS') {
-        return res.sendStatus(200); // پاسخ سریع برای درخواست‌های OPTIONS
-    }
-    next();
-});
+// app.use((req: Request, res: Response, next: NextFunction) => {
+//     // res.header('Access-Control-Allow-Origin', '*');
+//     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+//     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+//     res.header('Access-Control-Allow-Credentials', 'true');
+//     if (req.method === 'OPTIONS') {
+//         return res.sendStatus(200); // پاسخ سریع برای درخواست‌های OPTIONS
+//     }
+//     next();
+// });
 
  
 
