@@ -104,7 +104,7 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
                         totalLessons: '$totalLessons',
                         previewVideoUrl: '$previewVideoUrl',
                         urlName: '$urlName',
-                        isPreOrder:'$isPreOrder'
+                        isPreOrder: '$isPreOrder'
                     }
                 }
             }
@@ -199,8 +199,11 @@ const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Res
                             ?
                             lesson.isFree
                                 ? {
+                                    videoName: lesson.lessonFile.videoName
+                                        ? await generateS3Url(`Courses/${course?.folderName}/CourseLessons/${lesson.lessonFile.videoName}`, !(lesson.isFree), lesson.lessonFile.videoName) :
+                                        '',
                                     fileTitle: lesson.lessonFile.fileTitle,
-                                    fileName: await generateS3Url(`Courses/${course?.folderName}/CourseLessons/${lesson.lessonFile.fileName}`, !(lesson.isFree), `section_${sectionIndex + 1}_lesson_${lessonIndex + 1}_${lesson.lessonFile.fileName}`),
+                                    fileName: await generateS3Url(`Courses/${course?.folderName}/CourseLessons/${lesson.lessonFile.fileName}`, !(lesson.isFree), lesson.lessonFile.fileName),
                                     fileDescription: lesson.lessonFile.fileDescription,
                                 }
                                 : true
@@ -505,71 +508,71 @@ const searchCourses = CatchAsyncError(async (req: Request, res: Response, next: 
         // if (allCourses) {
         //     allCourses = JSON.parse(allCourses);
         // } else {
-            let allCourses = await CourseModel.aggregate([
-                { $match: { showCourse: true } },
-                {
-                    $lookup: {
-                        from: "teachers",
-                        localField: "teacherId",
-                        foreignField: "_id",
-                        as: "teacherData"
-                    }
-                },
-                {
-                    $lookup: {
-                        from: "academies",
-                        localField: "academyId",
-                        foreignField: "_id",
-                        as: "academyData"
-                    }
-                },
-                {
-                    $lookup: {
-                        from: "categories", // اتصال به مجموعه دسته‌بندی‌ها
-                        localField: "categoryIds",
-                        foreignField: "_id",
-                        as: "categoryData"
-                    }
-                },
-                {
-                    $addFields: {
-                        teacher: {
-                            teacherEngName: { $arrayElemAt: ["$teacherData.engName", 0] },
-                            teacherId: { $arrayElemAt: ["$teacherData._id", 0] }
-                        },
-                        academy: {
-                            academyEngName: { $arrayElemAt: ["$academyData.engName", 0] },
-                            academyId: { $arrayElemAt: ["$academyData._id", 0] }
-                        },
-                        categories: {
-                            categoryNames: "$categoryData.name",
-                            categoryIds: "$categoryData._id"
-                        }
-                    }
-                },
-                {
-                    $project: {
-                        totalVideos: 1,
-                        isInVirtualPlus: 1,
-                        "discount.percent": 1,
-                        "discount.expireTime": 1,
-                        status: 1,
-                        ratings: 1,
-                        level: 1,
-                        "thumbnail.imageUrl": 1,
-                        description: 1,
-                        name: 1,
-                        teacher: 1,
-                        academy: 1,
-                        categories: 1, // افزودن فیلد دسته‌بندی به خروجی نهایی
-                        courseLength: 1,
-                        price: 1,
-                        purchased: 1,
-                        totalLessons: 1,
-                        urlName: 1,
+        let allCourses = await CourseModel.aggregate([
+            { $match: { showCourse: true } },
+            {
+                $lookup: {
+                    from: "teachers",
+                    localField: "teacherId",
+                    foreignField: "_id",
+                    as: "teacherData"
+                }
+            },
+            {
+                $lookup: {
+                    from: "academies",
+                    localField: "academyId",
+                    foreignField: "_id",
+                    as: "academyData"
+                }
+            },
+            {
+                $lookup: {
+                    from: "categories", // اتصال به مجموعه دسته‌بندی‌ها
+                    localField: "categoryIds",
+                    foreignField: "_id",
+                    as: "categoryData"
+                }
+            },
+            {
+                $addFields: {
+                    teacher: {
+                        teacherEngName: { $arrayElemAt: ["$teacherData.engName", 0] },
+                        teacherId: { $arrayElemAt: ["$teacherData._id", 0] }
+                    },
+                    academy: {
+                        academyEngName: { $arrayElemAt: ["$academyData.engName", 0] },
+                        academyId: { $arrayElemAt: ["$academyData._id", 0] }
+                    },
+                    categories: {
+                        categoryNames: "$categoryData.name",
+                        categoryIds: "$categoryData._id"
                     }
                 }
-            ]);
+            },
+            {
+                $project: {
+                    totalVideos: 1,
+                    isInVirtualPlus: 1,
+                    "discount.percent": 1,
+                    "discount.expireTime": 1,
+                    status: 1,
+                    ratings: 1,
+                    level: 1,
+                    "thumbnail.imageUrl": 1,
+                    description: 1,
+                    name: 1,
+                    teacher: 1,
+                    academy: 1,
+                    categories: 1, // افزودن فیلد دسته‌بندی به خروجی نهایی
+                    courseLength: 1,
+                    price: 1,
+                    purchased: 1,
+                    totalLessons: 1,
+                    urlName: 1,
+                }
+            }
+        ]);
 
         //     await redis.setex("all_courses", REDIS_EXPIRATION_HOUR, JSON.stringify(allCourses));
         // }

@@ -6,9 +6,10 @@ interface ILink extends Document {
 }
 
 interface ILessonFile extends Document {
-    fileTitle: string,//اسمش لحظه ی دانلود
+    videoName?: string,
     fileName: string;//اسمش داخل باکت
-    fileDescription:string;
+    fileTitle: string,//اسمش لحظه ی دانلود
+    fileDescription: string;
 }
 
 interface ILesson extends Document {
@@ -31,9 +32,9 @@ interface ILesson extends Document {
     lessonLength?: number,
     isFree: boolean,
 
-    info:string,
-    warning:string,
-    error:string,
+    info: string,
+    warning: string,
+    error: string,
 
     order: number,
 
@@ -45,11 +46,17 @@ const linkSchema = new Schema<ILink>({
     url: String
 })
 
+
+
+//خب یه مشکلی که هست اینه که ممکنه با بخوایم یه فیلم برای پیش نمایش باشه اما لحظه ی دانلود فایلی که داهلش فیلم هم هست و چیزای دیگه هست دالنود بشه
 const fileSchema = new Schema<ILessonFile>({
+    videoName: { type: String, required: false },
+    fileName: { type: String, required: true },//اسمش داخل باکت
     fileTitle: String,//اسمش لحظه ی دانلود
-    fileName: String,//اسمش داخل باکت
-    fileDescription:String,
+    fileDescription: String,
 })
+
+
 
 const LessonSchema = new Schema<ILesson>({
     courseId: {
@@ -69,9 +76,9 @@ const LessonSchema = new Schema<ILesson>({
     links: [linkSchema], // لینک‌های مرتبط با درس
     lessonLength: { type: Number }, // مدت زمان درس (بر حسب ثانیه یا دقیقه)
     isFree: { type: Boolean, default: false }, // آیا درس رایگان است؟
-    info:String,
-    warning:String,
-    error:String,
+    info: String,
+    warning: String,
+    error: String,
     order: { type: Number, required: true }, // ترتیب نمایش درس
 }, { timestamps: true });
 
