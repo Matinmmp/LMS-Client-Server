@@ -38,7 +38,7 @@ export interface ICourse extends Document {
     tags: [string]; // برچسب‌های دوره
     level: string; // سطح دوره (مثل مبتدی، متوسط، پیشرفته)
     benefits: { title: string }[]; // مزایای شرکت در دوره
-    prerequisites: { title: string }[]; // پیش‌نیازهای دوره
+    prerequisites: { title: string ,link?:string}[]; // پیش‌نیازهای دوره
     ratings?: number; // امتیاز دوره
     purchased?: number; // تعداد خریدهای دوره
     links?: ILink[]; // لینک‌های مرتبط با دوره
@@ -77,7 +77,7 @@ const courseSchema = new Schema<ICourse>({
     tags: { type: [String], required: true },
     level: { type: String, required: true },
     benefits: [{ title: String }],
-    prerequisites: [{ title: String }],
+    prerequisites: [{ title: String,link:String }],
     ratings: { type: Number, default: 0 },
     purchased: { type: Number, default: 0 },
     status: { type: Number, default: 0 },

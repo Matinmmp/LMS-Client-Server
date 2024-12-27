@@ -13,6 +13,7 @@ import userModel from "../models/user.model";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import CourseSectionModel from "../models/courseSection.model";
 import LessonModel from "../models/sectionLesson.model";
+import mongoose from "mongoose";
 
 require('dotenv').config();
 
@@ -199,9 +200,6 @@ const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Res
                             ?
                             lesson.isFree
                                 ? {
-                                    videoName: lesson.lessonFile.videoName
-                                        ? await generateS3Url(`Courses/${course?.folderName}/CourseLessons/${lesson.lessonFile.videoName}`, !(lesson.isFree), lesson.lessonFile.videoName) :
-                                        '',
                                     fileTitle: lesson.lessonFile.fileTitle,
                                     fileName: await generateS3Url(`Courses/${course?.folderName}/CourseLessons/${lesson.lessonFile.fileName}`, !(lesson.isFree), lesson.lessonFile.fileName),
                                     fileDescription: lesson.lessonFile.fileDescription,
@@ -655,11 +653,89 @@ const getAllCourseUrlNames = CatchAsyncError(async (req: Request, res: Response,
     }
 });
 
+const getRelatedCourses = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const courseName = req.params.name;
+     
+
+        // بررسی وجود دوره
+        let course: any = await CourseModel.findOne({ urlName: courseName }).lean();
+        if (!course) {
+            return res.status(404).json({
+                success: false,
+                message: "دوره‌ای با این شناسه یافت نشد",
+            });
+        }
+        const relatedCourseIds = (course.relatedCourses || []).map((id: string) => new mongoose.Types.ObjectId(id));
+        // یافتن دوره‌های مرتبط
+        const relatedCourses = await CourseModel.aggregate([
+            {
+                $match: { _id: { $in: relatedCourseIds }, showCourse: true },
+            },
+            {
+                $lookup: {
+                    from: "teachers", // اتصال به جدول Teachers
+                    localField: "teacherId", // فیلد مرتبط در Course
+                    foreignField: "_id", // فیلد مرتبط در Teachers
+                    as: "teacherData",
+                },
+            },
+            {
+                $lookup: {
+                    from: "academies", // اتصال به جدول Academies
+                    localField: "academyId", // فیلد مرتبط در Course
+                    foreignField: "_id", // فیلد مرتبط در Academies
+                    as: "academyData",
+                },
+            },
+            {
+                $addFields: {
+                    teacher: {
+                        teacherEngName: { $arrayElemAt: ["$teacherData.engName", 0] },
+                    },
+                    academy: {
+                        academyEngName: { $arrayElemAt: ["$academyData.engName", 0] },
+                    },
+                },
+            },
+            {
+                $project: {
+                    name: 1,
+                    description: 1,
+                    price: 1,
+                    level: 1,
+                    ratings: 1,
+                    status: 1,
+                    isInVirtualPlus: 1,
+                    courseLength: 1,
+                    totalLessons: 1,
+                    urlName: 1,
+                    discount: 1,
+                    "thumbnail.imageUrl": 1,
+                    teacher: 1,
+                    academy: 1,
+           
+                },
+            },
+        ]);
+        
+  
+   
+        res.status(200).json({
+            success: true,
+            courses: relatedCourses,
+        });
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message, 400));
+    }
+});
+
 export {
     getAllCourseUrlNames,
     getCourseByName,
     getCourseDataByNameNoLoged,
     getCourseDataByNameLoged,
-    searchCourses
+    searchCourses,
+    getRelatedCourses
 
 }

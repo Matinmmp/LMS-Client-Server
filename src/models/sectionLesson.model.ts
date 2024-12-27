@@ -48,9 +48,7 @@ const linkSchema = new Schema<ILink>({
 
 
 
-//خب یه مشکلی که هست اینه که ممکنه با بخوایم یه فیلم برای پیش نمایش باشه اما لحظه ی دانلود فایلی که داهلش فیلم هم هست و چیزای دیگه هست دالنود بشه
 const fileSchema = new Schema<ILessonFile>({
-    videoName: { type: String, required: false },
     fileName: { type: String, required: true },//اسمش داخل باکت
     fileTitle: String,//اسمش لحظه ی دانلود
     fileDescription: String,

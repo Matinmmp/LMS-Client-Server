@@ -47,8 +47,8 @@ const getHomeFavoritAcadmy = CatchAsyncError(async (req: Request, res: Response,
             {
                 $sort: {
                     totalStudents: -1, // مرتب‌سازی بر اساس تعداد دانشجویان
-                    totalTeachers: -1, // مرتب‌سازی بر اساس تعداد مدرسین
-                    totalCourses: -1
+                    // totalTeachers: -1, // مرتب‌سازی بر اساس تعداد مدرسین
+                    // totalCourses: -1
                 }
             },
             {

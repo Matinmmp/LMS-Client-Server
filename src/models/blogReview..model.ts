@@ -10,7 +10,7 @@ interface IComment extends Document {
 
 interface ICourseReview extends Document {
     userId: mongoose.Schema.Types.ObjectId; // استفاده از ObjectId برای ارتباط با مدل User
-    courseId: mongoose.Schema.Types.ObjectId; // ارتباط با مدل Course
+    blogId: mongoose.Schema.Types.ObjectId; // ارتباط با مدل Course
     comment: string;
     show: boolean;
     commentsReplies?: IComment[];
@@ -27,12 +27,12 @@ const commentSchema = new Schema<IComment>({
 
 const courseReviewSchema = new Schema<ICourseReview>({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // ارتباط با User
-    courseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true }, // ارتباط با Course
+    blogId: { type: mongoose.Schema.Types.ObjectId, ref: 'Blog', required: true }, // ارتباط با Blog
     show: { type: Boolean,default: false},
     comment: { type: String, required: true },
     commentsReplies: [commentSchema] // آرایه‌ای از نظرات پاسخ
 }, { timestamps: true })
 
-const CourseReviewModel: Model<ICourseReview> = mongoose.model('CourseReview', courseReviewSchema);
+const CourseReviewModel: Model<ICourseReview> = mongoose.model('BlogReview', courseReviewSchema);
 
 export default CourseReviewModel;
