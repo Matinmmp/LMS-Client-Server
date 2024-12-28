@@ -8,6 +8,7 @@ import courseRouter from "./routes/course.route";
 import dashboardRoute from "./routes/dashboard.route";
 import homeRouter from "./routes/home.route";
 import { CopyObjectCommand } from "@aws-sdk/client-s3";
+import blogRouter from "./routes/blog.route";
 const express = require('express')
 const cors = require('cors')
 const cookieParser = require('cookie-parser')
@@ -55,6 +56,8 @@ app.use('/api/v1', academyRouter);
 app.use('/api/v1', courseRouter);
 app.use('/api/v1/dashboard', dashboardRoute);
 app.use('/api/v1', homeRouter);
+app.use('/api/v1', blogRouter);
+
 
 
 

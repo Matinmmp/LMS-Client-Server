@@ -14,6 +14,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import CourseSectionModel from "../models/courseSection.model";
 import LessonModel from "../models/sectionLesson.model";
 import mongoose from "mongoose";
+import BlogModel from "../models/blog.model";
 
 require('dotenv').config();
 
@@ -657,7 +658,7 @@ const getRelatedCourses = CatchAsyncError(async (req: Request, res: Response, ne
     try {
         const courseName = req.params.name;
      
-
+ 
         // بررسی وجود دوره
         let course: any = await CourseModel.findOne({ urlName: courseName }).lean();
         if (!course) {
@@ -701,26 +702,12 @@ const getRelatedCourses = CatchAsyncError(async (req: Request, res: Response, ne
             {
                 $project: {
                     name: 1,
-                    description: 1,
-                    price: 1,
-                    level: 1,
-                    ratings: 1,
-                    status: 1,
-                    isInVirtualPlus: 1,
-                    courseLength: 1,
-                    totalLessons: 1,
                     urlName: 1,
-                    discount: 1,
                     "thumbnail.imageUrl": 1,
-                    teacher: 1,
-                    academy: 1,
-           
                 },
             },
         ]);
         
-  
-   
         res.status(200).json({
             success: true,
             courses: relatedCourses,
@@ -739,3 +726,5 @@ export {
     getRelatedCourses
 
 }
+
+

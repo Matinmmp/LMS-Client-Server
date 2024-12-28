@@ -49,10 +49,10 @@ export interface ICourse extends Document {
     showCourse: boolean; // آیا دوره برای کاربران قابل نمایش است
     totalLessons: number; // تعداد ویدیوهای موجود در دوره
     viewsCount: number; // تعداد بازدیدهای دوره
-    seoMeta: { description: string; keywords: string[]; }; // اطلاعات SEO دوره
+    seoMeta: { title: string; description: string; keywords: string[] }; // اطلاعات سئو
     previewVideoUrl?: string; // لینک ویدیوی پیش‌نمایش
     relatedCourses?: mongoose.Schema.Types.ObjectId[];
-    // relatedBlogs?: mongoose.Schema.Types.ObjectId[];
+    relatedBlogs?: mongoose.Schema.Types.ObjectId[];
     favoritesCount: Number;
     lastContentUpdate: Date;
     isPreOrder: Boolean;
@@ -92,10 +92,10 @@ const courseSchema = new Schema<ICourse>({
     showCourse: { type: Boolean, default: false },
     totalLessons: Number,
     viewsCount: { type: Number, default: 0 },
-    seoMeta: { description: String, keywords: [String] },
+    seoMeta: { title: String, description: String, keywords: [String] },
     previewVideoUrl: { type: String },
     relatedCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }], // دوره‌های مشابه
-    // relatedBlogs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Blog' }], // بلاگ‌های پیشنهادی
+    relatedBlogs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Blog' }], // بلاگ‌های پیشنهادی
     favoritesCount: { type: Number, default: 0 }, // تعداد علاقه‌مندی‌ها
     lastContentUpdate: { type: Date, default: Date.now }, // آخرین بروزرسانی محتوا
     isPreOrder: { type: Boolean, default: false }, // پیش‌فروش
