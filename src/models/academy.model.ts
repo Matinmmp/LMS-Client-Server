@@ -5,14 +5,17 @@ export interface IAcademy extends Document {
     faName: string;
     tags: string;
     description?: string;
-    longDescription:string;
-    avatar: {
-        imageName: string;
-        imageUrl: string;
-    },
+    longDescription: string;
+    avatar: { imageName: string; imageUrl: string },
     courses: mongoose.Schema.Types.ObjectId[]; // ارتباط یک به چند با دوره‌ها
     teachers: mongoose.Schema.Types.ObjectId[]; // ارتباط چند به چند با مدرسین
-    rates: number;
+    seoMeta: { title: string; description: string; keywords: string[] }; // اطلاعات سئو
+    // اینا همه باید با کرون جاب حساب بشن
+    rating: number;
+    ratingNumber: number;
+    totalStudents: number;
+    totalTeacher: number;
+    totalCourses: number;
 }
 
 const academySchema: Schema<IAcademy> = new mongoose.Schema({
@@ -20,17 +23,18 @@ const academySchema: Schema<IAcademy> = new mongoose.Schema({
     faName: String,
     tags: String,
     description: String,
-    longDescription:String,
-    avatar: {
-        imageName: String,
-        imageUrl: String
-    },
+    longDescription: String,
+    avatar: { imageName: String, imageUrl: String },
     courses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }], // اشاره به دوره‌ها
     teachers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Teacher' }], // اشاره به مدرسین
-    rates: {
-        type: Number,
-        default: 0
-    },
+    seoMeta: { title: String, description: String, keywords: [String] },
+
+    rating: { type: Number, default: 0 },
+    ratingNumber: { type: Number, default: 0 },
+    totalStudents: { type: Number, default: 0 },
+    totalTeacher: { type: Number, default: 0 },
+    totalCourses: { type: Number, default: 0 },
+
 }, { timestamps: true });
 
 const AcademyModel: Model<IAcademy> = mongoose.model('Academy', academySchema);

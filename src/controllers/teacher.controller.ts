@@ -20,25 +20,10 @@ const getTeachers = CatchAsyncError(async (req: Request, res: Response, next: Ne
         // }
 
 
-
         const teachers = await TeacherModel.aggregate([
             {
                 $lookup: {
-                    from: 'courses', // اتصال به جدول دوره‌ها
-                    localField: '_id',
-                    foreignField: 'teacherId',
-                    as: 'courseData'
-                }
-            },
-            {
-                $addFields: {
-                    totalCourses: { $size: "$courseData" }, // تعداد دوره‌ها
-                    totalStudents: { $sum: "$courseData.students" } // مجموع دانشجویان از دوره‌ها
-                }
-            },
-            {
-                $lookup: {
-                    from: 'academies', // اتصال به جدول آکادمی‌ها
+                    from: 'academies',
                     localField: 'academies',
                     foreignField: '_id',
                     as: 'academyData'
@@ -46,28 +31,33 @@ const getTeachers = CatchAsyncError(async (req: Request, res: Response, next: Ne
             },
             {
                 $addFields: {
-                    academyNames: "$academyData.engName" // ایجاد فیلد جدید فقط با `engName` از آکادمی‌ها
+                    academyNames: "$academyData.engName", // ایجاد فیلد جدید فقط با `engName` از آکادمی‌ها
+                    totalStudents: { $ifNull: ["$totalStudents", 0] }, // اگر مقدار `totalStudents` وجود نداشت، مقدار `0` جایگزین شود
+                    totalCourses: { $ifNull: ["$totalCourses", 0] }, // اگر مقدار `totalCourses` وجود نداشت، مقدار `0` جایگزین شود
+                    rating: { $ifNull: ["$rating", 0] }, // مقدار پیش‌فرض `rating` برابر `0`
+                    ratingNumber: { $ifNull: ["$ratingNumber", 0] } // مقدار پیش‌فرض `ratingNumber` برابر `0`
                 }
             },
-            {
-                $sort: {
-                    totalStudents: -1, // مرتب‌سازی بر اساس تعداد دانشجویان از بیشترین به کمترین
-                    totalCourses: -1   // مرتب‌سازی بر اساس تعداد دوره‌ها از بیشترین به کمترین
-                }
+            { 
+                $sort: { totalStudents: -1 } 
             },
             {
                 $project: {
-                    engName: 1,
+                    engName: 1, // انتخاب فیلدهای مورد نیاز
                     faName: 1,
                     description: 1,
                     "avatar.imageUrl": 1,
-                    rates: 1,
+                    rating: 1,
+                    ratingNumber: 1,
                     totalStudents: 1,
                     totalCourses: 1,
                     academyNames: 1 // نمایش لیست نام آکادمی‌ها
                 }
             }
         ]);
+        
+
+
 
         // await redis.setex(cacheKey, CACHE_EXPIRATION, JSON.stringify(teachers));
 
@@ -80,7 +70,7 @@ const getTeachers = CatchAsyncError(async (req: Request, res: Response, next: Ne
 
 const getTeacherByEngName = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const teacherEngName = req.params.name; 
+        const teacherEngName = req.params.name;
 
         // const cacheKey = `teacher:${teacherEngName}`;
         // const cachedTeacher = await redis.get(cacheKey);
@@ -88,49 +78,18 @@ const getTeacherByEngName = CatchAsyncError(async (req: Request, res: Response, 
         //     return res.status(200).json({ success: true, teacher: JSON.parse(cachedTeacher) });
         // }
 
-        const teachers = await TeacherModel.aggregate([
-            {
-                $match: { engName: teacherEngName }, // پیدا کردن مدرس بر اساس engName
-            },
-            {
-                $lookup: {
-                    from: 'academies', // اتصال به جدول آکادمی‌ها
-                    localField: 'academies', // آیدی‌های آکادمی در آرایه `academies` مدرس
-                    foreignField: '_id', // ارتباط با فیلد `_id` در آکادمی‌ها
-                    as: 'academyData' // داده‌های آکادمی‌ها در `academyData`
-                }
-            },
-            {
-                $lookup: {
-                    from: 'courses', // اتصال به جدول دوره‌ها
-                    localField: '_id', // از `_id` مدرس
-                    foreignField: 'teacherId', // ارتباط با فیلد `teacherId` در دوره‌ها
-                    as: 'courseData' // داده‌های دوره‌ها در `courseData`
-                }
-            },
-            {
-                $addFields: {
-                    totalAcademies: { $size: "$academyData" }, // شمارش تعداد آکادمی‌ها
-                    totalStudents: { $sum: "$courseData.students" }, // جمع تعداد دانشجویان از دوره‌ها
-                    totalCourses: { $size: "$courseData" } // شمارش تعداد دوره‌ها
-                }
-            },
-            {
-                $project: {
-                    engName: 1, // انتخاب فیلدهای مورد نیاز برای بازگشت
-                    faName: 1,
-                    description: 1,
-                    longDescription: 1,
-                    "avatar.imageUrl": 1,
-                    rates: 1,
-                    totalStudents: 1,
-                    totalAcademies: 1,
-                    totalCourses: 1
-                }
-            }
-        ]);
+        const teacher = await TeacherModel.findOne({ engName: teacherEngName }, {
+            engName: 1, // انتخاب فیلدهای مورد نیاز
+            faName: 1,
+            description: 1,
+            "avatar.imageUrl": 1,
+            rating: 1,
+            ratingNumber: 1,
+            totalStudents: 1,
+            totalCourses: 1,
+            totalAcademies:1,
+        }).sort({ totalStudents: -1 }).limit(3);
 
-        const teacher = teachers[0];
 
         if (!teacher) {
             return res.status(404).json({ success: false, message: "Teacher not found" });
@@ -147,7 +106,7 @@ const getTeacherByEngName = CatchAsyncError(async (req: Request, res: Response, 
 
 const getTeachersAcademiesByEngName = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const teacherEngName = req.params.name; 
+        const teacherEngName = req.params.name;
 
         // const cacheKey = `teacher:${teacherEngName}:academies`; 
 
@@ -218,7 +177,7 @@ const getTeachersAcademiesByEngName = CatchAsyncError(async (req: Request, res: 
 
 const getTeacherCoursesByEngName = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const teacherEngName = req.params.name; 
+        const teacherEngName = req.params.name;
 
         // const cacheKey = `teacher:${teacherEngName}:topCourses`; 
 
@@ -243,7 +202,7 @@ const getTeacherCoursesByEngName = CatchAsyncError(async (req: Request, res: Res
                 }
             },
             {
-                $limit: 8 
+                $limit: 8
             },
             {
                 $lookup: {
@@ -289,8 +248,8 @@ const getTeacherCoursesByEngName = CatchAsyncError(async (req: Request, res: Res
                     academy: 1,
                     courseLength: 1,
                     price: 1,
-                    totalLessons:1,
-                    urlName:1,
+                    totalLessons: 1,
+                    urlName: 1,
                 }
             }
         ]);
@@ -304,7 +263,7 @@ const getTeacherCoursesByEngName = CatchAsyncError(async (req: Request, res: Res
         res.status(200).json({ success: true, courses });
 
     } catch (error: any) {
-        return next(new ErrorHandler(error.message, 500)); 
+        return next(new ErrorHandler(error.message, 500));
     }
 });
 

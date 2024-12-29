@@ -23,7 +23,7 @@ const commentSchema = new Schema<IComment>({
     commentsReplies: [this] ,// ارتباط خودارجاع برای پاسخ‌ها
     show: { type: Boolean,default: false},
 
-})
+}, { timestamps: true })
 
 const courseReviewSchema = new Schema<ICourseReview>({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // ارتباط با User

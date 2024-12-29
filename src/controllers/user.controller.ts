@@ -121,7 +121,7 @@ const acitvateUser = CatchAsyncError(async (req: Request, res: Response, next: N
         if (special_code && special_code == process.env.SPECIAL_CODE_ADMIN) {
             const user = await userModel.create({ name, email, password, role: 'admin' })
         } else {
-            const user = await userModel.create({ name, email, password })
+            const user = await userModel.create({ name, email, password,role:'user' })
         }
 
         res.status(201).json({ success: true })

@@ -11,16 +11,14 @@ export interface IUser extends Document {
     email: string;
     password: string;
     phone?: string;
-    avatar: {
-        imageName: string;
-        imageUrl: string;
-    },
-    favoritCourses:Array<{ courseId: string }>;
-    favoritTeachers:Array<{ teacherId: string }>;
-    favoritAcademies:Array<{ academyId: string }>;
+    avatar: { imageName: string; imageUrl: string },
+    courses: mongoose.Schema.Types.ObjectId[];
+    favoritCourses: mongoose.Schema.Types.ObjectId[];
+    likedCourses: mongoose.Schema.Types.ObjectId[];
+    favoritTeachers: mongoose.Schema.Types.ObjectId[];
+    favoritAcademies: mongoose.Schema.Types.ObjectId[];
     role: string;
     isVerified: boolean;
-    courses: Array<{ courseId: string }>;
     coursesRating: Array<{ courseId: string, rate: number }>
     comparePassword: (password: string) => Promise<boolean>;
     SignAccessToken: () => string;
@@ -72,17 +70,13 @@ const userSchema: Schema<IUser> = new mongoose.Schema({
         default: false
     },
 
-    courses: [ { courseId: String}],
-    favoritCourses: [ { courseId: String}],
-    favoritTeachers: [ { teacherId: String}],
-    favoritAcademies: [ { academyId: String}],
+    courses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }],
+    favoritCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }],
+    likedCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }],
+    favoritTeachers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Teacher' }],
+    favoritAcademies: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Academy' }],
 
-
-    coursesRating: [
-        {
-            courseId: String,
-            rate: Number,
-        }
+    coursesRating: [{ courseId: String, rate: Number }
     ]
 }, { timestamps: true })
 

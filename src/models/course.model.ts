@@ -40,6 +40,7 @@ export interface ICourse extends Document {
     benefits: { title: string }[]; // مزایای شرکت در دوره
     prerequisites: { title: string ,link?:string}[]; // پیش‌نیازهای دوره
     ratings?: number; // امتیاز دوره
+    ratingsNumber:number;
     purchased?: number; // تعداد خریدهای دوره
     links?: ILink[]; // لینک‌های مرتبط با دوره
     status: number; // وضعیت دوره (0: ongoing, 1: finished, 2: stopped)
@@ -79,6 +80,7 @@ const courseSchema = new Schema<ICourse>({
     benefits: [{ title: String }],
     prerequisites: [{ title: String,link:String }],
     ratings: { type: Number, default: 0 },
+    ratingsNumber: { type: Number, default: 0 },
     purchased: { type: Number, default: 0 },
     status: { type: Number, default: 0 },
     academyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Academy' },

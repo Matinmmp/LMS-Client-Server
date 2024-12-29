@@ -17,62 +17,22 @@ import { redis } from "../utils/redis";
 const getHomeFavoritAcadmy = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
 
-        const academies = await AcademyModel.aggregate([
-            {
-                $limit: 9 // Limiting the result to 12 academies
-            },
-            {
-                $lookup: {
-                    from: 'teachers', // نام مجموعه (collection) مرتبط
-                    localField: '_id', // ارتباط با فیلد آکادمی
-                    foreignField: 'academies', // ارتباط با فیلد آکادمی در Teacher
-                    as: 'teacherData' // داده‌های مدرسین
-                }
-            },
-            {
-                $lookup: {
-                    from: 'courses', // Referencing the courses collection
-                    localField: '_id',
-                    foreignField: 'academyId', // Field in the course document that references academy
-                    as: 'courseData'
-                }
-            },
-            {
-                $addFields: {
-                    totalTeachers: { $size: "$teacherData" }, // Counting total teachers for each academy
-                    totalStudents: { $sum: "$teacherData.students" }, // Summing the total number of students from teachers
-                    totalCourses: { $size: "$courseData" }, // Counting the total number of courses
-                }
-            },
-            {
-                $sort: {
-                    totalStudents: -1, // مرتب‌سازی بر اساس تعداد دانشجویان
-                    // totalTeachers: -1, // مرتب‌سازی بر اساس تعداد مدرسین
-                    // totalCourses: -1
-                }
-            },
-            {
-                $project: {
-                    engName: 1, // فیلدهای مورد نیاز برای بازگشت
-                    faName: 1,
-                    description: 1,
-                    "avatar.imageUrl": 1,
-                    rates: 1,
-                    totalStudents: 1,
-                    totalTeachers: 1,
-                    totalCourses: 1,
-
-                }
-            }
-        ]);
-
-
+        const academies = await AcademyModel.find({}, {
+            engName: 1, // انتخاب فیلدهای مورد نیاز
+            faName: 1,
+            description: 1,
+            "avatar.imageUrl": 1,
+            rating: 1,
+            ratingNumber: 1,
+            totalStudents: 1,
+            totalTeachers: 1,
+            totalCourses: 1,
+        }).sort({ totalStudents: -1 }).limit(9);
 
         res.status(200).json({
             success: true,
             academies
         });
-
 
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 400));
@@ -126,7 +86,7 @@ const getHomeLastCourses = CatchAsyncError(async (req: Request, res: Response, n
                     isInVirtualPlus: 1,
                     "discount.percent": 1,
                     "discount.expireTime": 1,
-                    totalLessons:1,
+                    totalLessons: 1,
                     status: 1,
                     ratings: 1,
                     level: 1,
@@ -137,7 +97,7 @@ const getHomeLastCourses = CatchAsyncError(async (req: Request, res: Response, n
                     academy: 1,
                     courseLength: 1,
                     price: 1,
-                    urlName:1,
+                    urlName: 1,
 
                 }
             }
@@ -206,7 +166,7 @@ const getHomeFavoritCourses = CatchAsyncError(async (req: Request, res: Response
                     isInVirtualPlus: 1,
                     "discount.percent": 1,
                     "discount.expireTime": 1,
-                    totalLessons:1,
+                    totalLessons: 1,
                     status: 1,
                     ratings: 1,
                     level: 1,
@@ -217,7 +177,7 @@ const getHomeFavoritCourses = CatchAsyncError(async (req: Request, res: Response
                     academy: 1,
                     courseLength: 1,
                     price: 1,
-                    urlName:1
+                    urlName: 1
 
                 }
             }
@@ -240,43 +200,16 @@ const getHomeFavoritCourses = CatchAsyncError(async (req: Request, res: Response
 const getHomeFavoritTeachers = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
 
-        const teachers = await TeacherModel.aggregate([
-            {
-                $limit: 9 // Limiting the result to 12 academies
-            },
-            {
-                $lookup: {
-                    from: 'courses', // اتصال به جدول دوره‌ها
-                    localField: '_id',
-                    foreignField: 'teacherId',
-                    as: 'courseData'
-                }
-            },
-            {
-                $addFields: {
-                    totalCourses: { $size: "$courseData" }, // تعداد دوره‌ها
-                    totalStudents: { $sum: "$courseData.students" } // مجموع دانشجویان از دوره‌ها
-                }
-            },
-            {
-                $sort: {
-                    totalStudents: -1, // مرتب‌سازی بر اساس تعداد دانشجویان از بیشترین به کمترین
-                    totalCourses: -1   // مرتب‌سازی بر اساس تعداد دوره‌ها از بیشترین به کمترین
-                }
-            },
-            {
-                $project: {
-                    engName: 1,
-                    faName: 1,
-                    description: 1,
-                    "avatar.imageUrl": 1,
-                    rates: 1,
-                    totalStudents: 1,
-                    totalCourses: 1
-                }
-            }
-        ]);
-
+        const teachers = await TeacherModel.find({}, {
+            engName: 1, // انتخاب فیلدهای مورد نیاز
+            faName: 1,
+            description: 1,
+            "avatar.imageUrl": 1,
+            rating: 1,
+            ratingNumber: 1,
+            totalStudents: 1,
+            totalCourses: 1,
+        }).sort({ totalStudents: -1 }).limit(9);
 
 
         res.status(200).json({

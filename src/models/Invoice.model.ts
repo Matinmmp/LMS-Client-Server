@@ -1,25 +1,28 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
 
-export interface IInvoice extends Document {
-    userId: mongoose.Schema.Types.ObjectId; // آیدی کاربر
+interface IInvoiceCourse extends Document {
     courseId: mongoose.Schema.Types.ObjectId; // آیدی دوره
     courseName: string; // نام دوره
     originalPrice: number; // قیمت اصلی دوره
-    discountAmount: number; // مبلغ تخفیف
-    finalPrice: number; // مبلغ نهایی پرداخت‌شده
-    paymentMethod: string; // روش پرداخت (مثلاً آنلاین، کارت به کارت)
-    paymentStatus: string; // وضعیت پرداخت (موفق، ناموفق)
-    transactionId?: string; // شناسه تراکنش
-    createdAt: Date; // تاریخ خرید
-    updatedAt?: Date; // تاریخ آخرین به‌روزرسانی، در صورت نیاز
+    discountAmount: number; // مبلغ تخفیف برای این دوره
+    finalPrice: number; // مبلغ نهایی دوره
+    isFree: boolean; // آیا دوره رایگان است؟
 }
 
-const invoiceSchema: Schema<IInvoice> = new mongoose.Schema({
-    userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true
-    },
+export interface IInvoice extends Document {
+    userId: mongoose.Schema.Types.ObjectId; // آیدی کاربر
+    courses: IInvoiceCourse[]; // لیست دوره‌های موجود در سبد خرید
+    totalOriginalPrice: number; // جمع کل قیمت‌های اصلی
+    totalDiscount: number; // جمع کل تخفیف‌ها
+    totalFinalPrice: number; // مبلغ کل نهایی پرداخت‌شده
+    paymentMethod: string; // روش پرداخت
+    paymentStatus: string; // وضعیت پرداخت
+    transactionId?: string; // شناسه تراکنش
+    createdAt: Date; // تاریخ خرید
+    updatedAt?: Date; // تاریخ آخرین به‌روزرسانی
+}
+
+const invoiceCourseSchema: Schema<IInvoiceCourse> = new Schema({
     courseId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Course",
@@ -35,9 +38,34 @@ const invoiceSchema: Schema<IInvoice> = new mongoose.Schema({
     },
     discountAmount: {
         type: Number,
-        default: 0 // اگر تخفیفی وجود نداشت، مقدار پیش‌فرض 0 باشد
+        default: 0
     },
     finalPrice: {
+        type: Number,
+        required: true
+    },
+    isFree: {
+        type: Boolean,
+        default: false
+    }
+});
+
+const invoiceSchema: Schema<IInvoice> = new Schema({
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    },
+    courses: [invoiceCourseSchema], // آرایه‌ای از دوره‌ها
+    totalOriginalPrice: {
+        type: Number,
+        required: true
+    },
+    totalDiscount: {
+        type: Number,
+        default: 0
+    },
+    totalFinalPrice: {
         type: Number,
         required: true
     },
@@ -52,9 +80,9 @@ const invoiceSchema: Schema<IInvoice> = new mongoose.Schema({
         default: "pending"
     },
     transactionId: {
-        type: String, // شناسه تراکنش برای بررسی پرداخت آنلاین
-    },
-}, { timestamps: true }); // شامل createdAt و updatedAt
+        type: String
+    }
+}, { timestamps: true });
 
 const InvoiceModel: Model<IInvoice> = mongoose.model<IInvoice>("Invoice", invoiceSchema);
 
