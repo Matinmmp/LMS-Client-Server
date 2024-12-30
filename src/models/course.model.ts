@@ -98,7 +98,6 @@ const courseSchema = new Schema<ICourse>({
     previewVideoUrl: { type: String },
     relatedCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }], // دوره‌های مشابه
     relatedBlogs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Blog' }], // بلاگ‌های پیشنهادی
-    favoritesCount: { type: Number, default: 0 }, // تعداد علاقه‌مندی‌ها
     lastContentUpdate: { type: Date, default: Date.now }, // آخرین بروزرسانی محتوا
     isPreOrder: { type: Boolean, default: false }, // پیش‌فروش
     holeCourseVideos: { type: Number, default: 0 },
@@ -107,7 +106,9 @@ const courseSchema = new Schema<ICourse>({
     warning: String,
     error: String,
     courseLength: Number,
-
+    
+    //کرون جاب
+    favoritesCount: { type: Number, default: 0 }, // تعداد علاقه‌مندی‌ها
 }, { timestamps: true });
 
 
