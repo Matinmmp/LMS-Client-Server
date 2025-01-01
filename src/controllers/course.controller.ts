@@ -106,7 +106,8 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
                         totalLessons: '$totalLessons',
                         previewVideoUrl: '$previewVideoUrl',
                         urlName: '$urlName',
-                        isPreOrder: '$isPreOrder'
+                        isPreOrder: '$isPreOrder',
+                        _id: '$_id'
                     }
                 }
             }
@@ -657,8 +658,8 @@ const getAllCourseUrlNames = CatchAsyncError(async (req: Request, res: Response,
 const getRelatedCourses = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const courseName = req.params.name;
-     
- 
+
+
         // بررسی وجود دوره
         let course: any = await CourseModel.findOne({ urlName: courseName }).lean();
         if (!course) {
@@ -707,7 +708,7 @@ const getRelatedCourses = CatchAsyncError(async (req: Request, res: Response, ne
                 },
             },
         ]);
-        
+
         res.status(200).json({
             success: true,
             courses: relatedCourses,

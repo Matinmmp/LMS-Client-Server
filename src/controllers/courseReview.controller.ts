@@ -4,6 +4,7 @@ import userModel from '../models/user.model';
 import { CatchAsyncError } from '../middleware/catchAsyncErrors';
 import ErrorHandler from '../utils/ErrorHandler';
 import CourseReviewModel from '../models/blogReview..model';
+import mongoose from 'mongoose';
 
 
 
@@ -107,7 +108,7 @@ const getCourseComments = CatchAsyncError(async (req: Request, res: Response, ne
         // محاسبه تعداد کل صفحات
         const totalComments = await CourseReviewModel.countDocuments({ courseId: `${course._id}`, show: true });
         const totalPage = Math.ceil(totalComments / limitPerPage);
-        
+
 
         // ساختاردهی خروجی
         const response: any = {
@@ -142,6 +143,59 @@ const getCourseComments = CatchAsyncError(async (req: Request, res: Response, ne
         next(new ErrorHandler(error.message, 500));
     }
 });
+
+
+const createComment = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+
+    const userId = req.user?._id || "";
+
+    const { courseId, parentCommentId, comment } = req.body;
+
+    if (!courseId || !comment) {
+        return next(new ErrorHandler("آیدی دوره و متن کامنت الزامی است", 400));
+    }
+
+    if (parentCommentId) {
+        const parentComment: any = await CourseReviewModel.findById(parentCommentId);
+        if (!parentComment) {
+            return next(new ErrorHandler("کامنت والد یافت نشد", 404));
+        }
+
+        // اطمینان از وجود commentsReplies
+        if (!parentComment.commentsReplies) {
+            parentComment.commentsReplies = [];
+        }
+
+        // اضافه کردن ریپلای
+        parentComment?.commentsReplies.push({
+            userId,
+            comment,
+            show: false,
+        });
+
+        await parentComment.save();
+        return res.status(201).json({
+            success: true,
+            message: "ریپلای با موفقیت ثبت شد",
+        });
+    }
+
+    const newComment = await CourseReviewModel.create({
+        userId,
+        courseId,
+        comment,
+        show: false,
+        commentsReplies: [],
+    });
+
+    res.status(201).json({
+        success: true,
+        message: "کامنت با موفقیت ثبت شد",
+        comment: newComment,
+    });
+});
+
+
 
 export { getCourseComments };
 
