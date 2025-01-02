@@ -33,6 +33,6 @@ const courseReviewSchema = new Schema<ICourseReview>({
     commentsReplies: [commentSchema] // آرایه‌ای از نظرات پاسخ
 }, { timestamps: true })
 
-const CourseReviewModel: Model<ICourseReview> = mongoose.model('BlogReview', courseReviewSchema);
+const BlogReviewModel: Model<ICourseReview> = mongoose.model('BlogReview', courseReviewSchema);
 
-export default CourseReviewModel;
+export default BlogReviewModel;

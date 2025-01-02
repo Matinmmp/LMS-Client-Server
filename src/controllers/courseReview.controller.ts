@@ -3,8 +3,9 @@ import CourseModel from '../models/course.model';
 import userModel from '../models/user.model';
 import { CatchAsyncError } from '../middleware/catchAsyncErrors';
 import ErrorHandler from '../utils/ErrorHandler';
-import CourseReviewModel from '../models/blogReview..model';
-import mongoose from 'mongoose';
+import CourseReviewModel from '../models/courseReview..model';
+import mongoose, { Mongoose } from 'mongoose';
+
 
 
 
@@ -89,9 +90,8 @@ const getCourseComments = CatchAsyncError(async (req: Request, res: Response, ne
             return res.status(404).json({ message: "دوره پیدا نشد." });
         }
 
-
         // دریافت کامنت‌ها مرتبط با دوره
-        const comments = await CourseReviewModel.find({ courseId: `${course._id}`, show: true })
+        const comments = await CourseReviewModel.find({ courseId: course._id, show: true })
             .populate({
                 path: "userId",
                 select: "name avatar.imageUrl role",
@@ -106,7 +106,7 @@ const getCourseComments = CatchAsyncError(async (req: Request, res: Response, ne
             .limit(limitPerPage);
 
         // محاسبه تعداد کل صفحات
-        const totalComments = await CourseReviewModel.countDocuments({ courseId: `${course._id}`, show: true });
+        const totalComments = await CourseReviewModel.countDocuments({ courseId: course._id, show: true });
         const totalPage = Math.ceil(totalComments / limitPerPage);
 
 
@@ -146,56 +146,64 @@ const getCourseComments = CatchAsyncError(async (req: Request, res: Response, ne
 
 
 const createComment = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user?._id || "";
 
-    const userId = req.user?._id || "";
+        const { courseId, parentCommentId, comment } = req.body;
 
-    const { courseId, parentCommentId, comment } = req.body;
-
-    if (!courseId || !comment) {
-        return next(new ErrorHandler("آیدی دوره و متن کامنت الزامی است", 400));
-    }
-
-    if (parentCommentId) {
-        const parentComment: any = await CourseReviewModel.findById(parentCommentId);
-        if (!parentComment) {
-            return next(new ErrorHandler("کامنت والد یافت نشد", 404));
+        if (!courseId || !comment) {
+            return next(new ErrorHandler("آیدی دوره و متن کامنت الزامی است", 400));
         }
 
-        // اطمینان از وجود commentsReplies
-        if (!parentComment.commentsReplies) {
-            parentComment.commentsReplies = [];
+        if (parentCommentId) {
+            const parentComment: any = await CourseReviewModel.findById(parentCommentId);
+            if (!parentComment) {
+                return next(new ErrorHandler("کامنت والد یافت نشد", 404));
+            }
+
+            // اطمینان از وجود commentsReplies
+            if (!parentComment.commentsReplies) {
+                parentComment.commentsReplies = [];
+            }
+
+            // اضافه کردن ریپلای
+            parentComment?.commentsReplies.push({
+                userId,
+                comment,
+                show: false,
+            });
+
+            await parentComment.save();
+            return res.status(201).json({
+                success: true,
+                message: "ریپلای با موفقیت ثبت شد",
+            });
         }
 
-        // اضافه کردن ریپلای
-        parentComment?.commentsReplies.push({
+        const newComment = await CourseReviewModel.create({
             userId,
+            courseId,
             comment,
             show: false,
+            commentsReplies: [],
         });
 
-        await parentComment.save();
-        return res.status(201).json({
+        res.status(201).json({
             success: true,
-            message: "ریپلای با موفقیت ثبت شد",
+            message: "کامنت با موفقیت ثبت شد",
+            comment: newComment,
         });
+
+    } catch (error: any) {
+        console.log(error.message)
+        next(new ErrorHandler(error.message, 500));
     }
-
-    const newComment = await CourseReviewModel.create({
-        userId,
-        courseId,
-        comment,
-        show: false,
-        commentsReplies: [],
-    });
-
-    res.status(201).json({
-        success: true,
-        message: "کامنت با موفقیت ثبت شد",
-        comment: newComment,
-    });
 });
 
 
 
-export { getCourseComments };
+export {
+    getCourseComments,
+    createComment
+};
 
