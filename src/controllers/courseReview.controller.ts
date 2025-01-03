@@ -15,6 +15,7 @@ const getCourseComments = CatchAsyncError(async (req: Request, res: Response, ne
     const currentPage = parseInt(page as string, 10);
     const limitPerPage = parseInt(limit as string, 10);
 
+
     try {
 
         // const course = await CourseModel.findOne({ urlName: name }).select('_id').lean();
@@ -120,6 +121,7 @@ const getCourseComments = CatchAsyncError(async (req: Request, res: Response, ne
                 },
                 comment: comment.comment,
                 createAt: comment.createdAt,
+                id: comment._id,
                 commentsReplies: (comment.commentsReplies || []).map((reply: any) => ({
                     user: {
                         name: reply.userId?.name || "",
@@ -149,14 +151,14 @@ const createComment = CatchAsyncError(async (req: Request, res: Response, next: 
     try {
         const userId = req.user?._id || "";
 
-        const { courseId, parentCommentId, comment } = req.body;
+        const { courseId, commentId, comment } = req.body;
 
         if (!courseId || !comment) {
             return next(new ErrorHandler("آیدی دوره و متن کامنت الزامی است", 400));
         }
 
-        if (parentCommentId) {
-            const parentComment: any = await CourseReviewModel.findById(parentCommentId);
+        if (commentId) {
+            const parentComment: any = await CourseReviewModel.findById(commentId);
             if (!parentComment) {
                 return next(new ErrorHandler("کامنت والد یافت نشد", 404));
             }

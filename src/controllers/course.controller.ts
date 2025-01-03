@@ -14,7 +14,8 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import CourseSectionModel from "../models/courseSection.model";
 import LessonModel from "../models/sectionLesson.model";
 import mongoose from "mongoose";
-import BlogModel from "../models/blog.model";
+import jwt from "jsonwebtoken";
+
 
 require('dotenv').config();
 
@@ -35,13 +36,36 @@ const client = new S3Client({
 const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const courseName = req.params.name;
-        // const cacheKey = `course:${courseName}`; // کلید کش مخصوص این دوره
+        const access_token = req.cookies.access_token;
+        const refresh_token = req.cookies.refresh_token;
 
-        // بررسی کش Redis برای داده‌های موجود
-        // const cachedCourse = await redis.get(cacheKey);
-        // if (cachedCourse) {
-        //     return res.status(200).json({ success: true, courseData: JSON.parse(cachedCourse) });
-        // }
+        let userId: string | null = null; // برای ذخیره شناسه کاربر
+        let isPurchased = false; // پیش‌فرض خریداری نشده است
+
+        // console.log('access_token',access_token);
+        // console.log('refresh_token',refresh_token);
+
+
+        // بررسی اکسس توکن
+        if (access_token) {
+            try {
+                const decoded = jwt.verify(access_token, process.env.ACCESS_TOKEN as string) as any;
+                userId = decoded.id;
+            } catch (err: any) {
+                console.log("Access token invalid:", err.message);
+            }
+        }
+
+        // اگر اکسس توکن معتبر نبود، بررسی رفرش توکن
+        if (!userId && refresh_token) {
+            try {
+                const decoded = jwt.verify(refresh_token, process.env.REFRESH_TOKEN as string) as any;
+                userId = decoded.id;
+            } catch (err: any) {
+                console.log("Refresh token invalid:", err.message);
+            }
+        }
+
 
         // واکشی اطلاعات دوره
         const courseData = await CourseModel.aggregate([
@@ -50,18 +74,18 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
             },
             {
                 $lookup: {
-                    from: 'teachers', // اتصال به جدول مدرسین
-                    localField: 'teacherId', // ارتباط با آیدی مدرس در دوره
-                    foreignField: '_id',
-                    as: 'teacherData'
+                    from: "teachers",
+                    localField: "teacherId",
+                    foreignField: "_id",
+                    as: "teacherData"
                 }
             },
             {
                 $lookup: {
-                    from: 'academies', // اتصال به جدول آکادمی‌ها
-                    localField: 'academyId', // ارتباط با آیدی آکادمی در دوره
-                    foreignField: '_id',
-                    as: 'academyData'
+                    from: "academies",
+                    localField: "academyId",
+                    foreignField: "_id",
+                    as: "academyData"
                 }
             },
             {
@@ -103,30 +127,44 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
                         createdAt: "$createdAt",
                         updatedAt: "$updatedAt",
                         courseLength: "$courseLength",
-                        totalLessons: '$totalLessons',
-                        previewVideoUrl: '$previewVideoUrl',
-                        urlName: '$urlName',
-                        isPreOrder: '$isPreOrder',
-                        _id: '$_id'
+                        totalLessons: "$totalLessons",
+                        previewVideoUrl: "$previewVideoUrl",
+                        urlName: "$urlName",
+                        isPreOrder: "$isPreOrder",
+                        _id: "$_id"
                     }
                 }
             }
         ]);
 
         if (!courseData || courseData.length === 0) {
-            return res.status(404).json({ success: false, message: 'دوره‌ای با این نام یافت نشد' });
+            return res.status(404).json({ success: false, message: "دوره‌ای با این نام یافت نشد" });
         }
 
-        // ذخیره داده‌ها در کش با انقضای 24 ساعت
-        // await redis.setex(cacheKey, 86400, JSON.stringify(courseData[0]));
+        //  بررسی خرید دوره
+        if (userId) {
+            const user = await userModel.findById(userId).select("courses").lean();
+            console.log(user?.courses[0])
+            console.log(courseData[0]._id )
+            console.log(courseData[0]._id.toString() === user?.courses[0].toString())
 
-        // ارسال پاسخ
-        res.status(200).json({ success: true, courseData: courseData[0] });
+            if (user && user.courses.some(course => course.toString() === courseData[0]._id.toString())) {
+                isPurchased = true;
+            }
+        }
 
+
+
+        res.status(200).json({
+            success: true,
+            courseData: courseData[0],
+            isPurchased // اضافه کردن وضعیت خرید به پاسخ
+        });
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 500));
     }
 });
+
 
 
 const generateS3Url = async (key: string, isPrivate: boolean, fileName: string): Promise<string> => {
