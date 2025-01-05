@@ -42,10 +42,6 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
         let userId: string | null = null; // برای ذخیره شناسه کاربر
         let isPurchased = false; // پیش‌فرض خریداری نشده است
 
-        // console.log('access_token',access_token);
-        // console.log('refresh_token',refresh_token);
-
-
         // بررسی اکسس توکن
         if (access_token) {
             try {
@@ -144,10 +140,6 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
         //  بررسی خرید دوره
         if (userId) {
             const user = await userModel.findById(userId).select("courses").lean();
-            console.log(user?.courses[0])
-            console.log(courseData[0]._id )
-            console.log(courseData[0]._id.toString() === user?.courses[0].toString())
-
             if (user && user.courses.some(course => course.toString() === courseData[0]._id.toString())) {
                 isPurchased = true;
             }

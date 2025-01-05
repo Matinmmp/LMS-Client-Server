@@ -197,7 +197,6 @@ const createComment = CatchAsyncError(async (req: Request, res: Response, next: 
         });
 
     } catch (error: any) {
-        console.log(error.message)
         next(new ErrorHandler(error.message, 500));
     }
 });

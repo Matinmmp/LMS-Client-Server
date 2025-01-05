@@ -158,7 +158,7 @@ const getAcademyCoursesByEngName = CatchAsyncError(async (req: Request, res: Res
 
 
         // await redis.setex(cacheKey, CACHE_EXPIRATION, JSON.stringify(courses));
-        console.log('courses');
+
         res.status(200).json({ success: true, courses });
 
     } catch (error: any) {
@@ -193,7 +193,7 @@ const getAcademyTeachersByEngName = CatchAsyncError(async (req: Request, res: Re
             totalCourses: 1,
         }).limit(3);
 
-        console.log('teachers',teachers);
+
 
         if (!teachers.length) {
             return res.status(404).json({ success: false, message: "No teachers found for this academy" });
