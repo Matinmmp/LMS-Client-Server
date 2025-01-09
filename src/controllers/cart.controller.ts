@@ -29,7 +29,7 @@ const getCoursesByIds = CatchAsyncError(async (req: Request, res: Response, next
             "thumbnail.imageUrl": 1, // انتخاب فیلدهای مورد نیاز
         }
     ).lean();
-
+    console.log(courses)
     res.status(200).json({
         success: true,
         courses,

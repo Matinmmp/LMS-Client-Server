@@ -10,6 +10,7 @@ import randomLetterGenerator from "../utils/randomName";
 import InvoiceModel from "../models/Invoice.model";
 import CourseModel from "../models/course.model";
 const { S3Client, PutObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
+import crypto from 'crypto';
 
 require('dotenv').config();
 
@@ -121,7 +122,7 @@ const acitvateUser = CatchAsyncError(async (req: Request, res: Response, next: N
         if (special_code && special_code == process.env.SPECIAL_CODE_ADMIN) {
             const user = await userModel.create({ name, email, password, role: 'admin' })
         } else {
-            const user = await userModel.create({ name, email, password,role:'user' })
+            const user = await userModel.create({ name, email, password, role: 'user' })
         }
 
         res.status(201).json({ success: true })
@@ -131,6 +132,56 @@ const acitvateUser = CatchAsyncError(async (req: Request, res: Response, next: N
 
     }
 })
+
+
+
+const forgetPassword = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+
+    try {
+        const { email } = req.body;
+
+        // بررسی وجود ایمیل
+        if (!email) {
+            return next(new ErrorHandler('ایمیل الزامی است', 400));
+        }
+
+        const user = await userModel.findOne({ email });
+
+        if (!user) {
+            return next(new ErrorHandler('کاربری با این ایمیل وجود ندارد', 404));
+        }
+
+   
+        const newPassword = crypto.randomBytes(4).toString('hex').slice(0, 8);
+
+        user.password = newPassword; 
+        await user.save();
+       
+     
+        try {
+            await sendMail({
+                email: user.email,
+                subject: 'بازیابی رمز عبور',
+                template: 'forget-email.ejs',
+                data: {
+                    email: user.email,
+                    password: newPassword,
+                },
+            });
+
+            res.status(200).json({
+                success: true,
+                message: 'رمز عبور جدید به ایمیل شما ارسال شد',
+            });
+        } catch (error: any) {
+            return next(new ErrorHandler('ارسال ایمیل با خطا مواجه شد', 500));
+        }
+    } catch (error: any) {
+        console.log(error)
+        return next(new ErrorHandler(error.message, 400))
+    }
+});
+
 
 // login user
 const loginUser = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
@@ -226,7 +277,7 @@ const updateAccessToken = CatchAsyncError(async (req: Request, res: Response, ne
 const getUserInfo = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const userId = req.user?._id as string;
-         
+
         // دریافت کاربر با اطلاعات کامل از دیتابیس
         const user: any = await userModel.findById(userId).select('+password').populate("courses.courseId", "price").lean();
         if (!user) return next(new ErrorHandler('کاربر یافت نشد', 404));
@@ -251,7 +302,7 @@ const getUserInfo = CatchAsyncError(async (req: Request, res: Response, next: Ne
             password: ''
         }
         if (user?.password) newUser.password = '1';
- 
+
         res.status(200).json({
             success: true,
             user: newUser
@@ -266,21 +317,41 @@ const getUserInfo = CatchAsyncError(async (req: Request, res: Response, next: Ne
 // social auth
 const socialAuth = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { email, name, avatar } = req.body as IRegistrationUserBody;
-        const user = await userModel.findOne({ email });
+        const { token } = req.body as { token: string }; // تغییر نام متغیر برای جلوگیری از تداخل
+        if (!token) {
+            return next(new ErrorHandler("Token is required", 400));
+        }
+
+        // دیکد کردن توکن
+        const decodedUser = jwt.decode(token) as JwtPayload;
+
+        if (!decodedUser || !decodedUser.email) {
+            return next(new ErrorHandler("Invalid token payload", 400));
+        }
+
+        console.log(decodedUser); // اطلاعات کاربر از توکن
+
+        // بررسی کاربر در دیتابیس
+        const user = await userModel.findOne({ email: decodedUser.email });
 
         if (!user) {
-            const newUser = await userModel.create({ email, name, avatar });
+            // اگر کاربر وجود نداشت، کاربر جدید ایجاد کنید
+            const newUser = await userModel.create({
+                email: decodedUser.email,
+                name: decodedUser.name || "Unknown",
+                avatar: {
+                    imageUrl: decodedUser.picture || null,
+                },
+            });
             sendToken(newUser, 200, res, req);
-        }
-        else
+        } else {
+            // اگر کاربر وجود داشت، توکن ارسال کنید
             sendToken(user, 200, res, req);
-
-
+        }
     } catch (error: any) {
-        return next(new ErrorHandler(error.message, 400))
+        return next(new ErrorHandler(error.message || "Something went wrong", 500));
     }
-})
+});
 
 // update user info
 const updateUserInfo = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
@@ -366,7 +437,7 @@ const setPassword = CatchAsyncError(async (req: Request, res: Response, next: Ne
     try {
 
         const { password } = req.body;
-        
+
         if (!password)
             return next(new ErrorHandler('لطفا پسور را وارد کنید', 400))
 
@@ -436,7 +507,7 @@ const updateProfilePicture = CatchAsyncError(async (req: Request, res: Response,
             imageUrl: `https://buckettest.storage.c2.liara.space/user/${imageName}`,
         };
 
-  
+
         await user.save();
         await redis.set(userId as string, JSON.stringify(user));
 
@@ -553,7 +624,7 @@ const getUserPaidCourses = CatchAsyncError(async (req: Request, res: Response, n
             });
         }
 
-        
+
 
         // استخراج آیدی دوره‌ها از فیلد courses
         const courseIds = user.courses
@@ -563,7 +634,7 @@ const getUserPaidCourses = CatchAsyncError(async (req: Request, res: Response, n
             .select('name thumbnail.imageUrl updatedAt')
             .sort({ createdAt: -1 })
             .lean();
-            console.log(paidCourses)
+        console.log(paidCourses)
 
         if (paidCourses.length === 0) {
             return res.status(404).json({
@@ -633,6 +704,7 @@ const createActivationToken = (user: IRegistrationUserBody): IActivationToken =>
 export {
     setPassword,
     registrationUser,
+    forgetPassword,
     acitvateUser,
     loginUser,
     logoutUser,
