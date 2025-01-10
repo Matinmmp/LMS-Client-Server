@@ -47,10 +47,10 @@ const getHomeLastCourses = CatchAsyncError(async (req: Request, res: Response, n
                 $match: { showCourse: true }
             },
             {
-                $sort: { updatedAt: -1 } // مرتب‌سازی بر اساس آخرین آپدیت
+                $sort: { lastContentUpdate: -1 } // مرتب‌سازی بر اساس آخرین آپدیت
             },
             {
-                $limit: 12 // محدود به 16 دوره
+                $limit: 12 
             },
             {
                 $lookup: {
@@ -114,6 +114,82 @@ const getHomeLastCourses = CatchAsyncError(async (req: Request, res: Response, n
         return next(new ErrorHandler(error.message, 500));
     }
 })
+
+const getDiscountedCourses = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const courses = await CourseModel.aggregate([
+            {
+                $match: { 
+                    showCourse: true, 
+                    "discount.percent": { $gt: 0 }, // دوره‌هایی که تخفیف دارند
+                    "discount.expireTime": { $gte: new Date() } // دوره‌هایی که تخفیفشان منقضی نشده است
+                }
+            },
+            {
+                $sort: { "discount.percent": -1 } // مرتب‌سازی بر اساس بیشترین درصد تخفیف
+            },
+            {
+                $limit: 4 // محدود به 4 دوره
+            },
+            {
+                $lookup: {
+                    from: 'teachers', // اتصال به جدول Teacher
+                    localField: 'teacherId', // فیلد مرتبط در Course
+                    foreignField: '_id', // فیلد مرتبط در Teacher
+                    as: 'teacherData' // اطلاعات مدرسین را در این فیلد ذخیره می‌کنیم
+                }
+            },
+            {
+                $lookup: {
+                    from: 'academies', // اتصال به جدول Academy
+                    localField: 'academyId', // فیلد مرتبط در Course
+                    foreignField: '_id', // فیلد مرتبط در Academy
+                    as: 'academyData' // اطلاعات آکادمی‌ها را در این فیلد ذخیره می‌کنیم
+                }
+            },
+            {
+                $addFields: {
+                    teacher: {
+                        teacherEngName: { $arrayElemAt: ["$teacherData.engName", 0] },
+                        teacherId: { $arrayElemAt: ["$teacherData._id", 0] },
+                    },
+                    academy: {
+                        academyEngName: { $arrayElemAt: ["$academyData.engName", 0] },
+                        academyId: { $arrayElemAt: ["$academyData._id", 0] },
+                    }
+                }
+            },
+            {
+                $project: {
+                    totalVideos: 1,
+                    isInVirtualPlus: 1,
+                    "discount.percent": 1,
+                    "discount.expireTime": 1,
+                    totalLessons: 1,
+                    status: 1,
+                    ratings: 1,
+                    level: 1,
+                    "thumbnail.imageUrl": 1,
+                    description: 1,
+                    name: 1,
+                    teacher: 1,
+                    academy: 1,
+                    courseLength: 1,
+                    price: 1,
+                    urlName: 1,
+                }
+            }
+        ]);
+
+        res.status(200).json({
+            success: true,
+            courses
+        });
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message, 500));
+    }
+});
+
 
 // قابل کش
 const getHomeFavoritCourses = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
@@ -421,5 +497,6 @@ export {
     getHomeLastCourses,
     getHomeFavoritCourses,
     getHomeFavoritTeachers,
-    homeSearch
+    homeSearch,
+    getDiscountedCourses
 }
