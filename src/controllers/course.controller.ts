@@ -127,7 +127,8 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
                         previewVideoUrl: "$previewVideoUrl",
                         urlName: "$urlName",
                         isPreOrder: "$isPreOrder",
-                        _id: "$_id"
+                        _id: "$_id",
+                        createDate:"$createDate"
                     }
                 }
             }
