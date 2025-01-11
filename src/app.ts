@@ -19,7 +19,7 @@ require('dotenv').config();
 export const app = express();
 
 // cors => cross origin rsourse sharing
-app.use(cors({ origin: ['http://localhost:3000'], credentials: true }));
+app.use(cors({ origin: ['http://localhost:3000','http://192.168.1.18:3000'], credentials: true }));
 // app.use(cors({ 
 //     // origin: '*', 
 //     credentials: true }))

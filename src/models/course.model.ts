@@ -38,13 +38,12 @@ export interface ICourse extends Document {
     tags: [string]; // برچسب‌های دوره
     level: string; // سطح دوره (مثل مبتدی، متوسط، پیشرفته)
     benefits: { title: string }[]; // مزایای شرکت در دوره
-    prerequisites: { title: string ,link?:string}[]; // پیش‌نیازهای دوره
+    prerequisites: { title: string, link?: string }[]; // پیش‌نیازهای دوره
     ratings?: number; // امتیاز دوره
-    ratingsNumber:number;
+    ratingsNumber: number;
     purchased?: number; // تعداد خریدهای دوره
     links?: ILink[]; // لینک‌های مرتبط با دوره
     status: number; // وضعیت دوره (0: ongoing, 1: finished, 2: stopped)
-    releaseDate: Date; // تاریخ انتشار دوره
     folderName: string; // نام پوشه مربوط به دوره
     isInVirtualPlus: boolean; // آیا دوره در برنامه Virtual Plus موجود است
     showCourse: boolean; // آیا دوره برای کاربران قابل نمایش است
@@ -55,6 +54,8 @@ export interface ICourse extends Document {
     relatedCourses?: mongoose.Schema.Types.ObjectId[];
     relatedBlogs?: mongoose.Schema.Types.ObjectId[];
     favoritesCount: Number;
+    createDate: Date;//تاریخی که این کورس توی سایت اضافه شده
+    releaseDate: Date; // تاریخ انتشار واقعی دوره هست ممکنه مال پنج سال پیش باشه
     lastContentUpdate: Date;
     isPreOrder: Boolean;
     holeCourseVideos: Number;//تعداد ویدیو هایی که دوره در نهایت باید داشته باشه برای تخمین درصد تکمیل دوره
@@ -78,7 +79,7 @@ const courseSchema = new Schema<ICourse>({
     tags: { type: [String], required: true },
     level: { type: String, required: true },
     benefits: [{ title: String }],
-    prerequisites: [{ title: String,link:String }],
+    prerequisites: [{ title: String, link: String }],
     ratings: { type: Number, default: 0 },
     ratingsNumber: { type: Number, default: 0 },
     purchased: { type: Number, default: 0 },
@@ -88,7 +89,6 @@ const courseSchema = new Schema<ICourse>({
     discount: { percent: Number, usageCount: { type: Number, default: 0 }, expireTime: Date },
     links: [linkSchema],
     categoryIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],
-    releaseDate: Date,
     folderName: String,
     isInVirtualPlus: { type: Boolean, default: false },
     showCourse: { type: Boolean, default: false },
@@ -98,6 +98,8 @@ const courseSchema = new Schema<ICourse>({
     previewVideoUrl: { type: String },
     relatedCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }], // دوره‌های مشابه
     relatedBlogs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Blog' }], // بلاگ‌های پیشنهادی
+    createDate: { type: Date, default: Date.now },
+    releaseDate: Date,
     lastContentUpdate: { type: Date, default: Date.now }, // آخرین بروزرسانی محتوا
     isPreOrder: { type: Boolean, default: false }, // پیش‌فروش
     holeCourseVideos: { type: Number, default: 0 },
@@ -106,7 +108,7 @@ const courseSchema = new Schema<ICourse>({
     warning: String,
     error: String,
     courseLength: Number,
-    
+
     //کرون جاب
     favoritesCount: { type: Number, default: 0 }, // تعداد علاقه‌مندی‌ها
 }, { timestamps: true });
