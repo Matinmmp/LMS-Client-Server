@@ -7,7 +7,6 @@ import InvoiceModel from "../models/Invoice.model";
 import LessonModel from "../models/sectionLesson.model";
 import TeacherModel from "../models/teacher.model";
 import userModel from "../models/user.model";
-import { propertyOf } from "lodash";
 import BlogModel from "../models/blog.model";
 
 const AdminOptions: AdminJSOptions = {
