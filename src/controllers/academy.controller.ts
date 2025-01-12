@@ -19,7 +19,7 @@ const getAcademies = CatchAsyncError(async (req: Request, res: Response, next: N
         // if (cachedAcademies) {
         //     return res.status(200).json({ academies: JSON.parse(cachedAcademies), success: true });
         // }
-
+ 
         const academies = await AcademyModel.find({}, {
             engName: 1, // انتخاب فیلدهای مورد نیاز
             faName: 1,
@@ -55,12 +55,14 @@ const getAcademyByEngName = CatchAsyncError(async (req: Request, res: Response, 
             engName: 1, // انتخاب فیلدهای مورد نیاز
             faName: 1,
             description: 1,
+            longDescription:1,
             "avatar.imageUrl": 1,
             rating: 1,
             ratingNumber: 1,
             totalStudents: 1,
             totalTeachers: 1,
             totalCourses: 1,
+            seoMeta:1,
         });
 
 

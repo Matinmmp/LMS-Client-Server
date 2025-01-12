@@ -28,9 +28,8 @@ const academySchema: Schema<IAcademy> = new mongoose.Schema({
     courses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }], // اشاره به دوره‌ها
     teachers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Teacher' }], // اشاره به مدرسین
     seoMeta: { title: String, description: String, keywords: [String] },
-
     rating: { type: Number, default: 0 },
-    ratingNumber: { type: Number, default: 0 },
+    ratingNumber: { type: Number, default: 0 },//تعداد کسایی که رای دادن
     totalStudents: { type: Number, default: 0 },
     totalTeacher: { type: Number, default: 0 },
     totalCourses: { type: Number, default: 0 },
