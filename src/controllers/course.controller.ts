@@ -128,7 +128,7 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
                         urlName: "$urlName",
                         isPreOrder: "$isPreOrder",
                         _id: "$_id",
-                        createDate:"$createDate"
+                        createDate: "$createDate"
                     }
                 }
             }
@@ -657,7 +657,6 @@ const searchCourses = CatchAsyncError(async (req: Request, res: Response, next: 
         const totalPages = Math.ceil(totalCourses / itemsPerPage);
         const paginatedCourses = filteredCourses.slice((pageNumber - 1) * itemsPerPage, pageNumber * itemsPerPage);
 
-        // ارسال پاسخ
 
         res.status(201).json({
             success: true,
@@ -665,6 +664,8 @@ const searchCourses = CatchAsyncError(async (req: Request, res: Response, next: 
             currentPage: pageNumber,
             totalPage: totalPages
         });
+
+
 
 
 
