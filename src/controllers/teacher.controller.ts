@@ -38,8 +38,8 @@ const getTeachers = CatchAsyncError(async (req: Request, res: Response, next: Ne
                     ratingNumber: { $ifNull: ["$ratingNumber", 0] } // مقدار پیش‌فرض `ratingNumber` برابر `0`
                 }
             },
-            { 
-                $sort: { totalStudents: -1 } 
+            {
+                $sort: { totalStudents: -1 }
             },
             {
                 $project: {
@@ -55,7 +55,7 @@ const getTeachers = CatchAsyncError(async (req: Request, res: Response, next: Ne
                 }
             }
         ]);
-        
+
 
 
 
@@ -82,12 +82,15 @@ const getTeacherByEngName = CatchAsyncError(async (req: Request, res: Response, 
             engName: 1, // انتخاب فیلدهای مورد نیاز
             faName: 1,
             description: 1,
+            longDescription:1,
             "avatar.imageUrl": 1,
             rating: 1,
             ratingNumber: 1,
             totalStudents: 1,
             totalCourses: 1,
-            totalAcademies:1,
+            totalAcademies: 1,
+            seoMeta: 1,
+
         }).sort({ totalStudents: -1 }).limit(3);
 
 
@@ -121,46 +124,19 @@ const getTeachersAcademiesByEngName = CatchAsyncError(async (req: Request, res: 
             return res.status(404).json({ success: false, message: "Teacher not found" });
         }
 
-        const academies = await AcademyModel.aggregate([
-            {
-                $match: { _id: { $in: teacher.academies } }
-            },
-            {
-                $lookup: {
-                    from: 'teachers', // نام مجموعه مرتبط
-                    localField: '_id', // ارتباط با آکادمی از طریق _id
-                    foreignField: 'academies', // ارتباط آکادمی‌ها در جدول Teacher
-                    as: 'teacherData' // داده‌های مدرسین در آکادمی
-                }
-            },
-            {
-                $lookup: {
-                    from: 'courses', // اتصال به مجموعه دوره‌ها
-                    localField: '_id',
-                    foreignField: 'academyId', // اتصال به academyId در جدول Course
-                    as: 'courseData' // داده‌های دوره‌های هر آکادمی
-                }
-            },
-            {
-                $addFields: {
-                    totalTeachers: { $size: "$teacherData" }, // شمارش تعداد مدرسین
-                    totalStudents: { $sum: "$courseData.students" }, // محاسبه تعداد کل دانشجویان
-                    totalCourses: { $size: "$courseData" }, // شمارش تعداد کل دوره‌ها
-                }
-            },
-            {
-                $project: {
-                    engName: 1,
-                    faName: 1,
-                    description: 1,
-                    "avatar.imageUrl": 1,
-                    rates: 1,
-                    totalStudents: 1,
-                    totalTeachers: 1,
-                    totalCourses: 1
-                }
-            }
-        ]);
+        // const teachers = await TeacherModel.find({  academies: academy._id  }
+        const academies = await AcademyModel.find({ teachers: teacher._id }, {
+
+            engName: 1,
+            faName: 1,
+            description: 1,
+            "avatar.imageUrl": 1,
+            rating: 1,
+            ratingNumber: 1,
+            totalStudents: 1,
+            totalTeachers: 1,
+            totalCourses: 1,
+        })
 
         if (!academies.length) {
             return res.status(404).json({ success: false, message: "No academies found for this teacher" });
@@ -171,6 +147,7 @@ const getTeachersAcademiesByEngName = CatchAsyncError(async (req: Request, res: 
         res.status(200).json({ success: true, academies });
 
     } catch (error: any) {
+
         return next(new ErrorHandler(error.message, 500));
     }
 });
