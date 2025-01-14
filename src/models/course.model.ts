@@ -55,7 +55,10 @@ export interface ICourse extends Document {
     relatedBlogs?: mongoose.Schema.Types.ObjectId[];
     favoritesCount: Number;
     createDate: Date;//تاریخی که این کورس توی سایت اضافه شده
+    endDate: Date;//تاریخی که این کورس توی سایت تموم شده
+
     releaseDate: Date; // تاریخ انتشار واقعی دوره هست ممکنه مال پنج سال پیش باشه
+    finishDate: Date; // تاریخ پایان واقعی دوره هست ممکنه مال پنج سال پیش باشه
     lastContentUpdate: Date;
     isPreOrder: Boolean;
     holeCourseVideos: Number;//تعداد ویدیو هایی که دوره در نهایت باید داشته باشه برای تخمین درصد تکمیل دوره

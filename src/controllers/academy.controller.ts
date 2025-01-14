@@ -160,7 +160,7 @@ const getAcademyCoursesByEngName = CatchAsyncError(async (req: Request, res: Res
 
 
         // await redis.setex(cacheKey, CACHE_EXPIRATION, JSON.stringify(courses));
-
+        
         res.status(200).json({ success: true, courses });
 
     } catch (error: any) {
@@ -183,7 +183,6 @@ const getAcademyTeachersByEngName = CatchAsyncError(async (req: Request, res: Re
         if (!academy) {
             return res.status(404).json({ success: false, message: "Academy not found" });
         }
-
         const teachers = await TeacherModel.find({  academies: academy._id  }, {
             engName: 1, // انتخاب فیلدهای مورد نیاز
             faName: 1,

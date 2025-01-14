@@ -15,6 +15,7 @@ import CourseSectionModel from "../models/courseSection.model";
 import LessonModel from "../models/sectionLesson.model";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
+import { appendFileSync } from "fs";
 
 
 require('dotenv').config();
@@ -117,7 +118,6 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
                         links: "$links",
                         lastContentUpdate: "$lastContentUpdate",
                         holeCourseVideos: "$holeCourseVideos",
-                        releaseDate: "$releaseDate",
                         isInVirtualPlus: "$isInVirtualPlus",
                         totalVideos: "$totalVideos",
                         createdAt: "$createdAt",
@@ -128,7 +128,12 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
                         urlName: "$urlName",
                         isPreOrder: "$isPreOrder",
                         _id: "$_id",
-                        createDate: "$createDate"
+                        createDate: "$createDate",
+                        endDate: "$endDate",
+
+                        releaseDate: "$releaseDate",
+                        finishDate: "$finishDate",
+                        seoMeta: "$seoMeta"
                     }
                 }
             }
@@ -318,7 +323,6 @@ const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Res
         //         : true
         //     )
         // ) : false;
-
 
         res.status(200).json({
             success: true,
@@ -657,7 +661,6 @@ const searchCourses = CatchAsyncError(async (req: Request, res: Response, next: 
         const totalPages = Math.ceil(totalCourses / itemsPerPage);
         const paginatedCourses = filteredCourses.slice((pageNumber - 1) * itemsPerPage, pageNumber * itemsPerPage);
 
-
         res.status(201).json({
             success: true,
             courses: paginatedCourses,
@@ -690,7 +693,6 @@ const getAllCourseUrlNames = CatchAsyncError(async (req: Request, res: Response,
 const getRelatedCourses = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const courseName = req.params.name;
-
 
         // بررسی وجود دوره
         let course: any = await CourseModel.findOne({ urlName: courseName }).lean();

@@ -15,7 +15,6 @@ const getCourseComments = CatchAsyncError(async (req: Request, res: Response, ne
     const currentPage = parseInt(page as string, 10);
     const limitPerPage = parseInt(limit as string, 10);
 
-
     try {
 
         // const course = await CourseModel.findOne({ urlName: name }).select('_id').lean();
