@@ -8,14 +8,13 @@ import Fuse from "fuse.js";
 import AcademyModel from "../models/academy.model";
 import TeacherModel from "../models/teacher.model";
 import CategoryModel from "../models/category.model";
-import { CopyObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
 import userModel from "../models/user.model";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import CourseSectionModel from "../models/courseSection.model";
 import LessonModel from "../models/sectionLesson.model";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
-import { appendFileSync } from "fs";
 
 
 require('dotenv').config();

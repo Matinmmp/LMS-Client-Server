@@ -20,6 +20,7 @@ export interface IInvoice extends Document {
     transactionId?: string; // شناسه تراکنش
     createdAt: Date; // تاریخ خرید
     updatedAt?: Date; // تاریخ آخرین به‌روزرسانی
+    refId: string;
 }
 
 const invoiceCourseSchema: Schema<IInvoiceCourse> = new Schema({
@@ -47,7 +48,7 @@ const invoiceCourseSchema: Schema<IInvoiceCourse> = new Schema({
     isFree: {
         type: Boolean,
         default: false
-    }
+    },
 });
 
 const invoiceSchema: Schema<IInvoice> = new Schema({
@@ -81,7 +82,9 @@ const invoiceSchema: Schema<IInvoice> = new Schema({
     },
     transactionId: {
         type: String
-    }
+    },
+
+    refId: String
 }, { timestamps: true });
 
 const InvoiceModel: Model<IInvoice> = mongoose.model<IInvoice>("Invoice", invoiceSchema);
