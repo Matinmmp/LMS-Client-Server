@@ -1,7 +1,9 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
 import bcrypt from 'bcryptjs'
 import jwt from "jsonwebtoken";
-require('dotenv').config();
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const emailRegexPattern: RegExp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -11,7 +13,7 @@ export interface IUser extends Document {
     email: string;
     password: string;
     phone?: string;
-    avatar: { imageName: string; imageUrl: string },
+    avatar: { imageName: string; imageUrl: string };
     courses: mongoose.Schema.Types.ObjectId[];
     favoritCourses: mongoose.Schema.Types.ObjectId[];
     likedCourses: mongoose.Schema.Types.ObjectId[];
@@ -19,7 +21,8 @@ export interface IUser extends Document {
     favoritAcademies: mongoose.Schema.Types.ObjectId[];
     role: string;
     isVerified: boolean;
-    coursesRating: Array<{ courseId: string, rate: number }>
+    coursesRating: Array<{ courseId: mongoose.Schema.Types.ObjectId, rating: number }>;
+    lastLogin: Date;
     comparePassword: (password: string) => Promise<boolean>;
     SignAccessToken: () => string;
     SignRefreshToken: () => string;
@@ -29,7 +32,8 @@ export interface IUser extends Document {
 const userSchema: Schema<IUser> = new mongoose.Schema({
     name: {
         type: String,
-        required: [true, 'لطفا نام خود را وارد کنید']
+        required: [true, 'لطفا نام خود را وارد کنید'],
+        index: true, // ایندکس برای جستجوهای سریع‌تر
     },
 
     email: {
@@ -37,48 +41,70 @@ const userSchema: Schema<IUser> = new mongoose.Schema({
         required: [true, 'لطفا ایمیل خود را وارد کنید'],
         validate: {
             validator: function (value: string) {
-                return emailRegexPattern.test(value)
+                return emailRegexPattern.test(value);
             },
-            message: 'لطفا ایمیل را درست وارد کنید'
+            message: 'لطفا ایمیل را درست وارد کنید',
         },
-        unique: true
+        unique: true,
+        lowercase: true, // تبدیل به حروف کوچک
+        index: true, // ایندکس برای جستجوهای سریع‌تر
     },
 
     password: {
         type: String,
-        // required: [true, 'لطفا پسورد را وارد کنید'],
+        required: [true, 'لطفا پسورد را وارد کنید'],
         minlength: [6, 'پسورد نباید کمتر از 6 کاراکتر باشد'],
         select: false,
     },
 
     phone: {
         type: String,
+        default: ''
     },
 
     avatar: {
-        imageName: String,
-        imageUrl: String
+        imageName: { type: String, default: '' },
+        imageUrl: { type: String, default: '' },
     },
 
     role: {
         type: String,
-        default: 'user'
+        enum: ['user', 'admin'], // مقادیر مجاز
+        default: 'user',
     },
 
     isVerified: {
         type: Boolean,
-        default: false
+        default: false,
     },
 
-    courses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }],
-    favoritCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }],
-    likedCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }],
-    favoritTeachers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Teacher' }],
-    favoritAcademies: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Academy' }],
+    courses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course', default: [], index: true }],
+    favoritCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course', default: [], index: true }],
+    likedCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course', default: [], index: true }],
+    favoritTeachers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Teacher', default: [], index: true }],
+    favoritAcademies: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Academy', default: [], index: true }],
 
-    coursesRating: [{ courseId: String, rate: Number }
-    ]
+    coursesRating: {
+        type: [
+            {
+                courseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true },
+                rating: {
+                    type: Number,
+                    default: 0,
+                    min: 0,
+                    max: 5,
+                },
+            },
+        ],
+        default: [],
+    },
+
+    lastLogin: {
+        type: Date,
+        default: null,
+    }
 }, { timestamps: true })
+
 
 // Hash password before saving
 userSchema.pre<IUser>('save', async function (next) {

@@ -1,8 +1,7 @@
-import express from 'express';
 import nodemailer from 'nodemailer';
 import { NextFunction, Request, Response } from "express";
-import { CatchAsyncError } from '../middleware/catchAsyncErrors';
-import ErrorHandler from '../utils/ErrorHandler';
+import { CatchAsyncError } from '../middleware/catchAsyncErrors.js';
+import ErrorHandler from '../utils/ErrorHandler.js';
 
 
 const sendFormEmail = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {

@@ -1,6 +1,5 @@
 import express from "express";
-import { authorizeRoles } from "../middleware/auth";
-import {  getAcademies, getAcademyByEngName, getAcademyCoursesByEngName, getAcademyTeachersByEngName, getAllAcademyNames,} from "../controllers/academy.controller";
+import {  getAcademies, getAcademyByEngName, getAcademyCoursesByEngName, getAcademyTeachersByEngName, getAllAcademyNames,} from "../controllers/academy.controller.js";
 
 
 const academyRouter = express.Router();

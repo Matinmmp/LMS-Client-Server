@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
-import { CatchAsyncError } from "../middleware/catchAsyncErrors";
-import ErrorHandler from "../utils/ErrorHandler";
-import CategoryModel from "../models/category.model";
+import { CatchAsyncError } from "../middleware/catchAsyncErrors.js";
+import ErrorHandler from "../utils/ErrorHandler.js";
+import CategoryModel from "../models/category.model.js";
 
 
 const getCategories = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {

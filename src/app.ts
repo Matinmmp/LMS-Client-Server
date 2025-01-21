@@ -1,50 +1,25 @@
 import { NextFunction, Request, Response } from "express";
-import { ErrorMiddelware } from "./middleware/error";
-import userRouter from "./routes/user.route";
-import categoryRouter from "./routes/category.route";
-import teacherRouter from "./routes/teacher.route";
-import academyRouter from "./routes/academy.route";
-import courseRouter from "./routes/course.route";
-import dashboardRoute from "./routes/dashboard.route";
-import homeRouter from "./routes/home.route";
-import { CopyObjectCommand } from "@aws-sdk/client-s3";
-import blogRouter from "./routes/blog.route";
-import courseReviewRoute from "./routes/courseReview.route";
-import cartRouter from "./routes/cart.route";
-import formRoute from "./routes/form.route";
-const express = require('express')
-const cors = require('cors')
-const cookieParser = require('cookie-parser')
-require('dotenv').config();
+import { ErrorMiddelware } from "./middleware/error.js";
+import userRouter from "./routes/user.route.js";
+import categoryRouter from "./routes/category.route.js";
+import teacherRouter from "./routes/teacher.route.js";
+import academyRouter from "./routes/academy.route.js";
+import courseRouter from "./routes/course.route.js";
+import dashboardRoute from "./routes/dashboard.route.js";
+import homeRouter from "./routes/home.route.js";
+import blogRouter from "./routes/blog.route.js";
+import courseReviewRoute from "./routes/courseReview.route.js";
+import cartRouter from "./routes/cart.route.js";
+import formRoute from "./routes/form.route.js";
+
+import express from 'express';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
 
 export const app = express();
 
 // cors => cross origin rsourse sharing
-app.use(cors({ origin: ['http://localhost:3000','http://192.168.1.18:3000'], credentials: true }));
-// app.use(cors({ 
-//     // origin: '*', 
-//     credentials: true }))
-
-// app.use(cors({
-//     origin: ['http://localhost:3000'], // دامنه‌های مجاز
-//     credentials: true, // اجازه ارسال کوکی‌ها
-//     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // متدهای مجاز
-//     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'], // هدرهای مجاز
-// }));
-
-
-// app.use((req: Request, res: Response, next: NextFunction) => {
-//     // res.header('Access-Control-Allow-Origin', '*');
-//     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-//     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-//     res.header('Access-Control-Allow-Credentials', 'true');
-//     if (req.method === 'OPTIONS') {
-//         return res.sendStatus(200); // پاسخ سریع برای درخواست‌های OPTIONS
-//     }
-//     next();
-// });
-
-
+app.use(cors({ origin: ['http://localhost:3000', 'http://192.168.1.18:3000'], credentials: true }));
 
 
 // body parser
@@ -70,10 +45,6 @@ app.use('/api/v1', formRoute);
 
 
 
-
-
-
-
 // testing api
 app.get("/test", (req: Request, res: Response, next: NextFunction) => {
     res.status(200).json({
@@ -83,14 +54,4 @@ app.get("/test", (req: Request, res: Response, next: NextFunction) => {
 })
 
 
-//unknown route
-// app.all('*', (req: Request, res: Response, next: NextFunction) => {
-//     const err = new Error(`Route ${req.originalUrl} not found`) as any;
-//     err.statusCode = 404;
-//     next(err)
-// })
-
-
-
-
-app.use(ErrorMiddelware)
+// app.use(ErrorMiddelware)

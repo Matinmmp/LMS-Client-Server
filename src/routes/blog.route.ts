@@ -1,7 +1,7 @@
 import express from 'express';
-import { getRelatedBlogsByCourseName } from '../controllers/blog.controller';
-import { createComment } from '../controllers/courseReview.controller';
-import { isAuthenticated } from '../middleware/auth';
+import { getRelatedBlogsByCourseName } from '../controllers/blog.controller.js';
+import { createComment } from '../controllers/courseReview.controller.js';
+import { isAuthenticated } from '../middleware/auth.js';
 
 
 const blogRouter = express.Router();

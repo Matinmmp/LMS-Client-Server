@@ -55,7 +55,8 @@ const invoiceSchema: Schema<IInvoice> = new Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-        required: true
+        required: true,
+        index: true,
     },
     courses: [invoiceCourseSchema], // آرایه‌ای از دوره‌ها
     totalOriginalPrice: {

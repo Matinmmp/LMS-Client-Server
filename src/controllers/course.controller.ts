@@ -1,23 +1,25 @@
 import { NextFunction, Request, Response } from "express";
-import { CatchAsyncError } from "../middleware/catchAsyncErrors";
-import ErrorHandler from "../utils/ErrorHandler";
-import CourseModel from "../models/course.model";
-import { redis } from "../utils/redis";
-const { S3Client } = require("@aws-sdk/client-s3");
+import { CatchAsyncError } from "../middleware/catchAsyncErrors.js";
+import ErrorHandler from "../utils/ErrorHandler.js";
+import CourseModel from "../models/course.model.js";
+import { redis } from "../utils/redis.js";
+
 import Fuse from "fuse.js";
-import AcademyModel from "../models/academy.model";
-import TeacherModel from "../models/teacher.model";
-import CategoryModel from "../models/category.model";
-import { GetObjectCommand } from "@aws-sdk/client-s3";
-import userModel from "../models/user.model";
+import AcademyModel from "../models/academy.model.js";
+import TeacherModel from "../models/teacher.model.js";
+import CategoryModel from "../models/category.model.js";
+import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import userModel from "../models/user.model.js";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import CourseSectionModel from "../models/courseSection.model";
-import LessonModel from "../models/sectionLesson.model";
+import CourseSectionModel from "../models/courseSection.model.js";
+import LessonModel from "../models/sectionLesson.model.js";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 
 
-require('dotenv').config();
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 
 const REDIS_EXPIRATION_DAY = 86400; // یک روز (ثانیه)
@@ -26,10 +28,10 @@ const itemsPerPage = 12;
 
 const client = new S3Client({
     region: "default",
-    endpoint: process.env.LIARA_ENDPOINT,
+    endpoint: process.env.LIARA_ENDPOINT||"",
     credentials: {
-        accessKeyId: process.env.LIARA_ACCESS_KEY,
-        secretAccessKey: process.env.LIARA_SECRET_KEY
+        accessKeyId: process.env.LIARA_ACCESS_KEY||"",
+        secretAccessKey: process.env.LIARA_SECRET_KEY||""
     },
 })
 
@@ -111,7 +113,7 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
                         level: "$level",
                         benefits: "$benefits",
                         prerequisites: "$prerequisites",
-                        ratings: "$ratings",
+                        rating: "$rating",
                         purchased: "$purchased",
                         status: "$status",
                         links: "$links",
@@ -591,7 +593,7 @@ const searchCourses = CatchAsyncError(async (req: Request, res: Response, next: 
                     "discount.percent": 1,
                     "discount.expireTime": 1,
                     status: 1,
-                    ratings: 1,
+                    rating: 1,
                     level: 1,
                     "thumbnail.imageUrl": 1,
                     description: 1,
@@ -651,7 +653,7 @@ const searchCourses = CatchAsyncError(async (req: Request, res: Response, next: 
         if (order === "2") filteredCourses.sort((a: any, b: any) => a.releaseDate - b.releaseDate);
         else if (order === "3") filteredCourses = filteredCourses.filter((course: any) => course.status === 2);
         else if (order === "4") filteredCourses = filteredCourses.filter((course: any) => course.status === 0);
-        else if (order === "5") filteredCourses.sort((a: any, b: any) => b.ratings - a.ratings);
+        else if (order === "5") filteredCourses.sort((a: any, b: any) => b.rating - a.rating);
         else if (order === "6") filteredCourses.sort((a: any, b: any) => b.purchased - a.purchased);
         else filteredCourses.sort((a: any, b: any) => b.releaseDate - a.releaseDate);
 

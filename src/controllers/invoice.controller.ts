@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from "express";
-import InvoiceModel from "../models/Invoice.model";
+import InvoiceModel from "../models/Invoice.model.js";
 import ZarinpalCheckout from "zarinpal-checkout";
 import moment from "moment";
 import mongoose from "mongoose";
-import CourseModel from "../models/course.model";
+import CourseModel from "../models/course.model.js";
 
 
 const zarinpal = ZarinpalCheckout.create('MERCHANT_ID', true);

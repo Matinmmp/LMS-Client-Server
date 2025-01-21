@@ -1,28 +1,23 @@
-import { app } from "./app";
-import connectDB from './utils/db';
-require('dotenv').config();
-import AdminJS, { List } from 'adminjs'
-import AdminJSExpress from '@adminjs/express'
-import CourseModel from "./models/course.model";
-import AcademyModel from "./models/academy.model";
-import TeacherModel from "./models/teacher.model";
-import CategoryModel from "./models/category.model";
-import InvoiceModel from "./models/Invoice.model";
-import CourseSectionModel from "./models/courseSection.model";
-import LessonModel from "./models/sectionLesson.model";
-import userModel from "./models/user.model";
+import { app } from "./app.js";
+import connectDB from './utils/db.js';
 
+import AdminJS from 'adminjs'
+import AdminJSExpress from '@adminjs/express'
 import MongoStore from 'connect-mongo'
 
 import mongoose from "mongoose";
 import * as AdminJSMongoose from "@adminjs/mongoose"
-import AdminOptions from "./utils/adminOptions";
+import AdminOptions from "./adminPanel/AdminOptions.js";
+
+import dotenv from 'dotenv';
+
+dotenv.config();
+
 
 AdminJS.registerAdapter({
     Resource: AdminJSMongoose.Resource,
     Database: AdminJSMongoose.Database,
 })
-
 
 
 const DEFAULT_ADMIN = {
@@ -79,6 +74,7 @@ const start = async () => {
     app.listen(process.env.PORT, () => {
         console.log(`AdminJS started on http://localhost:${process.env.PORT}${admin.options.rootPath}`);
     })
+    
 }
 
 start()

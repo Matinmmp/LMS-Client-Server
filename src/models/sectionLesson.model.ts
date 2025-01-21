@@ -15,7 +15,6 @@ interface ILessonFile extends Document {
 interface ILesson extends Document {
     courseId: mongoose.Schema.Types.ObjectId,
     courseSectionId: mongoose.Schema.Types.ObjectId,
-
     lessonType: string;
     lessonTitle: string,
 
@@ -28,44 +27,49 @@ interface ILesson extends Document {
 
     //اگه این درس لینکی داره
     links: [ILink]
-
     lessonLength?: number,
     isFree: boolean,
-
     info: string,
     warning: string,
     error: string,
-
     order: number,
-
-
 }
 
 const linkSchema = new Schema<ILink>({
-    title: String,
-    url: String
+    title: {
+        type: String,
+        default: '',
+    },
+    url: {
+        type: String,
+        default: '',
+    }
 })
-
-
 
 const fileSchema = new Schema<ILessonFile>({
     fileName: { type: String, required: true },//اسمش داخل باکت
-    fileTitle: String,//اسمش لحظه ی دانلود
-    fileDescription: String,
+    fileTitle: {
+        type: String,
+        default: '',
+    },//اسمش لحظه ی دانلود
+    fileDescription: {
+        type: String,
+        default: '',
+    },
 })
 
-
-
 const LessonSchema = new Schema<ILesson>({
-    courseId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Course",
-        required: true
+    courseId: { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: "Course", 
+        required: true,
+        index: true, // اضافه کردن ایندکس
     },
-    courseSectionId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "CourseSection",
-        required: true
+    courseSectionId: { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: "CourseSection", 
+        required: true,
+        index: true, // اضافه کردن ایندکس
     },
     lessonTitle: { type: String, required: true },
     lessonType: { type: String, enum: ["video", "quiz", "text", "file"], default: "video" },

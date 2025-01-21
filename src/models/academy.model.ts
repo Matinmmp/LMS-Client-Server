@@ -3,40 +3,112 @@ import mongoose, { Document, Model, Schema } from "mongoose";
 export interface IAcademy extends Document {
     engName: string;
     faName: string;
-    tags: string;
-    description?: string;
+    tags: string[];
+    description: string;
     longDescription: string;
-    avatar: { imageName: string; imageUrl: string },
+    avatar: { imageName: string; imageUrl: string };
     courses: mongoose.Schema.Types.ObjectId[]; // ارتباط یک به چند با دوره‌ها
     teachers: mongoose.Schema.Types.ObjectId[]; // ارتباط چند به چند با مدرسین
     seoMeta: { title: string; description: string; keywords: string[] }; // اطلاعات سئو
-    // اینا همه باید با کرون جاب حساب بشن
     rating: number;
     ratingNumber: number;
     totalStudents: number;
-    totalTeacher: number;
+    totalTeachers: number;
     totalCourses: number;
 }
 
 const academySchema: Schema<IAcademy> = new mongoose.Schema({
-    engName: String,
-    faName: String,
-    tags: String,
-    description: String,
-    longDescription: String,
-    avatar: { imageName: String, imageUrl: String },
-    courses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }], // اشاره به دوره‌ها
-    teachers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Teacher' }], // اشاره به مدرسین
-    seoMeta: { title: String, description: String, keywords: [String] },
-    rating: { type: Number, default: 0 },
-    ratingNumber: { type: Number, default: 0 },//تعداد کسایی که رای دادن
-    totalStudents: { type: Number, default: 0 },
-    totalTeacher: { type: Number, default: 0 },
-    totalCourses: { type: Number, default: 0 },
+    engName: {
+        type: String,
+        default: '',
+    },
+    faName: {
+        type: String,
+        default: '',
+    },
+
+    tags: {
+        type: [String],
+        default: [],
+        lowercase: true,
+    },
+
+    description: {
+        type: String,
+        default: '',
+        required: true,
+    },
+    longDescription: {
+        type: String,
+        default: '',
+        required: true,
+    },
+
+    avatar: {
+        imageName: { type: String, default: '' },
+        imageUrl: { type: String, default: '' },
+    },
+
+    courses: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Course',
+        default: [],
+        index: true, // ایندکس برای جستجوهای سریع‌تر
+    }],
+    teachers: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Teacher',
+        default: [],
+        index: true, // ایندکس برای جستجوهای سریع‌تر
+    }],
+
+    seoMeta: {
+        title: { type: String, default: '' },
+        description: { type: String, default: '' },
+        keywords: { type: [String], default: [] },
+    },
+
+    rating: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 5,
+    },
+    ratingNumber: {
+        type: Number,
+        default: 0,
+        min: 0,
+    },
+    totalStudents: {
+        type: Number,
+        default: 0,
+        min: 0,
+        index: true, // ایندکس برای مرتب‌سازی و فیلتر کردن
+    },
+    totalTeachers: {
+        type: Number,
+        default: 0,
+        min: 0,
+        index: true, // ایندکس برای مرتب‌سازی و فیلتر کردن
+    },
+    totalCourses: {
+        type: Number,
+        default: 0,
+        min: 0,
+        index: true, // ایندکس برای مرتب‌سازی و فیلتر کردن
+    },
 
 }, { timestamps: true });
+
+// اضافه کردن ایندکس‌های ترکیبی برای جستجوهای پیشرفته
+academySchema.index({ engName: 1, faName: 1 }); // جستجو بر اساس نام انگلیسی و فارسی
+// academySchema.index({ rating: -1 }); // مرتب‌سازی بر اساس امتیاز (از بالا به پایین)
+// academySchema.index({ totalStudents: -1 }); // مرتب‌سازی بر اساس تعداد دانشجویان (از بالا به پایین)
+// academySchema.index({ totalCourses: -1 }); // مرتب‌سازی بر اساس تعداد دانشجویان (از بالا به پایین)
+// academySchema.index({ totalTeacher: -1 }); // مرتب‌سازی بر اساس تعداد دانشجویان (از بالا به پایین)
+
+
 
 const AcademyModel: Model<IAcademy> = mongoose.model('Academy', academySchema);
 
 export default AcademyModel;
-

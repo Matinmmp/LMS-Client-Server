@@ -1,7 +1,4 @@
 
-const { v4: uuidv4 } = require('uuid');
-const crypto = require('crypto');
-
 function randomLetterGenerator() {
     const length = 20
     const charset = "QWERTYUIOPASDFGHJKLZXCVBNMabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";

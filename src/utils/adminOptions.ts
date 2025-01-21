@@ -1,13 +1,13 @@
 import { AdminJSOptions } from "adminjs";
-import AcademyModel from "../models/academy.model";
-import CategoryModel from "../models/category.model";
-import CourseModel from "../models/course.model";
-import CourseSectionModel from "../models/courseSection.model";
-import InvoiceModel from "../models/Invoice.model";
-import LessonModel from "../models/sectionLesson.model";
-import TeacherModel from "../models/teacher.model";
-import userModel from "../models/user.model";
-import BlogModel from "../models/blog.model";
+import AcademyModel from "../models/academy.model.js";
+import CategoryModel from "../models/category.model.js";
+import CourseModel from "../models/course.model.js";
+import CourseSectionModel from "../models/courseSection.model.js";
+import InvoiceModel from "../models/Invoice.model.js";
+import LessonModel from "../models/sectionLesson.model.js";
+import TeacherModel from "../models/teacher.model.js";
+import userModel from "../models/user.model.js";
+import BlogModel from "../models/blog.model.js";
 
 const AdminOptions: AdminJSOptions = {
     resources: [
@@ -86,7 +86,7 @@ const AdminOptions: AdminJSOptions = {
                     prerequisites:{
                         isVisible: { list: false, filter: false, show: true, edit: true },
                     },
-                    ratings:{
+                    rating:{
                         isVisible: { list: false, filter: false, show: true, edit: true },
                     },
                     status:{

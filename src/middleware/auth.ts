@@ -1,10 +1,13 @@
 import { NextFunction, Request, Response } from "express";
-import { CatchAsyncError } from "./catchAsyncErrors";
-import ErrorHandler from "../utils/ErrorHandler";
+import { CatchAsyncError } from "./catchAsyncErrors.js";
+import ErrorHandler from "../utils/ErrorHandler.js";
 import jwt, { JwtPayload } from 'jsonwebtoken'
-import { redis } from "../utils/redis";
-import userModel from "../models/user.model";
-require('dotenv').config();
+import { redis } from "../utils/redis.js";
+import userModel from "../models/user.model.js";
+
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 // authenticated user
 export const isAuthenticated = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {

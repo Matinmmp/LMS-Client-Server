@@ -1,7 +1,7 @@
 import express from 'express';
-import { getAllCourseUrlNames, getCourseByName, getCourseDataByNameLoged, getCourseDataByNameNoLoged, getRelatedCourses, searchCourses } from '../controllers/course.controller';
-import { isAuthenticated, } from '../middleware/auth';
-import { getDiscountedCourses } from '../controllers/home.controller';
+import { getAllCourseUrlNames, getCourseByName, getCourseDataByNameLoged, getCourseDataByNameNoLoged, getRelatedCourses, searchCourses } from '../controllers/course.controller.js';
+import { isAuthenticated, } from '../middleware/auth.js';
+import { getDiscountedCourses } from '../controllers/home.controller.js';
 
 
 const courseRouter = express.Router();

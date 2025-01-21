@@ -1,14 +1,13 @@
 import { NextFunction, Request, Response } from "express";
-import { CatchAsyncError } from "../middleware/catchAsyncErrors";
-import ErrorHandler from "../utils/ErrorHandler";
-import TeacherModel from "../models/teacher.model";
-import AcademyModel from "../models/academy.model";
-import CourseModel from "../models/course.model";
-const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+import { CatchAsyncError } from "../middleware/catchAsyncErrors.js";
+import ErrorHandler from "../utils/ErrorHandler.js";
+import TeacherModel from "../models/teacher.model.js";
+import AcademyModel from "../models/academy.model.js";
+import CourseModel from "../models/course.model.js";
 import Fuse from "fuse.js";
 import _ from "lodash";
 
-import { redis } from "../utils/redis";
+import { redis } from "../utils/redis.js";
 
 
 
@@ -88,7 +87,7 @@ const getHomeLastCourses = CatchAsyncError(async (req: Request, res: Response, n
                     "discount.expireTime": 1,
                     totalLessons: 1,
                     status: 1,
-                    ratings: 1,
+                    rating: 1,
                     level: 1,
                     "thumbnail.imageUrl": 1,
                     description: 1,
@@ -167,7 +166,7 @@ const getDiscountedCourses = CatchAsyncError(async (req: Request, res: Response,
                     "discount.expireTime": 1,
                     totalLessons: 1,
                     status: 1,
-                    ratings: 1,
+                    rating: 1,
                     level: 1,
                     "thumbnail.imageUrl": 1,
                     description: 1,
@@ -202,7 +201,7 @@ const getHomeFavoritCourses = CatchAsyncError(async (req: Request, res: Response
             {
                 $sort: {
                     purchased: -1, // مرتب‌سازی بر اساس بیشترین purchased
-                    ratings: -1    // در صورت تساوی در purchased، بر اساس بیشترین ratings مرتب‌سازی می‌شود
+                    rating: -1    // در صورت تساوی در purchased، بر اساس بیشترین ratings مرتب‌سازی می‌شود
                 }
             },
             {
@@ -244,7 +243,7 @@ const getHomeFavoritCourses = CatchAsyncError(async (req: Request, res: Response
                     "discount.expireTime": 1,
                     totalLessons: 1,
                     status: 1,
-                    ratings: 1,
+                    rating: 1,
                     level: 1,
                     "thumbnail.imageUrl": 1,
                     description: 1,
@@ -438,7 +437,7 @@ const homeSearch = CatchAsyncError(async (req: Request, res: Response, next: Nex
 
         // 2. کش کردن داده‌های دوره‌ها با اطلاعات مربی و فیلد tags برای جستجو
         const courses = await getOrSetCache("courses_for_home_search", () =>
-            CourseModel.find({}, 'name urlName thumbnail.imageUrl tags ratings teacherId') // انتخاب tags برای جستجو و teacherId برای مربی
+            CourseModel.find({}, 'name urlName thumbnail.imageUrl tags rating teacherId') // انتخاب tags برای جستجو و teacherId برای مربی
                 .populate('teacherId', 'engName faName') // اضافه کردن اطلاعات مربی بدون _id
                 .lean()
         );
@@ -451,7 +450,7 @@ const homeSearch = CatchAsyncError(async (req: Request, res: Response, next: Nex
         const sortedResults = _.orderBy(searchResults, (result: any) => {
             const item: any = result.item;
             if (item.students) return item.students; // فرض کنید اینجا تعداد دانشجویان را دارید
-            if (item.ratings) return item.ratings; // فرض کنید اینجا امتیاز را دارید
+            if (item.rating) return item.rating; // فرض کنید اینجا امتیاز را دارید
             return 0;
         }, ['desc']);
 

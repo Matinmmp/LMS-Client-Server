@@ -19,38 +19,67 @@ interface ISection extends Document {
     totalLength: number,
     order: number,
     isFree: boolean,
-    info:string,
-    warning:string,
-    error:string,
+    info: string,
+    warning: string,
+    error: string,
 }
 
 
 const linkSchema = new Schema<ILink>({
-    title: String,
-    url: String
+    title: {
+        type: String,
+        default: '',
+    },
+    url: {
+        type: String,
+        default: '',
+    }
 })
 
 const fileSchema = new Schema<IFile>({
-    fileTitle: String,
-    fileName: String,
+    fileTitle: {
+        type: String,
+        default: '',
+    },
+    fileName: {
+        type: String,
+        default: '',
+    },
 })
 
 const SectionSchema = new Schema<ISection>({
     courseId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Course",
-        required: true
+        required: true,
+        index: true, // اضافه کردن ایندکس
     },
-    sectionName: String,
+    sectionName: {
+        type: String,
+        default: '',
+    },
     sectionLinks: [linkSchema],
     sectionFiles: [fileSchema],
     totalLessons: Number,
     totalLength: Number,
-    order: { type: Number, required: true },
+    order: {
+        type: Number,
+        required: true,
+        index: true, // اضافه کردن ایندکس
+    },
     isFree: { type: Boolean, default: false },
-    info:String,
-    warning:String,
-    error:String,
+    info: {
+        type: String,
+        default: '',
+    },
+    warning: {
+        type: String,
+        default: '',
+    },
+    error: {
+        type: String,
+        default: '',
+    },
 }, { timestamps: true })
 
 

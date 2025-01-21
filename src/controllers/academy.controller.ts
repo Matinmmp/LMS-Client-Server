@@ -1,15 +1,13 @@
 import { NextFunction, Request, Response } from "express";
-import { CatchAsyncError } from "../middleware/catchAsyncErrors";
-import ErrorHandler from "../utils/ErrorHandler";
-import AcademyModel from "../models/academy.model";
-import { redis } from "../utils/redis";
-import CourseModel from "../models/course.model";
-import TeacherModel from "../models/teacher.model";
-
-require('dotenv').config();
+import { CatchAsyncError } from "../middleware/catchAsyncErrors.js";
+import ErrorHandler from "../utils/ErrorHandler.js";
+import AcademyModel from "../models/academy.model.js";
+import CourseModel from "../models/course.model.js";
+import TeacherModel from "../models/teacher.model.js";
 
 
-const CACHE_EXPIRATION = 86400; // 24 ساعت (86400 ثانیه)
+
+const CACHE_EXPIRATION = 86400 ; // 24 ساعت (86400 ثانیه)
 
 const getAcademies = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -101,7 +99,7 @@ const getAcademyCoursesByEngName = CatchAsyncError(async (req: Request, res: Res
             {
                 $sort: {
                     purchased: -1, // مرتب‌سازی بر اساس بیشترین purchased
-                    ratings: -1    // در صورت تساوی در purchased، بر اساس بیشترین ratings مرتب‌سازی می‌شود
+                    rating: -1    // در صورت تساوی در purchased، بر اساس بیشترین ratings مرتب‌سازی می‌شود
                 }
             },
             {
@@ -145,7 +143,7 @@ const getAcademyCoursesByEngName = CatchAsyncError(async (req: Request, res: Res
                     "discount.percent": 1,
                     "discount.expireTime": 1,
                     status: 1,
-                    ratings: 1,
+                    rating: 1,
                     level: 1,
                     "thumbnail.imageUrl": 1,
                     description: 1,

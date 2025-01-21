@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
-import CourseModel from '../models/course.model';
-import userModel from '../models/user.model';
-import { CatchAsyncError } from '../middleware/catchAsyncErrors';
-import ErrorHandler from '../utils/ErrorHandler';
-import CourseReviewModel from '../models/courseReview..model';
-import mongoose, { Mongoose } from 'mongoose';
+import CourseModel from '../models/course.model.js';
+import userModel from '../models/user.model.js';
+import { CatchAsyncError } from '../middleware/catchAsyncErrors.js';
+import ErrorHandler from '../utils/ErrorHandler.js';
+import CourseReviewModel from '../models/courseReview..model.js';
+
 
 
 

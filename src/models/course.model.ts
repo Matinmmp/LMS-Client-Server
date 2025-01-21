@@ -11,19 +11,36 @@ interface IFile extends Document {
     fileDescription: string;
 }
 
+//فایل هایی که داخل دوره ازش استفاده شده مثل کد ها و متن ها
 const fileSchema = new Schema<IFile>({
-    fileTitle: String,//اسمش لحظه ی دانلود
-    fileName: String,//اسمش داخل باکت
-    fileDescription: String,
+    fileTitle: {
+        type: String,
+        default: '',
+    },//اسمش لحظه ی دانلود
+    fileName: {
+        type: String,
+        default: '',
+    },//اسمش داخل باکت
+    fileDescription: {
+        type: String,
+        default: '',
+    },
 })
 
+//لینک هایی که قراره بخش اطلاعات دوره ازش استفاده بشه
 const linkSchema = new Schema<ILink>({
-    title: String,
-    url: String
+    title: {
+        type: String,
+        default: '',
+    },
+    url: {
+        type: String,
+        default: '',
+    },
 })
 
 export interface ICourse extends Document {
-    urlName: string;
+    urlName: string; // برای URL هست
     name: string; // نام دوره
     faName: string; // نام دوره
     description: string; // توضیح کوتاه دوره
@@ -35,12 +52,12 @@ export interface ICourse extends Document {
     price: number; // قیمت دوره
     estimatedPrice?: number; // قیمت تخمینی
     thumbnail: { imageName: string; imageUrl: string; }; // تصویر بندانگشتی دوره
-    tags: [string]; // برچسب‌های دوره
+    tags: string[]; // برچسب‌های دوره
     level: string; // سطح دوره (مثل مبتدی، متوسط، پیشرفته)
     benefits: { title: string }[]; // مزایای شرکت در دوره
     prerequisites: { title: string, link?: string }[]; // پیش‌نیازهای دوره
-    ratings?: number; // امتیاز دوره
-    ratingsNumber: number;
+    rating?: number; // امتیاز دوره
+    ratingNumber: number;
     purchased?: number; // تعداد خریدهای دوره
     links?: ILink[]; // لینک‌های مرتبط با دوره
     status: number; // وضعیت دوره (0: ongoing, 1: finished, 2: stopped)
@@ -51,65 +68,98 @@ export interface ICourse extends Document {
     viewsCount: number; // تعداد بازدیدهای دوره
     seoMeta: { title: string; description: string; keywords: string[] }; // اطلاعات سئو
     previewVideoUrl?: string; // لینک ویدیوی پیش‌نمایش
-    relatedCourses?: mongoose.Schema.Types.ObjectId[];
-    relatedBlogs?: mongoose.Schema.Types.ObjectId[];
-    favoritesCount: Number;
-    createDate: Date;//تاریخی که این کورس توی سایت اضافه شده
-    endDate: Date;//تاریخی که این کورس توی سایت تموم شده
-
-    releaseDate: Date; // تاریخ انتشار واقعی دوره هست ممکنه مال پنج سال پیش باشه
-    finishDate: Date; // تاریخ پایان واقعی دوره هست ممکنه مال پنج سال پیش باشه
-    lastContentUpdate: Date;
-    isPreOrder: Boolean;
-    holeCourseVideos: Number;//تعداد ویدیو هایی که دوره در نهایت باید داشته باشه برای تخمین درصد تکمیل دوره
-    courseFiles: [IFile],
-    info: string,
-    warning: string,
-    error: string,
-    courseLength: number//زمان دوره به ثانیه
+    relatedCourses?: mongoose.Schema.Types.ObjectId[]; // دوره‌های مشابه
+    favoritesCount: number; // تعداد علاقه‌مندی‌ها
+    createDate: Date; // تاریخی که این کورس توی سایت اضافه شده
+    endDate: Date; // تاریخی که این کورس توی سایت تموم شده
+    releaseDate: Date; // تاریخ انتشار واقعی دوره
+    finishDate: Date; // تاریخ پایان واقعی دوره
+    lastContentUpdate: Date; // آخرین بروزرسانی محتوا
+    isPreOrder: boolean; // پیش‌فروش
+    holeCourseVideos: number; // تعداد ویدیوهایی که دوره در نهایت باید داشته باشه
+    courseFiles: IFile[]; // فایل‌های دوره
+    info: string; // اطلاعات اضافه
+    warning: string; // هشدارها
+    error: string; // خطاها
+    courseLength: number; // زمان دوره به ثانیه
 }
 
 
 const courseSchema = new Schema<ICourse>({
-    urlName: { type: String, required: true },
+    urlName: {
+        type: String,
+        required: true,
+        unique: true, // اضافه کردن unique
+    },
     name: { type: String, required: true },
     faName: { type: String, required: true },
     description: { type: String, required: true },
     longDescription: { type: String, required: true }, // پشتیبانی از HTML
     price: { type: Number, required: true },
     estimatedPrice: { type: Number },
-    thumbnail: { imageName: String, imageUrl: String },
-    tags: { type: [String], required: true },
+    thumbnail: {
+        imageName: { type: String, default: '' },
+        imageUrl: { type: String, default: '' },
+    },
+    tags: {
+        type: [String],
+        required: true,
+        lowercase: true, // تبدیل به حروف کوچک
+    },
     level: { type: String, required: true },
-    benefits: [{ title: String }],
-    prerequisites: [{ title: String, link: String }],
-    ratings: { type: Number, default: 0 },
-    ratingsNumber: { type: Number, default: 0 },
-    purchased: { type: Number, default: 0 },
+    benefits: { type: [{ title: String }], default: [] },
+    prerequisites: { type: [{ title: String, link: String }], default: [] },
+    rating: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 5,
+    },
+    ratingNumber: {
+        type: Number,
+        default: 0,
+        min: 0,
+    },
+    purchased: { type: Number, default: 0, min: 0 },
     status: { type: Number, default: 0 },
-    academyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Academy' },
-    teacherId: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher' },
+    academyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Academy', default: [] },
+    teacherId: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher', default: [] },
     discount: { percent: Number, usageCount: { type: Number, default: 0 }, expireTime: Date },
     links: [linkSchema],
-    categoryIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],
-    folderName: String,
+    categoryIds: {
+        type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],
+        default: []
+    },
+    folderName: {
+        type: String,
+        default: '',
+    },
     isInVirtualPlus: { type: Boolean, default: false },
     showCourse: { type: Boolean, default: false },
     totalLessons: Number,
     viewsCount: { type: Number, default: 0 },
-    seoMeta: { title: String, description: String, keywords: [String] },
+    seoMeta: {
+        title: { type: String, default: '' },
+        description: { type: String, default: '' },
+        keywords: { type: [String], default: [] },
+    },
     previewVideoUrl: { type: String },
-    relatedCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }], // دوره‌های مشابه
-    relatedBlogs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Blog' }], // بلاگ‌های پیشنهادی
+    relatedCourses: {
+        type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }],
+        default: []
+    }, // دوره‌های مشابه
+
+    // relatedBlogs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Blog' }], // بلاگ‌های پیشنهادی
+
     createDate: { type: Date, default: Date.now },
     releaseDate: Date,
     lastContentUpdate: { type: Date, default: Date.now }, // آخرین بروزرسانی محتوا
     isPreOrder: { type: Boolean, default: false }, // پیش‌فروش
     holeCourseVideos: { type: Number, default: 0 },
     courseFiles: [fileSchema],
-    info: String,
-    warning: String,
-    error: String,
+    info: { type: String, default: '' },
+    warning: { type: String, default: '' },
+    error: { type: String, default: '' },
     courseLength: Number,
 
     //کرون جاب

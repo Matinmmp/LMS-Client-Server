@@ -2,7 +2,9 @@ import nodemailer, { Transporter } from 'nodemailer'
 import path from 'path';
 import ejs from 'ejs'
 
-require('dotenv').config();
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 interface EmailOptions {
     email: string,

@@ -6,25 +6,25 @@
         "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
         "start1": "ts-node --esm server.ts",
         "build": "tsc",
-        "start": "ts-node src/server.ts"
+        "start": "ts-node dist/server.js",
+        "dev2": "npm run build && node dist/server.js"
     },
-    "type": "commonjs",
+    "type": "module",
     "keywords": [],
     "author": "Mohammad Matin Mohammadi Pega",
     "license": "ISC",
     "description": "",
     "dependencies": {
-        "@adminjs/express": "^5.0.0",
-        "@adminjs/mongoose": "^3.0.0",
+        "@adminjs/express": "^6.1.1",
+        "@adminjs/mongoose": "^4.1.0",
         "@aws-sdk/client-s3": "^3.627.0",
         "@aws-sdk/s3-request-presigner": "^3.709.0",
         "@types/bcryptjs": "^2.4.6",
         "@types/cookie-parser": "^1.4.7",
         "@types/cors": "^2.8.17",
         "@types/jsonwebtoken": "^9.0.6",
-        "@types/node": "^20.14.11",
         "@types/node-cron": "^3.0.11",
-        "adminjs": "^6.8.7",
+        "adminjs": "^7.8.15",
         "axios": "^1.7.9",
         "bcryptjs": "^2.4.3",
         "connect-mongo": "^5.1.0",
@@ -44,9 +44,7 @@
         "mongoose": "^8.7.0",
         "node-cron": "^3.0.3",
         "nodemailer": "^6.9.14",
-        "ts-node-dev": "^2.0.0",
         "tslib": "^2.8.1",
-        "typescript": "^5.5.3",
         "zarinpal-checkout": "^0.3.0"
     },
     "devDependencies": {
@@ -56,8 +54,12 @@
         "@types/express-session": "^1.18.1",
         "@types/lodash": "^4.17.10",
         "@types/mongoose": "^5.11.97",
+        "@types/node": "^22.10.7",
         "@types/nodemailer": "^6.4.15",
         "@types/zarinpal-checkout": "^0.2.5",
-        "ts-node": "^10.9.2"
+        "cross-env": "^7.0.3",
+        "ts-node": "^10.9.2",
+        "ts-node-dev": "^2.0.0",
+        "typescript": "^5.7.3"
     }
 }
