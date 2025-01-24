@@ -1,5 +1,5 @@
 import express from 'express';
-import { getCoursesByIds } from '../controllers/cart.controller.js';
+import { getCoursesByIds } from '../controllers/cart.controller';
 
 
 

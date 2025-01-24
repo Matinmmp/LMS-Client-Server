@@ -1,5 +1,5 @@
 import express from "express";
-import { getCat_Ac_Teach } from "../controllers/dashboard.controller.js";
+import { getCat_Ac_Teach } from "../controllers/dashboard.controller";
 
 
 const dashboardRoute = express.Router();

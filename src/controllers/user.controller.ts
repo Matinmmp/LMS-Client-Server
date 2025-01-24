@@ -1,14 +1,14 @@
 import { NextFunction, Request, Response } from "express";
-import { CatchAsyncError } from "../middleware/catchAsyncErrors.js";
-import userModel, { IUser } from "../models/user.model.js";
-import ErrorHandler from "../utils/ErrorHandler.js";
+import { CatchAsyncError } from "../middleware/catchAsyncErrors";
+import userModel, { IUser } from "../models/user.model";
+import ErrorHandler from "../utils/ErrorHandler";
 import jwt, { JwtPayload, Secret } from "jsonwebtoken";
-import sendMail from "../utils/sendMail.js";
-import { createToken, sendToken } from "../utils/jwt.js";
-import { redis } from "../utils/redis.js";
-import randomLetterGenerator from "../utils/randomName.js";
-import InvoiceModel from "../models/Invoice.model.js";
-import CourseModel from "../models/course.model.js";
+import sendMail from "../utils/sendMail";
+import { createToken, sendToken } from "../utils/jwt";
+import { redis } from "../utils/redis";
+import randomLetterGenerator from "../utils/randomName";
+import InvoiceModel from "../models/Invoice.model";
+import CourseModel from "../models/course.model";
 
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import crypto from 'crypto';

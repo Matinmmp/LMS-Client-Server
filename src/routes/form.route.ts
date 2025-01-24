@@ -1,6 +1,6 @@
 import express from 'express';
 
-import { sendFormEmail } from '../controllers/form.controller.js';
+import { sendFormEmail } from '../controllers/form.controller';
 
 
 const formRoute = express.Router();

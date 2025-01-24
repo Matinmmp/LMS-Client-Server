@@ -7,8 +7,8 @@ export interface IAcademy extends Document {
     description: string;
     longDescription: string;
     avatar: { imageName: string; imageUrl: string };
-    courses: mongoose.Schema.Types.ObjectId[]; // ارتباط یک به چند با دوره‌ها
-    teachers: mongoose.Schema.Types.ObjectId[]; // ارتباط چند به چند با مدرسین
+    courses?: mongoose.Schema.Types.ObjectId[]; // ارتباط یک به چند با دوره‌ها
+    teachers?: mongoose.Schema.Types.ObjectId[]; // ارتباط چند به چند با مدرسین
     seoMeta: { title: string; description: string; keywords: string[] }; // اطلاعات سئو
     rating: number;
     ratingNumber: number;
@@ -45,7 +45,16 @@ const academySchema: Schema<IAcademy> = new mongoose.Schema({
     },
 
     avatar: {
-        imageName: { type: String, default: '' },
+        imageName: {
+            type: String,
+            default: '',
+            validate: {
+                validator: function (v: string) {
+                    return /\.(jpg|jpeg|png|gif)$/i.test(v);
+                },
+                message: 'فرمت فایل تصویر نامعتبر است!'
+            }
+        },
         imageUrl: { type: String, default: '' },
     },
 
@@ -102,10 +111,6 @@ const academySchema: Schema<IAcademy> = new mongoose.Schema({
 
 // اضافه کردن ایندکس‌های ترکیبی برای جستجوهای پیشرفته
 academySchema.index({ engName: 1, faName: 1 }); // جستجو بر اساس نام انگلیسی و فارسی
-// academySchema.index({ rating: -1 }); // مرتب‌سازی بر اساس امتیاز (از بالا به پایین)
-// academySchema.index({ totalStudents: -1 }); // مرتب‌سازی بر اساس تعداد دانشجویان (از بالا به پایین)
-// academySchema.index({ totalCourses: -1 }); // مرتب‌سازی بر اساس تعداد دانشجویان (از بالا به پایین)
-// academySchema.index({ totalTeacher: -1 }); // مرتب‌سازی بر اساس تعداد دانشجویان (از بالا به پایین)
 
 
 

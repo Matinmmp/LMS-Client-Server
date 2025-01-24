@@ -1,6 +1,6 @@
 import express from "express";
-import { acitvateUser, createInvoice, forgetPassword, getUserFreeCourses, getUserInfo, getUserInvoices, getUserPaidCourses, loginUser, logoutUser, registrationUser, setPassword, socialAuth, updateAccessToken, updatePassword, updateProfilePicture, updateUserInfo } from "../controllers/user.controller.js";
-import { isAuthenticated } from "../middleware/auth.js";
+import { acitvateUser, createInvoice, forgetPassword, getUserFreeCourses, getUserInfo, getUserInvoices, getUserPaidCourses, loginUser, logoutUser, registrationUser, setPassword, socialAuth, updateAccessToken, updatePassword, updateProfilePicture, updateUserInfo } from "../controllers/user.controller";
+import { isAuthenticated } from "../middleware/auth";
 
 const userRouter = express.Router();
 

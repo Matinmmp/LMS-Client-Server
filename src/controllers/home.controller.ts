@@ -1,13 +1,13 @@
 import { NextFunction, Request, Response } from "express";
-import { CatchAsyncError } from "../middleware/catchAsyncErrors.js";
-import ErrorHandler from "../utils/ErrorHandler.js";
-import TeacherModel from "../models/teacher.model.js";
-import AcademyModel from "../models/academy.model.js";
-import CourseModel from "../models/course.model.js";
+import { CatchAsyncError } from "../middleware/catchAsyncErrors";
+import ErrorHandler from "../utils/ErrorHandler";
+import TeacherModel from "../models/teacher.model";
+import AcademyModel from "../models/academy.model";
+import CourseModel from "../models/course.model";
 import Fuse from "fuse.js";
 import _ from "lodash";
 
-import { redis } from "../utils/redis.js";
+import { redis } from "../utils/redis";
 
 
 
@@ -349,7 +349,7 @@ const getHomeFavoritTeachers = CatchAsyncError(async (req: Request, res: Respons
 //             getOrSetCache("coursesforhomesearch", () => CourseModel.find({}, 'name thumbnail.imageUrl tags').lean())
 //         ]);
 
-//         // 3. استفاده از Fuse.js برای جستجوی فازی
+//         // 3. استفاده از Fuse برای جستجوی فازی
 //         const fuse = new Fuse([...teachers, ...academies, ...courses], fuseOptions);
 //         let searchResults = fuse.search(query);
 
@@ -442,7 +442,7 @@ const homeSearch = CatchAsyncError(async (req: Request, res: Response, next: Nex
                 .lean()
         );
 
-        // 3. استفاده از Fuse.js برای جستجوی فازی
+        // 3. استفاده از Fuse برای جستجوی فازی
         const fuse = new Fuse(courses, { keys: ['name', 'tags', 'teacher.engName', 'teacher.faName'], includeScore: true }); // استفاده از tags در جستجو
         const searchResults = fuse.search(query);
 

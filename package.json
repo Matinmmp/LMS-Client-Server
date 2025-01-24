@@ -9,14 +9,12 @@
         "start": "ts-node dist/server.js",
         "dev2": "npm run build && node dist/server.js"
     },
-    "type": "module",
+    "type": "commonjs",
     "keywords": [],
     "author": "Mohammad Matin Mohammadi Pega",
     "license": "ISC",
     "description": "",
     "dependencies": {
-        "@adminjs/express": "^6.1.1",
-        "@adminjs/mongoose": "^4.1.0",
         "@aws-sdk/client-s3": "^3.627.0",
         "@aws-sdk/s3-request-presigner": "^3.709.0",
         "@types/bcryptjs": "^2.4.6",
@@ -24,7 +22,6 @@
         "@types/cors": "^2.8.17",
         "@types/jsonwebtoken": "^9.0.6",
         "@types/node-cron": "^3.0.11",
-        "adminjs": "^7.8.15",
         "axios": "^1.7.9",
         "bcryptjs": "^2.4.3",
         "connect-mongo": "^5.1.0",

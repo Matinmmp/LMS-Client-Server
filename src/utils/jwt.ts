@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { IUser } from "../models/user.model.js";
-import { redis } from "./redis.js";
+import { IUser } from "../models/user.model";
+import { redis } from "./redis";
 import dotenv from 'dotenv';
 
 dotenv.config();

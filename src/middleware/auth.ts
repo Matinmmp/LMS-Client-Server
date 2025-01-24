@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from "express";
-import { CatchAsyncError } from "./catchAsyncErrors.js";
-import ErrorHandler from "../utils/ErrorHandler.js";
+import { CatchAsyncError } from "./catchAsyncErrors";
+import ErrorHandler from "../utils/ErrorHandler";
 import jwt, { JwtPayload } from 'jsonwebtoken'
-import { redis } from "../utils/redis.js";
-import userModel from "../models/user.model.js";
+import { redis } from "../utils/redis";
+import userModel from "../models/user.model";
 
 import dotenv from 'dotenv';
 

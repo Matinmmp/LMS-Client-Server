@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import mongoose from "mongoose";
-import { CatchAsyncError } from "../middleware/catchAsyncErrors.js";
-import ErrorHandler from "../utils/ErrorHandler.js";
-import CourseModel from "../models/course.model.js";
+import { CatchAsyncError } from "../middleware/catchAsyncErrors";
+import ErrorHandler from "../utils/ErrorHandler";
+import CourseModel from "../models/course.model";
 
 const getCoursesByIds = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     const { courseIds } = req.body;

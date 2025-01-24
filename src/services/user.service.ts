@@ -1,6 +1,6 @@
 
-import userModel from "../models/user.model.js"
-import { redis } from "../utils/redis.js";
+import userModel from "../models/user.model"
+import { redis } from "../utils/redis";
 
 
 // get user bu id

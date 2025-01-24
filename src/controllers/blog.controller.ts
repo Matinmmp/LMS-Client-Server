@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from "express";
-import { CatchAsyncError } from "../middleware/catchAsyncErrors.js";
-import ErrorHandler from "../utils/ErrorHandler.js";
-import CourseModel from "../models/course.model.js";
-import BlogModel from "../models/blog.model.js";
+import { CatchAsyncError } from "../middleware/catchAsyncErrors";
+import ErrorHandler from "../utils/ErrorHandler";
+import CourseModel from "../models/course.model";
+import BlogModel from "../models/blog.model";
 
 
 

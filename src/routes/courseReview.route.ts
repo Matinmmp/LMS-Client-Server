@@ -1,5 +1,5 @@
 import express from 'express';
-import { getCourseComments } from '../controllers/courseReview.controller.js';
+import { getCourseComments } from '../controllers/courseReview.controller';
  
 
 

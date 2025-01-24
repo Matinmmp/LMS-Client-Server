@@ -1,16 +1,15 @@
 import { NextFunction, Request, Response } from "express";
-import { ErrorMiddelware } from "./middleware/error.js";
-import userRouter from "./routes/user.route.js";
-import categoryRouter from "./routes/category.route.js";
-import teacherRouter from "./routes/teacher.route.js";
-import academyRouter from "./routes/academy.route.js";
-import courseRouter from "./routes/course.route.js";
-import dashboardRoute from "./routes/dashboard.route.js";
-import homeRouter from "./routes/home.route.js";
-import blogRouter from "./routes/blog.route.js";
-import courseReviewRoute from "./routes/courseReview.route.js";
-import cartRouter from "./routes/cart.route.js";
-import formRoute from "./routes/form.route.js";
+import userRouter from "./routes/user.route";
+import categoryRouter from "./routes/category.route";
+import teacherRouter from "./routes/teacher.route";
+import academyRouter from "./routes/academy.route";
+import courseRouter from "./routes/course.route";
+import dashboardRoute from "./routes/dashboard.route";
+import homeRouter from "./routes/home.route";
+import blogRouter from "./routes/blog.route";
+import courseReviewRoute from "./routes/courseReview.route";
+import cartRouter from "./routes/cart.route";
+import formRoute from "./routes/form.route";
 
 import express from 'express';
 import cors from 'cors';

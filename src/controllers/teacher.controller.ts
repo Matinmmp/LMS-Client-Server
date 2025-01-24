@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from "express";
-import { CatchAsyncError } from "../middleware/catchAsyncErrors.js";
-import ErrorHandler from "../utils/ErrorHandler.js";
-import TeacherModel from "../models/teacher.model.js";
-import AcademyModel from "../models/academy.model.js";
-import CourseModel from "../models/course.model.js";
+import { CatchAsyncError } from "../middleware/catchAsyncErrors";
+import ErrorHandler from "../utils/ErrorHandler";
+import TeacherModel from "../models/teacher.model";
+import AcademyModel from "../models/academy.model";
+import CourseModel from "../models/course.model";
 
 
 const CACHE_EXPIRATION = 86400; // 24 ساعت (86400 ثانیه)

@@ -1,18 +1,18 @@
 import { NextFunction, Request, Response } from "express";
-import { CatchAsyncError } from "../middleware/catchAsyncErrors.js";
-import ErrorHandler from "../utils/ErrorHandler.js";
-import CourseModel from "../models/course.model.js";
-import { redis } from "../utils/redis.js";
+import { CatchAsyncError } from "../middleware/catchAsyncErrors";
+import ErrorHandler from "../utils/ErrorHandler";
+import CourseModel from "../models/course.model";
+import { redis } from "../utils/redis";
 
 import Fuse from "fuse.js";
-import AcademyModel from "../models/academy.model.js";
-import TeacherModel from "../models/teacher.model.js";
-import CategoryModel from "../models/category.model.js";
+import AcademyModel from "../models/academy.model";
+import TeacherModel from "../models/teacher.model";
+import CategoryModel from "../models/category.model";
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import userModel from "../models/user.model.js";
+import userModel from "../models/user.model";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import CourseSectionModel from "../models/courseSection.model.js";
-import LessonModel from "../models/sectionLesson.model.js";
+import CourseSectionModel from "../models/courseSection.model";
+import LessonModel from "../models/sectionLesson.model";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 
@@ -642,7 +642,7 @@ const searchCourses = CatchAsyncError(async (req: Request, res: Response, next: 
         else if (price === "3") filteredCourses = filteredCourses.filter((course: any) => course.price > 0);
         else if (price === "4") filteredCourses = filteredCourses.filter((course: any) => course.discount && course.discount.percent > 0);
 
-        // جستجوی فازی با Fuse.js
+        // جستجوی فازی با Fuse
         if (searchText) {
             const fuse = new Fuse(filteredCourses, { keys: ["name", "tags"], includeScore: true });
             const fuseResults = fuse.search(searchText);

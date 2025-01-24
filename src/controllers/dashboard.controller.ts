@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from "express";
-import { CatchAsyncError } from "../middleware/catchAsyncErrors.js";
-import ErrorHandler from "../utils/ErrorHandler.js";
-import CategoryModel from "../models/category.model.js";
-import AcademyModel from "../models/academy.model.js";
-import TeacherModel from "../models/teacher.model.js";
+import { CatchAsyncError } from "../middleware/catchAsyncErrors";
+import ErrorHandler from "../utils/ErrorHandler";
+import CategoryModel from "../models/category.model";
+import AcademyModel from "../models/academy.model";
+import TeacherModel from "../models/teacher.model";
 
 const getCat_Ac_Teach = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {

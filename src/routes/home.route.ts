@@ -1,6 +1,6 @@
 import express from "express";
 
-import { getHomeFavoritAcadmy, getHomeFavoritCourses, getHomeFavoritTeachers, getHomeLastCourses, homeSearch } from "../controllers/home.controller.js";
+import { getHomeFavoritAcadmy, getHomeFavoritCourses, getHomeFavoritTeachers, getHomeLastCourses, homeSearch } from "../controllers/home.controller";
 
 
 const homeRouter = express.Router();
