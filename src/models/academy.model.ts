@@ -9,9 +9,10 @@ export interface IAcademy extends Document {
     avatar: { imageName: string; imageUrl: string };
     courses?: mongoose.Schema.Types.ObjectId[]; // ارتباط یک به چند با دوره‌ها
     teachers?: mongoose.Schema.Types.ObjectId[]; // ارتباط چند به چند با مدرسین
-    seoMeta: { title: string; description: string; keywords: string[] }; // اطلاعات سئو
+    seoMeta: { title: string; description: string; keywords: string }; // اطلاعات سئو
     rating: number;
     ratingNumber: number;
+    
     totalStudents: number;
     totalTeachers: number;
     totalCourses: number;
@@ -74,7 +75,7 @@ const academySchema: Schema<IAcademy> = new mongoose.Schema({
     seoMeta: {
         title: { type: String, default: '' },
         description: { type: String, default: '' },
-        keywords: { type: [String], default: [] },
+        keywords: { type: String, default: '' },
     },
 
     rating: {

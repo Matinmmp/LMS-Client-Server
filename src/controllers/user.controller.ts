@@ -326,17 +326,19 @@ const socialAuth = CatchAsyncError(async (req: Request, res: Response, next: Nex
 
         // دیکد کردن توکن
         const decodedUser = jwt.decode(token) as JwtPayload;
+    
 
         if (!decodedUser || !decodedUser.email) {
             return next(new ErrorHandler("Invalid token payload", 400));
         }
-
-        console.log(decodedUser); // اطلاعات کاربر از توکن
+       
 
         // بررسی کاربر در دیتابیس
         const user = await userModel.findOne({ email: decodedUser.email });
+        
 
         if (!user) {
+            console.log("s");
             // اگر کاربر وجود نداشت، کاربر جدید ایجاد کنید
             const newUser = await userModel.create({
                 email: decodedUser.email,
@@ -347,9 +349,11 @@ const socialAuth = CatchAsyncError(async (req: Request, res: Response, next: Nex
             });
             sendToken(newUser, 200, res, req);
         } else {
+            console.log("e");
             // اگر کاربر وجود داشت، توکن ارسال کنید
             sendToken(user, 200, res, req);
         }
+
     } catch (error: any) {
         return next(new ErrorHandler(error.message || "Something went wrong", 500));
     }

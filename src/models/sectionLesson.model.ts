@@ -12,19 +12,23 @@ interface ILessonFile extends Document {
     fileDescription: string;
 }
 
+interface IFile extends Document {
+    fileTitle: string,
+    fileName: string;
+    description:string
+}
+
+
 interface ILesson extends Document {
     courseId: mongoose.Schema.Types.ObjectId,
     courseSectionId: mongoose.Schema.Types.ObjectId,
     lessonType: string;
     lessonTitle: string,
-
     //اینا مربوط به خوده درس هستن
     lessonFile: ILessonFile//چه ویدیو چه فایل باشه میره این
 
     //اینا مربوط به اینه که اگه درس همزمان فایلی هم داشت
-    attachedFile: [ILessonFile],
-
-
+    attachedFile: [IFile],
     //اگه این درس لینکی داره
     links: [ILink]
     lessonLength?: number,

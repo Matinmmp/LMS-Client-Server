@@ -65,16 +65,19 @@ export interface ICourse extends Document {
     isInVirtualPlus: boolean; // آیا دوره در برنامه Virtual Plus موجود است
     showCourse: boolean; // آیا دوره برای کاربران قابل نمایش است
     totalLessons: number; // تعداد ویدیوهای موجود در دوره
+    totalSections: number;
     viewsCount: number; // تعداد بازدیدهای دوره
-    seoMeta: { title: string; description: string; keywords: string[] }; // اطلاعات سئو
+    seoMeta: { title: string; description: string; keywords: string }; // اطلاعات سئو
     previewVideoUrl?: string; // لینک ویدیوی پیش‌نمایش
     relatedCourses?: mongoose.Schema.Types.ObjectId[]; // دوره‌های مشابه
     favoritesCount: number; // تعداد علاقه‌مندی‌ها
+
     createDate: Date; // تاریخی که این کورس توی سایت اضافه شده
     endDate: Date; // تاریخی که این کورس توی سایت تموم شده
     releaseDate: Date; // تاریخ انتشار واقعی دوره
     finishDate: Date; // تاریخ پایان واقعی دوره
     lastContentUpdate: Date; // آخرین بروزرسانی محتوا
+
     isPreOrder: boolean; // پیش‌فروش
     holeCourseVideos: number; // تعداد ویدیوهایی که دوره در نهایت باید داشته باشه
     courseFiles: IFile[]; // فایل‌های دوره
@@ -109,50 +112,38 @@ const courseSchema = new Schema<ICourse>({
     level: { type: String, required: true },
     benefits: { type: [{ title: String }], default: [] },
     prerequisites: { type: [{ title: String, link: String }], default: [] },
-    rating: {
-        type: Number,
-        default: 0,
-        min: 0,
-        max: 5,
-    },
-    ratingNumber: {
-        type: Number,
-        default: 0,
-        min: 0,
-    },
+    rating: {type: Number,default: 0,min: 0,max: 5},
+    ratingNumber: {type: Number,default: 0,min: 0},
     purchased: { type: Number, default: 0, min: 0 },
     status: { type: Number, default: 0 },
-    academyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Academy', default: [] },
-    teacherId: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher', default: [] },
+    academyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Academy', default: "" },
+    teacherId: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher', default: "" },
     discount: { percent: Number, usageCount: { type: Number, default: 0 }, expireTime: Date },
     links: [linkSchema],
-    categoryIds: {
-        type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],
-        default: []
-    },
-    folderName: {
-        type: String,
-        default: '',
-    },
+    categoryIds: {type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],default: []},
+    folderName: {type: String,default: '',},
     isInVirtualPlus: { type: Boolean, default: false },
     showCourse: { type: Boolean, default: false },
-    totalLessons: Number,
+    totalLessons: { type: Number, default: 0 },
+    totalSections: { type: Number, default: 0 },
     viewsCount: { type: Number, default: 0 },
     seoMeta: {
         title: { type: String, default: '' },
         description: { type: String, default: '' },
-        keywords: { type: [String], default: [] },
+        keywords: { type: String, default: '' },
     },
     previewVideoUrl: { type: String },
-    relatedCourses: {
-        type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }],
-        default: []
-    }, // دوره‌های مشابه
+    relatedCourses: { type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }], default: [] }, // دوره‌های مشابه
 
     // relatedBlogs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Blog' }], // بلاگ‌های پیشنهادی
 
     createDate: { type: Date, default: Date.now },
-    releaseDate: Date,
+    endDate: { type: Date, default: Date.now },
+
+    releaseDate: { type: Date, default: Date.now },
+    finishDate: { type: Date, default: Date.now },
+
+
     lastContentUpdate: { type: Date, default: Date.now }, // آخرین بروزرسانی محتوا
     isPreOrder: { type: Boolean, default: false }, // پیش‌فروش
     holeCourseVideos: { type: Number, default: 0 },
@@ -160,7 +151,7 @@ const courseSchema = new Schema<ICourse>({
     info: { type: String, default: '' },
     warning: { type: String, default: '' },
     error: { type: String, default: '' },
-    courseLength: Number,
+    courseLength: { type: Number, default: 0 },
 
     //کرون جاب
     favoritesCount: { type: Number, default: 0 }, // تعداد علاقه‌مندی‌ها

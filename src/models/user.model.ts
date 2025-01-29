@@ -52,8 +52,7 @@ const userSchema: Schema<IUser> = new mongoose.Schema({
 
     password: {
         type: String,
-        required: [true, 'لطفا پسورد را وارد کنید'],
-        minlength: [6, 'پسورد نباید کمتر از 6 کاراکتر باشد'],
+        // required: [true, 'لطفا پسورد را وارد کنید'],
         select: false,
     },
 

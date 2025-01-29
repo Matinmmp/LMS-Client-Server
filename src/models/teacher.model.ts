@@ -9,7 +9,7 @@ export interface ITeacher extends Document {
     avatar: { imageName: string; imageUrl: string };
     courses: mongoose.Schema.Types.ObjectId[]; // ارتباط یک به چند با دوره‌ها
     academies: mongoose.Schema.Types.ObjectId[]; // ارتباط چند به چند با آکادمی‌ها
-    seoMeta: { title: string; description: string; keywords: string[] }; // اطلاعات سئو
+    seoMeta: { title: string; description: string; keywords: string }; // اطلاعات سئو
     rating: number;
     ratingNumber: number;
     totalStudents: number;
@@ -65,7 +65,7 @@ const teacherSchema: Schema<ITeacher> = new mongoose.Schema({
     seoMeta: {
         title: { type: String, default: '' },
         description: { type: String, default: '' },
-        keywords: { type: [String], default: [] },
+        keywords: { type: String, default: '' }
     },
 
     rating: { 
