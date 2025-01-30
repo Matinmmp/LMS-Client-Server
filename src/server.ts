@@ -8,6 +8,11 @@ import connectDB from './utils/db';
 // import AdminOptions from "./adminPanel/AdminOptions.js";
 // import { componentLoader } from "./adminPanel/components/Components.js";
 
+const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+
+
+
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -74,8 +79,32 @@ const start = async () => {
     app.listen(process.env.PORT, () => {
         console.log(`run`);
     })
-    
+
 }
+
+
+const filename = "images/Contact-us-bro.svg"; // change this to your filename
+
+const client = new S3Client({
+    region: "default",
+    endpoint: process.env.LIARA_ENDPOINT,
+    credentials: {
+        accessKeyId: process.env.LIARA_ACCESS_KEY,
+        secretAccessKey: process.env.LIARA_SECRET_KEY,
+    },
+});
+const params = {
+    Bucket: process.env.LIARA_BUCKET_NAME,
+    Key: filename,
+};
+
+ 
+const command = new GetObjectCommand(params);
+getSignedUrl(client, command).then((url: string) => {
+    // جایگزینی دامنه رسمی با دامنه اختصاصی
+    const customUrl = url.replace(`${process.env.LIARA_BUCKET_NAME}.storage.c2.liara.space`,"images.vc-virtual-learn.com");
+    console.log(customUrl);
+});
 
 start()
 
