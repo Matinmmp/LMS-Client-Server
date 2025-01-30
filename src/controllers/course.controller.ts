@@ -765,7 +765,7 @@ const rateCourse = CatchAsyncError(async (req: Request, res: Response, next: Nex
     try {
         const { courseId, rating } = req.body;
         const userId = req.user?._id;
-        console.log(userId);
+
         if (!courseId || rating == null) {
             return res.status(400).json({ success: false, message: "شناسه دوره و امتیاز الزامی است." });
         }
