@@ -52,7 +52,6 @@ const userSchema: Schema<IUser> = new mongoose.Schema({
 
     password: {
         type: String,
-        // required: [true, 'لطفا پسورد را وارد کنید'],
         select: false,
     },
 

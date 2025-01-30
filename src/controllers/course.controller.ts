@@ -18,6 +18,7 @@ import jwt from "jsonwebtoken";
 
 
 import dotenv from 'dotenv';
+import CourseRatingModel from "../models/courseRating.model";
 
 dotenv.config();
 
@@ -28,10 +29,10 @@ const itemsPerPage = 12;
 
 const client = new S3Client({
     region: "default",
-    endpoint: process.env.LIARA_ENDPOINT||"",
+    endpoint: process.env.LIARA_ENDPOINT || "",
     credentials: {
-        accessKeyId: process.env.LIARA_ACCESS_KEY||"",
-        secretAccessKey: process.env.LIARA_SECRET_KEY||""
+        accessKeyId: process.env.LIARA_ACCESS_KEY || "",
+        secretAccessKey: process.env.LIARA_SECRET_KEY || ""
     },
 })
 
@@ -43,6 +44,7 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
 
         let userId: string | null = null; // برای ذخیره شناسه کاربر
         let isPurchased = false; // پیش‌فرض خریداری نشده است
+        let userRate = -1; // پیش‌فرض اینکه کاربر امتیاز نداده است
 
         // بررسی اکسس توکن
         if (access_token) {
@@ -50,7 +52,7 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
                 const decoded = jwt.verify(access_token, process.env.ACCESS_TOKEN as string) as any;
                 userId = decoded.id;
             } catch (err: any) {
-                console.log("Access token invalid:", err.message);
+                // console.log("Access token invalid:", err.message);
             }
         }
 
@@ -60,10 +62,9 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
                 const decoded = jwt.verify(refresh_token, process.env.REFRESH_TOKEN as string) as any;
                 userId = decoded.id;
             } catch (err: any) {
-                console.log("Refresh token invalid:", err.message);
+                // console.log("Refresh token invalid:", err.message);
             }
         }
-
 
         // واکشی اطلاعات دوره
         const courseData = await CourseModel.aggregate([
@@ -131,7 +132,6 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
                         _id: "$_id",
                         createDate: "$createDate",
                         endDate: "$endDate",
-
                         releaseDate: "$releaseDate",
                         finishDate: "$finishDate",
                         seoMeta: "$seoMeta"
@@ -144,25 +144,33 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
             return res.status(404).json({ success: false, message: "دوره‌ای با این نام یافت نشد" });
         }
 
+        const courseId = courseData[0]._id;
+
         //  بررسی خرید دوره
         if (userId) {
             const user = await userModel.findById(userId).select("courses").lean();
-            if (user && user.courses.some(course => course.toString() === courseData[0]._id.toString())) {
+            if (user && user.courses.some(course => course.toString() === courseId.toString())) {
                 isPurchased = true;
             }
+
+            // بررسی امتیازدهی کاربر
+            const courseRating = await CourseRatingModel.findOne({ userId, courseId }).select("rating").lean();
+            if (courseRating) {
+                userRate = courseRating.rating;
+            }
         }
-
-
 
         res.status(200).json({
             success: true,
             courseData: courseData[0],
-            isPurchased // اضافه کردن وضعیت خرید به پاسخ
+            isPurchased, // وضعیت خرید دوره
+            userRate // امتیاز کاربر به دوره (اگر وجود داشته باشد)
         });
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 500));
     }
 });
+
 
 
 
@@ -258,7 +266,7 @@ const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Res
                                             ? {
                                                 fileTitle: file.fileTitle,
                                                 fileName: await generateS3Url(`Courses/${course?.folderName}/CourseFiles/${file.fileName}`, !(lesson.isFree), file.fileName),
-                                                fileDescription: file.fileDescription,
+                                                fileDescription: file?.description,
                                             }
                                             : true
                                     )
@@ -417,7 +425,7 @@ const getCourseDataByNameLoged = CatchAsyncError(async (req: Request, res: Respo
                                 lesson.attachedFile.map(async (file) => ({
                                     fileTitle: file.fileTitle,
                                     fileName: await generateS3Url(`Courses/${folderName}/CourseFiles/${file.fileName}`, !hasPurchased, file.fileName),
-                                    fileDescription: file.fileDescription,
+                                    fileDescription: file.description,
                                 }))
                             );
 
@@ -753,14 +761,88 @@ const getRelatedCourses = CatchAsyncError(async (req: Request, res: Response, ne
     }
 });
 
+const rateCourse = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { courseId, rating } = req.body;
+        const userId = req.user?._id;
+        console.log(userId);
+        if (!courseId || rating == null) {
+            return res.status(400).json({ success: false, message: "شناسه دوره و امتیاز الزامی است." });
+        }
+
+        if (rating < 0 || rating > 5) {
+            return res.status(400).json({ success: false, message: "امتیاز باید بین ۰ تا ۵ باشد." });
+        }
+
+        // بررسی اینکه آیا کاربر قبلاً به این دوره امتیاز داده است یا نه
+        const existingRating = await CourseRatingModel.findOne({ userId, courseId });
+
+        if (existingRating) {
+            // ویرایش امتیاز قبلی
+            existingRating.rating = rating;
+            await existingRating.save();
+
+            // به‌روز رسانی امتیاز در فیلد coursesRating مدل User
+            await userModel.updateOne(
+                { _id: userId, "coursesRating.courseId": courseId },
+                { $set: { "coursesRating.$.rating": rating } }
+            );
+
+        } else {
+            // ثبت امتیاز جدید در CourseRatingModel
+            await CourseRatingModel.create({ userId, courseId, rating });
+
+            // اضافه کردن امتیاز جدید به فیلد coursesRating مدل User
+            await userModel.updateOne(
+                { _id: userId },
+                { $push: { coursesRating: { courseId, rating } } }
+            );
+        }
+
+        // محاسبه میانگین امتیازات دوره و تعداد امتیازدهندگان
+        const ratingsData = await CourseRatingModel.aggregate([
+            { $match: { courseId: new mongoose.Types.ObjectId(courseId) } },
+            {
+                $group: {
+                    _id: null,
+                    averageRating: { $avg: "$rating" },
+                    totalRatings: { $sum: 1 }
+                }
+            }
+        ]);
+
+        if (ratingsData.length > 0) {
+            const { averageRating, totalRatings } = ratingsData[0];
+
+            // به‌روز رسانی میانگین امتیاز و تعداد امتیازات در مدل Course
+            await CourseModel.updateOne(
+                { _id: courseId },
+                { $set: { rating: averageRating, ratingNumber: totalRatings } }
+            );
+        } else {
+            // اگر هیچ امتیازی نبود، مقدار را صفر کنیم
+            await CourseModel.updateOne(
+                { _id: courseId },
+                { $set: { rating: 0, ratingNumber: 0 } }
+            );
+        }
+
+        res.status(200).json({ success: true, message: "امتیاز شما ثبت شد." });
+
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message, 500));
+    }
+});
+
+
 export {
     getAllCourseUrlNames,
     getCourseByName,
     getCourseDataByNameNoLoged,
     getCourseDataByNameLoged,
     searchCourses,
-    getRelatedCourses
-
+    getRelatedCourses,
+    rateCourse
 }
 
 

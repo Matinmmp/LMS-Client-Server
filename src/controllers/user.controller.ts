@@ -179,7 +179,7 @@ const forgetPassword = CatchAsyncError(async (req: Request, res: Response, next:
             return next(new ErrorHandler('ارسال ایمیل با خطا مواجه شد', 500));
         }
     } catch (error: any) {
-        console.log(error)
+
         return next(new ErrorHandler(error.message, 400))
     }
 });
@@ -338,7 +338,7 @@ const socialAuth = CatchAsyncError(async (req: Request, res: Response, next: Nex
         
 
         if (!user) {
-            console.log("s");
+ 
             // اگر کاربر وجود نداشت، کاربر جدید ایجاد کنید
             const newUser = await userModel.create({
                 email: decodedUser.email,
@@ -349,7 +349,7 @@ const socialAuth = CatchAsyncError(async (req: Request, res: Response, next: Nex
             });
             sendToken(newUser, 200, res, req);
         } else {
-            console.log("e");
+
             // اگر کاربر وجود داشت، توکن ارسال کنید
             sendToken(user, 200, res, req);
         }
