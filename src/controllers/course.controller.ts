@@ -29,12 +29,45 @@ const itemsPerPage = 12;
 
 const client = new S3Client({
     region: "default",
-    endpoint: process.env.LIARA_ENDPOINT || "",
+    endpoint: process.env.LIARA_ENDPOINT_COURSE || "",
     credentials: {
-        accessKeyId: process.env.LIARA_ACCESS_KEY || "",
-        secretAccessKey: process.env.LIARA_SECRET_KEY || ""
+        accessKeyId: process.env.LIARA_ACCESS_KEY_COURSE || "",
+        secretAccessKey: process.env.LIARA_SECRET_KEY_COURSE || ""
     },
 })
+
+
+
+const generateS3Url = async (key: string, isPrivate: boolean, fileName: string): Promise<string> => {
+    try {
+        const command = new GetObjectCommand({
+            Bucket: process.env.LIARA_BUCKET_NAME_COURSE,
+            Key: key,
+            ResponseContentDisposition: 'attachment; filename="' + fileName + '"' // تنظیم هدر Content-Disposition 
+        });
+
+        let signedUrl: string;
+
+        if (!isPrivate) {
+            signedUrl = await getSignedUrl(client, command, { expiresIn: 86400 * 5 }); // لینک ۵ روزه
+        } else {
+            signedUrl = await getSignedUrl(client, command, { expiresIn: 86400 }); // لینک ۱ روزه
+        }
+
+        // تلاش برای جایگزینی دامنه
+        try {
+            return signedUrl.replace("https://course12.storage.c2.liara.space", "https://course.vc-virtual-learn.com");
+        } catch (replaceError) {
+            console.error("Error replacing URL:", replaceError);
+            return signedUrl; // در صورت خطا، همان URL اولیه را برگردان
+        }
+
+    } catch (error) {
+        console.error("Error generating S3 URL:", error);
+        throw new Error("Failed to generate S3 URL");
+    }
+};
+
 
 const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -134,7 +167,8 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
                         endDate: "$endDate",
                         releaseDate: "$releaseDate",
                         finishDate: "$finishDate",
-                        seoMeta: "$seoMeta"
+                        seoMeta: "$seoMeta",
+                        folderName: "$folderName",
                     }
                 }
             }
@@ -145,6 +179,14 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
         }
 
         const courseId = courseData[0]._id;
+
+        if (courseData[0] && courseData[0].course) {
+            courseData[0].course.previewVideoUrl = await generateS3Url(
+                `Courses/${courseData[0].course.folderName}/CourseFiles/${courseData[0].course.previewVideoUrl}`,
+                false,
+                courseData[0].course.name + '_preview'
+            );
+        }
 
         //  بررسی خرید دوره
         if (userId) {
@@ -170,31 +212,6 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
         return next(new ErrorHandler(error.message, 500));
     }
 });
-
-
-
-
-const generateS3Url = async (key: string, isPrivate: boolean, fileName: string): Promise<string> => {
-    const command = new GetObjectCommand({
-        Bucket: process.env.LIARA_BUCKET_NAME,
-        Key: key,
-        ResponseContentDisposition: 'attachment; filename="' + fileName + '"' // تنظیم هدر Content-Disposition 
-    });
-
-    if (!isPrivate) {
-
-        // return `https://${process.env.LIARA_BUCKET_NAME}.storage.c2.liara.space/${key}`; 
-        // return encodeText(await getSignedUrl(client, command, { expiresIn: 86400 * 5 }));
-        return await getSignedUrl(client, command, { expiresIn: 86400 * 5 });
-
-    }
-
-    // const signedUrl = encodeText(await getSignedUrl(client, command, { expiresIn: 86400 }));
-    const signedUrl = await getSignedUrl(client, command, { expiresIn: 86400 }); // لینک یک روزه 
-    // لینک یک روزه 
-    return signedUrl;
-};
-
 
 const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -223,7 +240,7 @@ const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Res
                             section.isFree ?
                                 {
                                     fileTitle: file.fileTitle,
-                                    fileName: await generateS3Url(`Courses/${folderName}CourseFiles/${file.fileName}`, !(section.isFree), file.fileName),
+                                    fileName: await generateS3Url(`Courses/${folderName}/CourseFiles/${file.fileName}`, !(section.isFree), file.fileTitle),
                                 }
                                 : true
                         )
@@ -248,7 +265,7 @@ const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Res
                             lesson.isFree
                                 ? {
                                     fileTitle: lesson.lessonFile.fileTitle,
-                                    fileName: await generateS3Url(`Courses/${course?.folderName}/CourseLessons/${lesson.lessonFile.fileName}`, !(lesson.isFree), lesson.lessonFile.fileName),
+                                    fileName: await generateS3Url(`Courses/${course?.folderName}/CourseLessons/${lesson.lessonFile.fileName}`, !(lesson.isFree), lesson.lessonFile.fileTitle),
                                     fileDescription: lesson.lessonFile.fileDescription,
                                 }
                                 : true
@@ -265,8 +282,8 @@ const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Res
                                         lesson.isFree
                                             ? {
                                                 fileTitle: file.fileTitle,
-                                                fileName: await generateS3Url(`Courses/${course?.folderName}/CourseFiles/${file.fileName}`, !(lesson.isFree), file.fileName),
-                                                fileDescription: file?.description,
+                                                fileName: await generateS3Url(`Courses/${course?.folderName}/CourseFiles/${file.fileName}`, !(lesson.isFree), file.fileTitle),
+                                                description: file?.description,
                                             }
                                             : true
                                     )
@@ -319,23 +336,8 @@ const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Res
 
         const courseLinks = course.links?.length ? true : false;
 
-        // const courseLinks = course.links?.length ?
-        //     await Promise.all(course.links.map(async (link: any) => isFree ? { title: link.title, url: link.url } : true)
-        //     ) : false;
-
-        // const courseFiles = course.courseFiles?.length ? await Promise.all(
-        //     course.courseFiles.map(async (file: any) => isFree ?
-        //         {
-        //             fileTitle: file.fileTitle,
-        //             fileName: await generateS3Url(`Courses/${folderName}CourseFiles/${file.fileName}`, !(isFree), file.fileName),
-        //         }
-        //         : true
-        //     )
-        // ) : false;
-
         res.status(200).json({
             success: true,
-            // isCourseFree: course.price == 0,
             isPurchased: false,
             courseData: processedSections,
             courseFiles,
@@ -348,7 +350,6 @@ const getCourseDataByNameNoLoged = CatchAsyncError(async (req: Request, res: Res
         next(error);
     }
 });
-
 
 const getCourseDataByNameLoged = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -387,11 +388,7 @@ const getCourseDataByNameLoged = CatchAsyncError(async (req: Request, res: Respo
                 if (section.sectionFiles?.length)
                     sectionFiles = await Promise.all(section.sectionFiles.map(async (file) => ({
                         fileTitle: file.fileTitle,
-                        fileName: await generateS3Url(
-                            `Courses/${folderName}/CourseFiles/${file.fileName}`,
-                            !hasPurchased,
-                            file.fileName
-                        ),
+                        fileName: await generateS3Url(`Courses/${folderName}/CourseFiles/${file.fileName}`, !hasPurchased, file.fileTitle),
 
                     })));
 
@@ -412,10 +409,9 @@ const getCourseDataByNameLoged = CatchAsyncError(async (req: Request, res: Respo
                         const lessonFile = lesson.lessonFile
                             ? {
                                 fileTitle: lesson.lessonFile.fileTitle,
-                                fileName: await generateS3Url(
-                                    `Courses/${folderName}/CourseLessons/${lesson.lessonFile.fileName}`, !hasPurchased,
-                                    `section_${sectionIndex + 1}_lesson_${lessonIndex + 1}_${lesson.lessonFile.fileName}`),
+                                fileName: await generateS3Url(`Courses/${course?.folderName}/CourseLessons/${lesson.lessonFile.fileName}`, !(lesson.isFree), lesson.lessonFile.fileTitle),
                                 fileDescription: lesson.lessonFile.fileDescription,
+
                             }
                             : false;
 
@@ -424,8 +420,8 @@ const getCourseDataByNameLoged = CatchAsyncError(async (req: Request, res: Respo
                             attachedFiles = await Promise.all(
                                 lesson.attachedFile.map(async (file) => ({
                                     fileTitle: file.fileTitle,
-                                    fileName: await generateS3Url(`Courses/${folderName}/CourseFiles/${file.fileName}`, !hasPurchased, file.fileName),
-                                    fileDescription: file.description,
+                                    fileName: await generateS3Url(`Courses/${folderName}/CourseFiles/${file.fileName}`, !hasPurchased, file.fileTitle),
+                                    description: file.description,
                                 }))
                             );
 

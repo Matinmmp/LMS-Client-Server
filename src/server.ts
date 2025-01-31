@@ -83,28 +83,28 @@ const start = async () => {
 }
 
 
-const filename = "images/Contact-us-bro.svg"; // change this to your filename
+// const filename = "images/Contact-us-bro.svg"; // change this to your filename
 
-const client = new S3Client({
-    region: "default",
-    endpoint: process.env.LIARA_ENDPOINT,
-    credentials: {
-        accessKeyId: process.env.LIARA_ACCESS_KEY,
-        secretAccessKey: process.env.LIARA_SECRET_KEY,
-    },
-});
-const params = {
-    Bucket: process.env.LIARA_BUCKET_NAME,
-    Key: filename,
-};
+// const client = new S3Client({
+//     region: "default",
+//     endpoint: process.env.LIARA_ENDPOINT,
+//     credentials: {
+//         accessKeyId: process.env.LIARA_ACCESS_KEY,
+//         secretAccessKey: process.env.LIARA_SECRET_KEY,
+//     },
+// });
+// const params = {
+//     Bucket: process.env.LIARA_BUCKET_NAME,
+//     Key: filename,
+// };
 
  
-const command = new GetObjectCommand(params);
-getSignedUrl(client, command).then((url: string) => {
-    // جایگزینی دامنه رسمی با دامنه اختصاصی
-    const customUrl = url.replace(`${process.env.LIARA_BUCKET_NAME}.storage.c2.liara.space`,"images.vc-virtual-learn.com");
-    console.log(customUrl);
-});
+// const command = new GetObjectCommand(params);
+// getSignedUrl(client, command).then((url: string) => {
+//     // جایگزینی دامنه رسمی با دامنه اختصاصی
+//     const customUrl = url.replace(`${process.env.LIARA_BUCKET_NAME}.storage.c2.liara.space`,"images.vc-virtual-learn.com");
+//     console.log(customUrl);
+// });
 
 start()
 

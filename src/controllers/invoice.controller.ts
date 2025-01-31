@@ -4,17 +4,19 @@ import ZarinpalCheckout from "zarinpal-checkout";
 import moment from "moment";
 import mongoose from "mongoose";
 import CourseModel from "../models/course.model";
+import { CatchAsyncError } from "../middleware/catchAsyncErrors";
+import ErrorHandler from "../utils/ErrorHandler";
 
 
 const zarinpal = ZarinpalCheckout.create('MERCHANT_ID', true);
 
-export const initiatePayment = async (req: Request, res: Response, next: NextFunction) => {
+const initiatePayment = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { courses } = req.body; // دریافت لیست دوره‌ها از فرانت‌اند
         const userId = req.user?._id; // آیدی کاربر (از JWT)
 
         if (!courses || !courses.length) {
-            return res.status(400).json({ success: false, message: "سبد خرید خالی است." });
+            return next(new ErrorHandler("سبد خرید خالی است.", 400));
         }
 
         // اعتبارسنجی دوره‌ها
@@ -22,7 +24,7 @@ export const initiatePayment = async (req: Request, res: Response, next: NextFun
         const validCourses = await CourseModel.find({ _id: { $in: validCourseIds } });
 
         if (!validCourses.length) {
-            return res.status(400).json({ success: false, message: "دوره‌های معتبر یافت نشد." });
+            return next(new ErrorHandler("دوره‌های معتبر یافت نشد.", 400));
         }
 
         // محاسبه مجموع قیمت و تخفیف
@@ -32,31 +34,30 @@ export const initiatePayment = async (req: Request, res: Response, next: NextFun
         const invoiceCourses: any[] = [];
 
         validCourses.forEach((course: any) => {
-            const userCourse = courses.find((c: any) => c.courseId === course._id.toString());
-
-            // **بررسی وضعیت تخفیف**
+            // بررسی وضعیت تخفیف
             let discountAmount = 0;
             if (course.discount?.percent && course.discount.expireTime) {
                 const discountExpireTime = moment(course.discount.expireTime);
                 const currentTime = moment();
-
+        
                 // بررسی زمان تخفیف (۱۰ دقیقه بعد از اکسپایر تایم همچنان معتبر باشد)
                 if (currentTime.isBefore(discountExpireTime.add(10, "minutes"))) {
                     discountAmount = (course.price * course.discount.percent) / 100;
                 }
             }
-
+        
             const finalPrice = course.price - discountAmount;
-
+        
             invoiceCourses.push({
                 courseId: course._id,
                 courseName: course.name,
+                courseUrlName: course.urlName,
                 originalPrice: course.price,
                 discountAmount,
                 finalPrice,
                 isFree: course.price === 0
             });
-
+        
             totalOriginalPrice += course.price;
             totalDiscount += discountAmount;
             totalFinalPrice += finalPrice;
@@ -101,27 +102,26 @@ export const initiatePayment = async (req: Request, res: Response, next: NextFun
                 invoiceId: invoice._id, // شناسه فاکتور برای ذخیره یا بررسی
             });
         } else {
-            return res.status(400).json({ success: false, message: "مشکلی در ایجاد لینک پرداخت وجود دارد." });
+            return next(new ErrorHandler("مشکلی در ایجاد لینک پرداخت وجود دارد.", 400));
         }
     } catch (error: any) {
-        return next(error);
+        return next(new ErrorHandler(error.message, 500));
     }
-};
+});
 
 
-
-export const verifyPayment = async (req: Request, res: Response, next: NextFunction) => {
+const verifyPayment = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { Authority, Status, invoiceId } = req.query;
 
         if (Status !== "OK") {
-            return res.status(400).json({ success: false, message: "پرداخت توسط کاربر لغو شد." });
+            return next(new ErrorHandler("پرداخت توسط کاربر لغو شد.", 400));
         }
 
         // یافتن سفارش در دیتابیس
         const invoice = await InvoiceModel.findById(invoiceId);
         if (!invoice) {
-            return res.status(404).json({ success: false, message: "سفارش یافت نشد." });
+            return next(new ErrorHandler("سفارش یافت نشد.", 404));
         }
 
         // تأیید پرداخت
@@ -142,13 +142,48 @@ export const verifyPayment = async (req: Request, res: Response, next: NextFunct
                 refId: response?.RefID,
             });
         } else {
-            return res.status(400).json({
-                success: false,
-                message: "پرداخت ناموفق بود.",
-                status: response.status,
-            });
+            return next(new ErrorHandler("پرداخت ناموفق بود.", 400));
+
         }
     } catch (error: any) {
-        return next(error);
+        return next(new ErrorHandler(error.message, 500));
     }
-};
+});
+
+const getUserInvoices = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user?._id as string;
+
+        if (!userId) return next(new ErrorHandler("کاربر یافت نشد", 404));
+
+        // دریافت لیست فاکتورها، مرتب‌سازی بر اساس جدیدترین، و انتخاب فیلدهای مورد نیاز
+        const invoices = await InvoiceModel.find({ userId })
+            .sort({ createdAt: -1 })
+            .select("courses totalOriginalPrice totalDiscount totalFinalPrice createdAt paymentStatus transactionId refId")
+            .lean();
+
+        if (!invoices || invoices.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "هیچ فاکتوری برای این کاربر یافت نشد",
+            });
+        }
+
+        // **ارسال پاسخ**
+        res.status(200).json({
+            success: true,
+            invoices,
+        });
+
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message, 500));
+    }
+});
+
+
+
+export {
+    initiatePayment,
+    verifyPayment,
+    getUserInvoices
+}

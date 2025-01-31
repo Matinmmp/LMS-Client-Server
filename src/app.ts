@@ -14,6 +14,7 @@ import formRoute from "./routes/form.route";
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import invoiceRouter from "./routes/invoice.route";
 
 export const app = express();
 
@@ -41,6 +42,7 @@ app.use('/api/v1', blogRouter);
 app.use('/api/v1', courseReviewRoute);
 app.use('/api/v1', cartRouter);
 app.use('/api/v1', formRoute);
+app.use('/api/v1', invoiceRouter);
 
 
 

@@ -3,6 +3,7 @@ import mongoose, { Document, Model, Schema } from "mongoose";
 interface IInvoiceCourse extends Document {
     courseId: mongoose.Schema.Types.ObjectId; // آیدی دوره
     courseName: string; // نام دوره
+    courseUrlName:string;
     originalPrice: number; // قیمت اصلی دوره
     discountAmount: number; // مبلغ تخفیف برای این دوره
     finalPrice: number; // مبلغ نهایی دوره
@@ -30,6 +31,10 @@ const invoiceCourseSchema: Schema<IInvoiceCourse> = new Schema({
         required: true
     },
     courseName: {
+        type: String,
+        required: true
+    },
+    courseUrlName: {
         type: String,
         required: true
     },
