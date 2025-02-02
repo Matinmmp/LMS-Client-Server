@@ -540,35 +540,35 @@ const updateProfilePicture = CatchAsyncError(async (req: Request, res: Response,
     }
 });
 
-const getUserInvoices = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const userId = req.user?._id as string;
+// const getUserInvoices = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//         const userId = req.user?._id as string;
 
-        // بررسی اگر userId موجود نیست
-        if (!userId) return next(new ErrorHandler('کاربر یافت نشد', 404));
+//         // بررسی اگر userId موجود نیست
+//         if (!userId) return next(new ErrorHandler('کاربر یافت نشد', 404));
 
-        // دریافت فاکتورها از دیتابیس و مرتب کردن بر اساس تاریخ (جدیدترین اول)
-        const invoices = await InvoiceModel.find({ userId })
-            .sort({ createdAt: -1 }) // مرتب‌سازی بر اساس جدیدترین
-            .select('courseName originalPrice discountAmount finalPrice createdAt') // فقط فیلدهای مورد نیاز
-            .lean();
+//         // دریافت فاکتورها از دیتابیس و مرتب کردن بر اساس تاریخ (جدیدترین اول)
+//         const invoices = await InvoiceModel.find({ userId })
+//             .sort({ createdAt: -1 }) // مرتب‌سازی بر اساس جدیدترین
+//             .select('courseName originalPrice discountAmount finalPrice createdAt') // فقط فیلدهای مورد نیاز
+//             .lean();
 
-        if (!invoices || invoices.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'هیچ فاکتوری برای این کاربر یافت نشد'
-            });
-        }
+//         if (!invoices || invoices.length === 0) {
+//             return res.status(404).json({
+//                 success: false,
+//                 message: 'هیچ فاکتوری برای این کاربر یافت نشد'
+//             });
+//         }
 
-        res.status(200).json({
-            success: true,
-            invoices
-        });
+//         res.status(200).json({
+//             success: true,
+//             invoices
+//         });
 
-    } catch (error: any) {
-        return next(new ErrorHandler(error.message, 400));
-    }
-});
+//     } catch (error: any) {
+//         return next(new ErrorHandler(error.message, 400));
+//     }
+// });
 
 
 const createInvoice = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
@@ -725,7 +725,7 @@ export {
     updatePassword,
     updateProfilePicture,
     createActivationToken,
-    getUserInvoices,
+    // getUserInvoices,
     createInvoice,
     getUserPaidCourses,
     getUserFreeCourses

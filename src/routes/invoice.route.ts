@@ -1,7 +1,7 @@
 import express from "express";
 import { isAuthenticated } from "../middleware/auth";
-import { initiatePayment, verifyPayment } from "../controllers/invoice.controller";
-import { getUserInvoices } from "../controllers/user.controller";
+import { initiatePayment, verifyPayment ,getUserInvoices} from "../controllers/invoice.controller";
+
 
 const invoiceRouter = express.Router();
 

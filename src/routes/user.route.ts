@@ -1,5 +1,5 @@
 import express from "express";
-import { acitvateUser, createInvoice, forgetPassword, getUserFreeCourses, getUserInfo, getUserInvoices, getUserPaidCourses, loginUser, logoutUser, registrationUser, setPassword, socialAuth, updateAccessToken, updatePassword, updateProfilePicture, updateUserInfo } from "../controllers/user.controller";
+import { acitvateUser, createInvoice, forgetPassword, getUserFreeCourses, getUserInfo, getUserPaidCourses, loginUser, logoutUser, registrationUser, setPassword, socialAuth, updateAccessToken, updatePassword, updateProfilePicture, updateUserInfo } from "../controllers/user.controller";
 import { isAuthenticated } from "../middleware/auth";
 
 const userRouter = express.Router();
@@ -32,7 +32,7 @@ userRouter.put('/update-user-avatar', isAuthenticated, updateProfilePicture);
 
 userRouter.post('/create-invoice', isAuthenticated, createInvoice);
 
-userRouter.get('/get-invoice', isAuthenticated, getUserInvoices);
+// userRouter.get('/get-invoice', isAuthenticated, getUserInvoices);
 
 userRouter.get('/get-user-paid-courses', isAuthenticated, getUserPaidCourses);
 

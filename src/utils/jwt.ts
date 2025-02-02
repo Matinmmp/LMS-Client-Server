@@ -11,8 +11,11 @@ export interface ITokenOptions {
     maxAge: number;
     httpOnly: boolean;
     sameSite: 'lax' | 'strict' | 'none' | undefined;
-    secure?: boolean
+    secure: boolean;
+    path: string;
+    domain: string;
 }
+
 
 // used in login controller
 export const sendToken = (user: IUser, statusCode: number, res: Response, req: Request) => {
@@ -46,15 +49,21 @@ export const createToken = async (res: Response, req: Request, accessToken: stri
     const accessTokenOptions: ITokenOptions = {
         expires: new Date(Date.now() + accessTokenExpire * 60 * 1000),
         maxAge: accessTokenExpire * 60 * 1000,
-        httpOnly: false,
-        sameSite: 'lax'
+        httpOnly: true, // اکسس توکن می‌تواند در فرانت خوانده شود
+        sameSite: 'none', // برای پشتیبانی از ساب‌دامنه
+        secure: true, // باید فعال باشد چون sameSite=none است
+        path: '/',
+        domain: '.vc-virtual-learn.com',
     };
 
     const refreshTokenOptions: ITokenOptions = {
         expires: new Date(Date.now() + refreshTokenExpire * 24 * 60 * 60 * 1000), //  minute
-        maxAge: refreshTokenExpire * 24 * 60 * 60 * 1000, //day
-        httpOnly: false,
-        sameSite: 'lax'
+        maxAge: refreshTokenExpire * 24 * 60 * 60 * 1000, // day
+        httpOnly: false, // 👈 باید فعال باشد تا از XSS محافظت شود
+        sameSite: 'none', // برای ارسال بین ساب‌دامنه‌ها
+        secure: true, // برای sameSite=none ضروری است
+        path: '/',
+        domain: '.vc-virtual-learn.com',
     };
 
     // console.log(req.headers.origin)
@@ -71,9 +80,9 @@ export const createToken = async (res: Response, req: Request, accessToken: stri
 
     res.cookie('access_token', accessToken, accessTokenOptions);
     res.cookie('refresh_token', refreshToken, refreshTokenOptions);
-    
 
- 
+
+
 
     if (user)
         await redis.set(user._id, JSON.stringify(user), "EX", 604800)
