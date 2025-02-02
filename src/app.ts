@@ -15,12 +15,13 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import invoiceRouter from "./routes/invoice.route";
+import { ErrorMiddelware } from "./middleware/error";
 
 export const app = express();
 
 // cors => cross origin rsourse sharing
-// app.use(cors({ origin: ['http://localhost:3000', 'http://192.168.1.18:3000'], credentials: true }));
 app.use(cors({ origin: ['http://localhost:3000'], credentials: true }));
+// app.use(cors({ origin: ['http://localhost:3000','https://vc-virtual-learn.com','https://www.vc-virtual-learn.com'], credentials: true }));
 
 
 // body parser
@@ -55,5 +56,4 @@ app.get("/test", (req: Request, res: Response, next: NextFunction) => {
     })
 })
 
-
-// app.use(ErrorMiddelware)
+app.use(ErrorMiddelware)

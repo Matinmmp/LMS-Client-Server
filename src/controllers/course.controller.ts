@@ -37,13 +37,13 @@ const client = new S3Client({
 })
 
 
-
 const generateS3Url = async (key: string, isPrivate: boolean, fileName: string): Promise<string> => {
     try {
         const command = new GetObjectCommand({
             Bucket: process.env.LIARA_BUCKET_NAME_COURSE,
             Key: key,
-            ResponseContentDisposition: 'attachment; filename="' + fileName + '"' // تنظیم هدر Content-Disposition 
+            ResponseContentDisposition: `attachment; filename="${fileName}"`,
+       
         });
 
         let signedUrl: string;
@@ -54,13 +54,8 @@ const generateS3Url = async (key: string, isPrivate: boolean, fileName: string):
             signedUrl = await getSignedUrl(client, command, { expiresIn: 86400 }); // لینک ۱ روزه
         }
 
-        // تلاش برای جایگزینی دامنه
-        try {
-            return signedUrl.replace("https://course12.storage.c2.liara.space", "https://course.vc-virtual-learn.com");
-        } catch (replaceError) {
-            console.error("Error replacing URL:", replaceError);
-            return signedUrl; // در صورت خطا، همان URL اولیه را برگردان
-        }
+        // 🔹 🚨 تغییر دامنه را حذف کنید! Signature را خراب می‌کند.
+        return signedUrl;
 
     } catch (error) {
         console.error("Error generating S3 URL:", error);
@@ -182,9 +177,9 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
 
         if (courseData[0] && courseData[0].course) {
             courseData[0].course.previewVideoUrl = await generateS3Url(
-                `Courses/${courseData[0].course.folderName}/CourseFiles/${courseData[0].course.previewVideoUrl}`,
+                `Courses/${courseData[0].course.folderName}/CourseLessons/${courseData[0].course.previewVideoUrl}`,
                 false,
-                courseData[0].course.name + '_preview'
+                courseData[0].course.name + '_preview.mp4'
             );
         }
 

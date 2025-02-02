@@ -195,23 +195,27 @@ const loginUser = CatchAsyncError(async (req: Request, res: Response, next: Next
         if (!email || !password)
             return next(new ErrorHandler('لطفا ایمیل و رمز عبور خود را وارد کنید', 400))
 
-        const user = await userModel.findOne({ email }).select('name email +password avatar.imageUrl +phone');
-        // const user = await userModel.findOne({ email }).select('name password');
+        const user = await userModel.findOne({ email }).select('+password name email avatar.imageUrl phone');
+
 
         if (!user)
             return next(new ErrorHandler('ایمیل یا رمز عبور اشتباه است', 400))
 
+        if (!user.password)
+            return next(new ErrorHandler('شما با استفاده از ورود با جیمیل حساب خود را ساخته اید برای همین رمزعبوری ندارید. لطفا از همان روش وارد سایت شده و برای حساب خود رمز بگذارید.', 400))
+  
         const isPasswordMatch = await user.comparePassword(password)
-
+      
         if (!isPasswordMatch)
             return next(new ErrorHandler('ایمیل یا رمز عبور اشتباه است', 400))
-
+   
         user.password = '1';
-
+      
         sendToken(user, 200, res, req);
 
 
     } catch (error: any) {
+        console.log(error)
         return next(new ErrorHandler(error.message, 400))
     }
 })
