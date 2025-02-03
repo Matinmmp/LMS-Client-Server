@@ -53,9 +53,8 @@ const generateS3Url = async (key: string, isPrivate: boolean, fileName: string):
         } else {
             signedUrl = await getSignedUrl(client, command, { expiresIn: 86400 }); // لینک ۱ روزه
         }
-
-        // 🔹 🚨 تغییر دامنه را حذف کنید! Signature را خراب می‌کند.
-        return signedUrl;
+      
+        return signedUrl?.replace('courses12.storage.c2.liara.space','courses.vc-virtual-learn.com');
 
     } catch (error) {
         console.error("Error generating S3 URL:", error);

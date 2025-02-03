@@ -49,7 +49,7 @@ export const createToken = async (res: Response, req: Request, accessToken: stri
     const accessTokenOptions: ITokenOptions = {
         expires: new Date(Date.now() + accessTokenExpire * 60 * 1000),
         maxAge: accessTokenExpire * 60 * 1000,
-        httpOnly: true, // اکسس توکن می‌تواند در فرانت خوانده شود
+        httpOnly: false, // اکسس توکن می‌تواند در فرانت خوانده شود
         sameSite: 'none', // برای پشتیبانی از ساب‌دامنه
         secure: true, // باید فعال باشد چون sameSite=none است
         path: '/',

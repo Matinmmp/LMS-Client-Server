@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تأیید خرید شما در Virtual Learn</title>
+    <style>
+        body {
+            font-family: 'Tahoma', sans-serif;
+            background-color: #131315;
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 100%;
+            max-width: 700px;
+            margin: auto;
+            padding: 20px;
+            background-color: #1d1d1f;
+            border-radius: 10px;
+        }
+        h1 {
+            color: #00ffff;
+            font-size: 24px;
+        }
+        p {
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        .table-container {
+            width: 100%;
+            margin-top: 20px;
+            background-color: #252526;
+            padding: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #444;
+        }
+        th {
+            background-color: #333;
+        }
+        .footer {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #bbb;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>خرید شما با موفقیت انجام شد 🎉</h1>
+        <p>سلام <strong><%= userName %></strong>،</p>
+        <p>سفارش شما با موفقیت ثبت شد. جزئیات فاکتور شما در جدول زیر آمده است:</p>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>نام دوره</th>
+                        <th>مبلغ اصلی</th>
+                        <th>تخفیف</th>
+                        <th>مبلغ پرداختی</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% invoice.courses.forEach(course => { %>
+                    <tr>
+                        <td><%= course.courseName %></td>
+                        <td><%= course.originalPrice.toLocaleString() %> تومان</td>
+                        <td><%= course.discountAmount.toLocaleString() %> تومان</td>
+                        <td><%= course.finalPrice.toLocaleString() %> تومان</td>
+                    </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+
+        <p><strong>جمع کل:</strong> <%= invoice.totalFinalPrice.toLocaleString() %> تومان</p>
+        <p><strong>تاریخ خرید:</strong> <%= new Date(invoice.createdAt).toLocaleDateString("fa-IR") %></p>
+
+        <% if (invoice.transactionId) { %>
+            <p><strong>کد تراکنش:</strong> <%= invoice.transactionId %></p>
+        <% } else { %>
+            <p><strong>روش پرداخت:</strong> رایگان</p>
+        <% } %>
+
+        <p class="footer">ممنون از خرید شما از <strong>Virtual Learn</strong> 🌟</p>
+    </div>
+
+</body>
+</html>
