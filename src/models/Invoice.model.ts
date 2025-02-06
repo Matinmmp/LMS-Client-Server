@@ -78,7 +78,7 @@ const invoiceSchema: Schema<IInvoice> = new Schema({
     },
     paymentMethod: {
         type: String,
-        enum: ["online", "card_to_card", "wallet"], // روش‌های پرداخت
+        enum: ["online", "card_to_card", "wallet",'free'], // روش‌های پرداخت
         required: true
     },
     paymentStatus: {

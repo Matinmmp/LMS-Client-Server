@@ -10,7 +10,7 @@ import userModel from "../models/user.model";
 import sendMail from "../utils/sendMail";
 
 
-const zarinpal = ZarinpalCheckout.create('MERCHANT_ID', true);
+const zarinpal = ZarinpalCheckout.create('4c5be643-ec8b-47ef-a201-c6bca20bc77f', true);
 
 const initiatePayment = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -21,8 +21,8 @@ const initiatePayment = CatchAsyncError(async (req: Request, res: Response, next
             return next(new ErrorHandler("سبد خرید خالی است.", 400));
         }
 
-        const validCourseIds = courses.map((course: any) => new mongoose.Types.ObjectId(course.courseId));
-        const validCourses = await CourseModel.find({ _id: { $in: validCourseIds } });
+        // const validCourseIds = courses.map((course: any) => new mongoose.Types.ObjectId(course.courseId));
+        const validCourses = await CourseModel.find({ _id: { $in: courses } });
 
         if (!validCourses.length) {
             return next(new ErrorHandler("دوره‌های معتبر یافت نشد.", 400));
@@ -47,6 +47,7 @@ const initiatePayment = CatchAsyncError(async (req: Request, res: Response, next
             const finalPrice = course.price - discountAmount;
 
             invoiceCourses.push({
+                courseUrlName: course.urlName,
                 courseId: course._id,
                 courseName: course.name,
                 originalPrice: course.price,
@@ -70,8 +71,10 @@ const initiatePayment = CatchAsyncError(async (req: Request, res: Response, next
             paymentStatus: totalFinalPrice === 0 ? "successful" : "pending",
         });
 
+
         if (totalFinalPrice === 0) {
             const user = await userModel.findById(userId).select("email name");
+
 
             await sendMail({
                 email: user?.email!,
@@ -83,17 +86,20 @@ const initiatePayment = CatchAsyncError(async (req: Request, res: Response, next
                 }
             });
 
+
             return res.status(200).json({
                 success: true,
                 message: "سفارش با موفقیت ثبت شد. نیازی به پرداخت نیست.",
                 isFree: true,
                 invoiceId: invoice._id,
             });
+
+
         }
 
         const response = await zarinpal.PaymentRequest({
             Amount: totalFinalPrice,
-            CallbackURL: `http://localhost:3000/api/payment/verify?invoiceId=${invoice._id}`,
+            CallbackURL: `http://localhost:3000/payment/verify?invoiceId=${invoice._id}`,
             Description: `پرداخت برای دوره‌های انتخابی`,
             Email: req.user?.email || undefined,
             Mobile: req.user?.phone || undefined,
@@ -111,6 +117,7 @@ const initiatePayment = CatchAsyncError(async (req: Request, res: Response, next
             return next(new ErrorHandler("مشکلی در ایجاد لینک پرداخت وجود دارد.", 400));
         }
     } catch (error: any) {
+        console.log(error)
         return next(new ErrorHandler(error.message, 500));
     }
 });
@@ -118,7 +125,6 @@ const initiatePayment = CatchAsyncError(async (req: Request, res: Response, next
 const verifyPayment = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { Authority, Status, invoiceId } = req.query;
-
         if (Status !== "OK") {
             return next(new ErrorHandler("پرداخت توسط کاربر لغو شد.", 400));
         }
@@ -133,11 +139,13 @@ const verifyPayment = CatchAsyncError(async (req: Request, res: Response, next: 
             Authority: Authority as string,
         });
 
+        console.log(response);
+
+
         if (response.status === 100) {
             invoice.paymentStatus = "successful";
             invoice.transactionId = response?.RefID;
             await invoice.save();
-
             const user = await userModel.findById(invoice.userId).select("email name");
 
             await sendMail({
@@ -153,12 +161,13 @@ const verifyPayment = CatchAsyncError(async (req: Request, res: Response, next: 
             return res.status(200).json({
                 success: true,
                 message: "پرداخت با موفقیت انجام شد.",
-                refId: response?.RefID,
+                refId: response?.refId,
             });
         } else {
             return next(new ErrorHandler("پرداخت ناموفق بود.", 400));
         }
     } catch (error: any) {
+
         return next(new ErrorHandler(error.message, 500));
     }
 });
@@ -173,7 +182,7 @@ const getUserInvoices = CatchAsyncError(async (req: Request, res: Response, next
         // دریافت لیست فاکتورها، مرتب‌سازی بر اساس جدیدترین، و انتخاب فیلدهای مورد نیاز
         const invoices = await InvoiceModel.find({ userId })
             .sort({ createdAt: -1 })
-            .select("courses totalOriginalPrice totalDiscount totalFinalPrice createdAt paymentStatus transactionId refId")
+            .select("courses totalOriginalPrice totalDiscount totalFinalPrice createdAt paymentStatus transactionId refId thumbnail")
             .lean();
 
         if (!invoices || invoices.length === 0) {
