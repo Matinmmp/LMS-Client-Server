@@ -2,7 +2,6 @@ import { NextFunction, Request, Response } from "express";
 import InvoiceModel from "../models/Invoice.model";
 import ZarinpalCheckout from "zarinpal-checkout";
 import moment from "moment";
-import mongoose from "mongoose";
 import CourseModel from "../models/course.model";
 import { CatchAsyncError } from "../middleware/catchAsyncErrors";
 import ErrorHandler from "../utils/ErrorHandler";
@@ -21,7 +20,7 @@ const initiatePayment = CatchAsyncError(async (req: Request, res: Response, next
             return next(new ErrorHandler("سبد خرید خالی است.", 400));
         }
 
-        // const validCourseIds = courses.map((course: any) => new mongoose.Types.ObjectId(course.courseId));
+        // دریافت دوره‌های معتبر
         const validCourses = await CourseModel.find({ _id: { $in: courses } });
 
         if (!validCourses.length) {
@@ -38,7 +37,6 @@ const initiatePayment = CatchAsyncError(async (req: Request, res: Response, next
             if (course.discount?.percent && course.discount.expireTime) {
                 const discountExpireTime = moment(course.discount.expireTime);
                 const currentTime = moment();
-
                 if (currentTime.isBefore(discountExpireTime.add(10, "minutes"))) {
                     discountAmount = (course.price * course.discount.percent) / 100;
                 }
@@ -71,10 +69,13 @@ const initiatePayment = CatchAsyncError(async (req: Request, res: Response, next
             paymentStatus: totalFinalPrice === 0 ? "successful" : "pending",
         });
 
-
+        // **اگر دوره رایگان بود، به مدل کاربر اضافه شود**
         if (totalFinalPrice === 0) {
-            const user = await userModel.findById(userId).select("email name");
-
+            const user = await userModel.findById(userId).select("email name courses");
+            if (user) {
+                user.courses = [...new Set([...user.courses, ...courses])];
+                await user.save();
+            }
 
             await sendMail({
                 email: user?.email!,
@@ -86,15 +87,12 @@ const initiatePayment = CatchAsyncError(async (req: Request, res: Response, next
                 }
             });
 
-
             return res.status(200).json({
                 success: true,
                 message: "سفارش با موفقیت ثبت شد. نیازی به پرداخت نیست.",
                 isFree: true,
                 invoiceId: invoice._id,
             });
-
-
         }
 
         const response = await zarinpal.PaymentRequest({
@@ -117,7 +115,6 @@ const initiatePayment = CatchAsyncError(async (req: Request, res: Response, next
             return next(new ErrorHandler("مشکلی در ایجاد لینک پرداخت وجود دارد.", 400));
         }
     } catch (error: any) {
-        console.log(error)
         return next(new ErrorHandler(error.message, 500));
     }
 });
@@ -125,49 +122,60 @@ const initiatePayment = CatchAsyncError(async (req: Request, res: Response, next
 const verifyPayment = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { Authority, Status, invoiceId } = req.query;
+
         if (Status !== "OK") {
             return next(new ErrorHandler("پرداخت توسط کاربر لغو شد.", 400));
         }
 
+        // یافتن فاکتور در دیتابیس
         const invoice = await InvoiceModel.findById(invoiceId);
         if (!invoice) {
             return next(new ErrorHandler("سفارش یافت نشد.", 404));
         }
 
+        // تأیید پرداخت از زرین‌پال
         const response: any = await zarinpal.PaymentVerification({
             Amount: invoice.totalFinalPrice,
             Authority: Authority as string,
         });
 
-        console.log(response);
-
+        console.log("زرین‌پال پاسخ داد:", response);
 
         if (response.status === 100) {
+            // **به‌روزرسانی فاکتور**
             invoice.paymentStatus = "successful";
-            invoice.transactionId = response?.RefID;
+            invoice.transactionId = response.RefID;
+            invoice.refId = response.RefID;
             await invoice.save();
-            const user = await userModel.findById(invoice.userId).select("email name");
 
+            // **افزودن دوره‌ها به حساب کاربر**
+            const user = await userModel.findById(invoice.userId).select("email name courses");
+            if (user) {
+                const purchasedCourses = invoice.courses.map((course) => course.courseId);
+                user.courses = [...new Set([...user.courses, ...purchasedCourses])];
+                await user.save();
+            }
+
+            // ارسال ایمیل به کاربر
             await sendMail({
                 email: user?.email!,
                 subject: "تأیید پرداخت شما در Virtual Learn",
                 template: "purchase-confirmation.ejs",
                 data: {
                     userName: user?.name,
-                    invoice
-                }
+                    invoice,
+                },
             });
 
             return res.status(200).json({
                 success: true,
                 message: "پرداخت با موفقیت انجام شد.",
-                refId: response?.refId,
+                refId: response.RefID,
             });
         } else {
             return next(new ErrorHandler("پرداخت ناموفق بود.", 400));
         }
     } catch (error: any) {
-
         return next(new ErrorHandler(error.message, 500));
     }
 });
