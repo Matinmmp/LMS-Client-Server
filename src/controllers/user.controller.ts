@@ -18,10 +18,10 @@ dotenv.config();
 
 const client = new S3Client({
     region: "default",
-    endpoint: process.env.LIARA_ENDPOINT||"",
+    endpoint: process.env.LIARA_ENDPOINT || "",
     credentials: {
-        accessKeyId: process.env.LIARA_ACCESS_KEY||"",
-        secretAccessKey: process.env.LIARA_SECRET_KEY||""
+        accessKeyId: process.env.LIARA_ACCESS_KEY || "",
+        secretAccessKey: process.env.LIARA_SECRET_KEY || ""
     }
 })
 
@@ -112,7 +112,7 @@ const acitvateUser = CatchAsyncError(async (req: Request, res: Response, next: N
 
         if (newUser.activationCode !== activation_code)
             return next(new ErrorHandler('کد فعال سازی اشتباه است', 400))
-
+ 
         const { name, email, password } = newUser.user;
 
         const existUser = await userModel.findOne({ email })
@@ -128,14 +128,11 @@ const acitvateUser = CatchAsyncError(async (req: Request, res: Response, next: N
         }
 
         res.status(201).json({ success: true })
-
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 400))
 
     }
 })
-
-
 
 const forgetPassword = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
 
@@ -153,13 +150,13 @@ const forgetPassword = CatchAsyncError(async (req: Request, res: Response, next:
             return next(new ErrorHandler('کاربری با این ایمیل وجود ندارد', 404));
         }
 
-   
+
         const newPassword = crypto.randomBytes(4).toString('hex').slice(0, 8);
 
-        user.password = newPassword; 
+        user.password = newPassword;
         await user.save();
-       
-     
+
+
         try {
             await sendMail({
                 email: user.email,
@@ -203,14 +200,14 @@ const loginUser = CatchAsyncError(async (req: Request, res: Response, next: Next
 
         if (!user.password)
             return next(new ErrorHandler('شما با استفاده از ورود با جیمیل حساب خود را ساخته اید برای همین رمزعبوری ندارید. لطفا از همان روش وارد سایت شده و برای حساب خود رمز بگذارید.', 400))
-  
+
         const isPasswordMatch = await user.comparePassword(password)
-      
+
         if (!isPasswordMatch)
             return next(new ErrorHandler('ایمیل یا رمز عبور اشتباه است', 400))
-   
+
         user.password = '1';
-      
+
         sendToken(user, 200, res, req);
 
 
@@ -223,8 +220,27 @@ const loginUser = CatchAsyncError(async (req: Request, res: Response, next: Next
 // logout user
 const logoutUser = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.cookie("access_token", "", { maxAge: 1 });
-        res.cookie("refresh_token", "", { maxAge: 1 });
+
+            const accessTokenOptions:any = {
+                maxAge: 1,
+                httpOnly: false, // اکسس توکن می‌تواند در فرانت خوانده شود
+                sameSite: 'none', // برای پشتیبانی از ساب‌دامنه
+                secure: true, // باید فعال باشد چون sameSite=none است
+                path: '/',
+                domain: '.vc-virtual-learn.com',
+            };
+        
+            const refreshTokenOptions:any = {
+                maxAge: 1, // day
+                httpOnly: false, // 👈 باید فعال باشد تا از XSS محافظت شود
+                sameSite: 'none', // برای ارسال بین ساب‌دامنه‌ها
+                secure: true, // برای sameSite=none ضروری است
+                path: '/',
+                domain: '.vc-virtual-learn.com',
+            };
+
+        res.cookie("access_token", "", accessTokenOptions);
+        res.cookie("refresh_token", "", refreshTokenOptions);
 
         const userId = req.user?._id || "";
 
@@ -330,19 +346,19 @@ const socialAuth = CatchAsyncError(async (req: Request, res: Response, next: Nex
 
         // دیکد کردن توکن
         const decodedUser = jwt.decode(token) as JwtPayload;
-    
+
 
         if (!decodedUser || !decodedUser.email) {
             return next(new ErrorHandler("Invalid token payload", 400));
         }
-       
+
 
         // بررسی کاربر در دیتابیس
         const user = await userModel.findOne({ email: decodedUser.email });
-        
+
 
         if (!user) {
- 
+
             // اگر کاربر وجود نداشت، کاربر جدید ایجاد کنید
             const newUser = await userModel.create({
                 email: decodedUser.email,
@@ -483,7 +499,7 @@ const updateProfilePicture = CatchAsyncError(async (req: Request, res: Response,
         const imageName = `${randomLetterGenerator()}-${user?.name}.png`;
         const buffer = Buffer.from(avatar.split(',')[1], 'base64');
 
-        const uploadParams:any = {
+        const uploadParams: any = {
             Body: buffer,
             Bucket: process.env.LIARA_BUCKET_NAME,
             Key: `user/${imageName}`,
