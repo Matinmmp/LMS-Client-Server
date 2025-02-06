@@ -10,7 +10,7 @@ import userModel from "../models/user.model";
 import sendMail from "../utils/sendMail";
 
 
-const zarinpal = ZarinpalCheckout.create('4c5be643-ec8b-47ef-a201-c6bca20bc77f', true);
+const zarinpal = ZarinpalCheckout.create('4c5be643-ec8b-47ef-a201-c6bca20bc77f', false);
 
 const initiatePayment = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
