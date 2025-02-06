@@ -97,7 +97,7 @@ const initiatePayment = CatchAsyncError(async (req: Request, res: Response, next
 
         const response = await zarinpal.PaymentRequest({
             Amount: totalFinalPrice,
-            CallbackURL: `http://localhost:3000/payment/verify?invoiceId=${invoice._id}`,
+            CallbackURL: `https://vc-virtual-learn.com/payment/verify?invoiceId=${invoice._id}`,
             Description: `پرداخت برای دوره‌های انتخابی`,
             Email: req.user?.email || undefined,
             Mobile: req.user?.phone || undefined,
@@ -139,7 +139,7 @@ const verifyPayment = CatchAsyncError(async (req: Request, res: Response, next: 
             Authority: Authority as string,
         });
 
-        console.log("زرین‌پال پاسخ داد:", response);
+        // console.log("زرین‌پال پاسخ داد:", response);
 
         if (response.status === 100) {
             // **به‌روزرسانی فاکتور**

@@ -215,7 +215,7 @@ const loginUser = CatchAsyncError(async (req: Request, res: Response, next: Next
 
 
     } catch (error: any) {
-        console.log(error)
+        // console.log(error)
         return next(new ErrorHandler(error.message, 400))
     }
 })
@@ -644,7 +644,7 @@ const getUserPaidCourses = CatchAsyncError(async (req: Request, res: Response, n
             .select('name thumbnail.imageUrl updatedAt')
             .sort({ createdAt: -1 })
             .lean();
-        console.log(paidCourses)
+        // console.log(paidCourses)
 
         if (paidCourses.length === 0) {
             return res.status(404).json({
