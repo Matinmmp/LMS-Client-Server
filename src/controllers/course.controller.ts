@@ -8,7 +8,7 @@ import Fuse from "fuse.js";
 import AcademyModel from "../models/academy.model";
 import TeacherModel from "../models/teacher.model";
 import CategoryModel from "../models/category.model";
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { CopyObjectCommand, DeleteObjectCommand, GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import userModel from "../models/user.model";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import CourseSectionModel from "../models/courseSection.model";
@@ -43,7 +43,7 @@ const generateS3Url = async (key: string, isPrivate: boolean, fileName: string):
             Bucket: process.env.LIARA_BUCKET_NAME_COURSE,
             Key: key,
             ResponseContentDisposition: `attachment; filename="${fileName}"`,
-       
+
         });
 
         let signedUrl: string;
@@ -53,8 +53,8 @@ const generateS3Url = async (key: string, isPrivate: boolean, fileName: string):
         } else {
             signedUrl = await getSignedUrl(client, command, { expiresIn: 86400 }); // لینک ۱ روزه
         }
-      
-        return signedUrl?.replace('courses12.storage.c2.liara.space','courses.vc-virtual-learn.com');
+
+        return signedUrl?.replace('courses12.storage.c2.liara.space', 'courses.vc-virtual-learn.com');
 
     } catch (error) {
         console.error("Error generating S3 URL:", error);
@@ -163,6 +163,7 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
                         finishDate: "$finishDate",
                         seoMeta: "$seoMeta",
                         folderName: "$folderName",
+                        ratingNumber:"$ratingNumber"
                     }
                 }
             }
@@ -178,7 +179,7 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
             courseData[0].course.previewVideoUrl = await generateS3Url(
                 `Courses/${courseData[0].course.folderName}/CourseLessons/${courseData[0].course.previewVideoUrl}`,
                 false,
-                courseData[0].course.name + '_preview.mp4'
+                courseData[0].course.name
             );
         }
 
@@ -825,6 +826,40 @@ const rateCourse = CatchAsyncError(async (req: Request, res: Response, next: Nex
 });
 
 
+const rename1 = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { oldFileKey, newFileKey }: any = req.body;
+
+        if (!oldFileKey || !newFileKey) {
+            return res.status(400).json({ success: false, message: "نام فایل قدیمی و جدید الزامی است!" });
+        }
+
+        const bucketName = process.env.LIARA_BUCKET_NAME_COURSE || "";
+
+        // 🔹 مرحله ۱: کپی فایل با نام جدید
+        await client.send(new CopyObjectCommand({
+            Bucket: bucketName,
+            CopySource: `${bucketName}/${oldFileKey}`,
+            Key: newFileKey
+        }));
+
+        // 🔹 مرحله ۲: حذف فایل قدیمی
+        await client.send(new DeleteObjectCommand({
+            Bucket: bucketName,
+            Key: oldFileKey
+        }));
+
+        return res.status(200).json({
+            success: true,
+            message: "نام فایل با موفقیت تغییر کرد.",
+            oldFileKey,
+            newFileKey
+        });
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message, 500));
+    }
+});
+
 export {
     getAllCourseUrlNames,
     getCourseByName,
@@ -832,7 +867,8 @@ export {
     getCourseDataByNameLoged,
     searchCourses,
     getRelatedCourses,
-    rateCourse
+    rateCourse,
+    rename1
 }
 
 

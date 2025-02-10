@@ -657,7 +657,7 @@ const getUserPaidCourses = CatchAsyncError(async (req: Request, res: Response, n
 
         // واکشی اطلاعات دوره‌های پولی
         const paidCourses = await CourseModel.find({ _id: { $in: courseIds }, price: { $gt: 0 } })
-            .select('name thumbnail.imageUrl updatedAt')
+            .select('name thumbnail.imageUrl updatedAt urlName')
             .sort({ createdAt: -1 })
             .lean();
         // console.log(paidCourses)
@@ -697,7 +697,7 @@ const getUserFreeCourses = CatchAsyncError(async (req: Request, res: Response, n
 
         // واکشی اطلاعات دوره‌های رایگان
         const freeCourses = await CourseModel.find({ _id: { $in: courseIds }, price: 0 })
-            .select('name thumbnail.imageUrl updatedAt') // فیلدهای مورد نظر
+            .select('name thumbnail.imageUrl updatedAt urlName') // فیلدهای مورد نظر
             .sort({ createdAt: -1 }) // مرتب‌سازی بر اساس جدیدترین
             .lean();
 

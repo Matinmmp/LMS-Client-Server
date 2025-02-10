@@ -77,6 +77,12 @@ const initiatePayment = CatchAsyncError(async (req: Request, res: Response, next
                 await user.save();
             }
 
+            // 🔹 افزایش تعداد خرید برای هر دوره رایگان
+            await CourseModel.updateMany(
+                { _id: { $in: courses } },
+                { $inc: { purchased: 1 } }
+            );
+
             await sendMail({
                 email: user?.email!,
                 subject: "تأیید خرید شما در Virtual Learn",
@@ -147,6 +153,13 @@ const verifyPayment = CatchAsyncError(async (req: Request, res: Response, next: 
             invoice.transactionId = response.RefID;
             invoice.refId = response.RefID;
             await invoice.save();
+
+            // 🔹 افزایش تعداد خرید برای هر دوره‌ای که در این پرداخت خریده شده است
+            const purchasedCourses = invoice.courses.map((course) => course.courseId);
+            await CourseModel.updateMany(
+                { _id: { $in: purchasedCourses } },
+                { $inc: { purchased: 1 } }
+            );
 
             // **افزودن دوره‌ها به حساب کاربر**
             const user = await userModel.findById(invoice.userId).select("email name courses");
