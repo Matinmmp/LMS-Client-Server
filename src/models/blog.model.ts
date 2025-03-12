@@ -6,6 +6,7 @@ interface IBlog extends Document {
     description: string; // متن کامل بلاگ
     longDescription: string; // خلاصه بلاگ
     thumbnail: { imageName: string; imageUrl: string }; // تصویر اصلی
+    sliderThumbnail: { imageName: string; imageUrl: string }; // تصویر اصلی
     categories: mongoose.Schema.Types.ObjectId[]; // دسته‌بندی‌ها
     tags: string[]; // برچسب‌ها
     status: "draft" | "published" | "archived"; // وضعیت بلاگ
@@ -27,6 +28,7 @@ const blogSchema = new Schema<IBlog>({
     description: { type: String, required: true },
     longDescription: String,
     thumbnail: { imageName: String, imageUrl: String },
+    sliderThumbnail: { imageName: String, imageUrl: String },
     categories: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
     tags: [String],
     status: { type: String, enum: ["draft", "published", "archived"], default: "draft" },
