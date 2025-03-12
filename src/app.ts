@@ -16,12 +16,17 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import invoiceRouter from "./routes/invoice.route";
 import { ErrorMiddelware } from "./middleware/error";
+import adminAcademyRouter from "./adminRoutes/academy.route";
+import adminCategoryRouter from "./adminRoutes/category.route";
+import adminCourseRouter from "./adminRoutes/course.route";
+import adminDasboardRoute from "./adminRoutes/dashboard.route";
+import adminTeacherRouter from "./adminRoutes/teacher.route";
 
 export const app = express();
 
 // cors => cross origin rsourse sharing
 // app.use(cors({ origin: ['http://localhost:3000'], credentials: true }));
-app.use(cors({ origin: ['https://vc-virtual-learn.com','https://www.vc-virtual-learn.com'], credentials: true }));
+app.use(cors({ origin: ['https://vc-virtual-learn.com','https://www.vc-virtual-learn.com','http://localhost:3000','http://localhost:5173'], credentials: true }));
 
 
 // body parser
@@ -44,6 +49,15 @@ app.use('/api/v1', courseReviewRoute);
 app.use('/api/v1', cartRouter);
 app.use('/api/v1', formRoute);
 app.use('/api/v1', invoiceRouter);
+
+
+app.use('/api/v1/admin321', adminAcademyRouter);
+app.use('/api/v1/admin321', adminCategoryRouter);
+app.use('/api/v1/admin321', adminCourseRouter);
+app.use('/api/v1/admin321', adminDasboardRoute);
+app.use('/api/v1/admin321', adminTeacherRouter);
+
+
 
 
 

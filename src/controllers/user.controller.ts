@@ -5,7 +5,7 @@ import ErrorHandler from "../utils/ErrorHandler";
 import jwt, { JwtPayload, Secret } from "jsonwebtoken";
 import sendMail from "../utils/sendMail";
 import { createToken, sendToken } from "../utils/jwt";
-import { redis } from "../utils/redis";
+// import { redis } from "../utils/redis";
 import randomLetterGenerator from "../utils/randomName";
 import InvoiceModel from "../models/Invoice.model";
 import CourseModel from "../models/course.model";
@@ -244,7 +244,7 @@ const logoutUser = CatchAsyncError(async (req: Request, res: Response, next: Nex
 
         const userId = req.user?._id || "";
 
-        redis.del(userId as string)
+        // redis.del(userId as string)
 
 
         res.status(200).json({
@@ -258,42 +258,85 @@ const logoutUser = CatchAsyncError(async (req: Request, res: Response, next: Nex
 })
 
 // update access token
+// const updateAccessToken = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//         const refresh_token = req.cookies.refresh_token as string;
+
+
+//         if (!refresh_token)
+//             return next(new ErrorHandler('رفرش توکن نا معتبر است', 400))
+
+//         const decode = jwt.verify(refresh_token, process.env.REFRESH_TOKEN as string) as JwtPayload
+        
+//         const session = await redis.get(decode.id as string)
+
+//         if (!session)
+//             return next(new ErrorHandler('لطفا وارد حساب خود شوید', 400))
+
+
+//         const user = JSON.parse(session);
+
+//         const accessToken = jwt.sign({ id: user._id }, process.env.ACCESS_TOKEN as string, { expiresIn: '5m' });
+//         const refreshToken = jwt.sign({ id: user._id }, process.env.REFRESH_TOKEN as string, { expiresIn: '7d' });
+
+//         req.user = user;
+//         await createToken(res, req, accessToken, refreshToken, user);
+
+//         res.status(200).json({
+//             success: true,
+//             accessToken
+//         })
+
+//         next()
+
+
+//     } catch (error: any) {
+//         return next(new ErrorHandler(error.message, 400))
+
+//     }
+// })
+
 const updateAccessToken = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const refresh_token = req.cookies.refresh_token as string;
 
+        if (!refresh_token) {
+            return next(new ErrorHandler('رفرش توکن نامعتبر است', 400));
+        }
 
-        if (!refresh_token)
-            return next(new ErrorHandler('رفرش توکن نا معتبر است', 400))
+        // ✅ بررسی و اعتبارسنجی رفرش توکن
+        const decode = jwt.verify(refresh_token, process.env.REFRESH_TOKEN as string) as JwtPayload;
+        if (!decode) {
+            return next(new ErrorHandler('توکن معتبر نیست', 401));
+        }
 
-        const decode = jwt.verify(refresh_token, process.env.REFRESH_TOKEN as string) as JwtPayload
-        const session = await redis.get(decode.id as string)
+        // ✅ دریافت اطلاعات یوزر از دیتابیس
+        const user = await userModel.findById(decode.id).select("-password"); // حذف پسورد برای امنیت
 
-        if (!session)
-            return next(new ErrorHandler('لطفا وارد حساب خود شوید', 400))
+        if (!user) {
+            return next(new ErrorHandler('لطفا وارد حساب خود شوید', 400));
+        }
 
-
-        const user = JSON.parse(session);
-
+        // ✅ تولید توکن‌های جدید
         const accessToken = jwt.sign({ id: user._id }, process.env.ACCESS_TOKEN as string, { expiresIn: '5m' });
         const refreshToken = jwt.sign({ id: user._id }, process.env.REFRESH_TOKEN as string, { expiresIn: '7d' });
 
+        // ✅ تنظیم توکن جدید در کوکی
         req.user = user;
         await createToken(res, req, accessToken, refreshToken, user);
 
         res.status(200).json({
             success: true,
             accessToken
-        })
+        });
 
-        next()
-
+        next();
 
     } catch (error: any) {
-        return next(new ErrorHandler(error.message, 400))
-
+        return next(new ErrorHandler(error.message, 400));
     }
-})
+});
+
 
 // get user info
 const getUserInfo = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
@@ -400,7 +443,7 @@ const updateUserInfo = CatchAsyncError(async (req: Request, res: Response, next:
             user.phone = phone;
 
         await user?.save();
-        await redis.set(userId as string, JSON.stringify(user));
+        // await redis.set(userId as string, JSON.stringify(user));
 
         res.status(201).json({
             success: true,
@@ -442,7 +485,7 @@ const updatePassword = CatchAsyncError(async (req: Request, res: Response, next:
         user.password = newPassword;
 
         await user?.save();
-        await redis.set(userId as string, JSON.stringify(user));
+        // await redis.set(userId as string, JSON.stringify(user));
 
         // Convert user to an object and delete the password field
         // const userWithoutPassword = user.toObject() as any;
@@ -474,7 +517,7 @@ const setPassword = CatchAsyncError(async (req: Request, res: Response, next: Ne
             user.password = password;
 
         await user?.save();
-        await redis.set(userId as string, JSON.stringify(user));
+        // await redis.set(userId as string, JSON.stringify(user));
 
         res.status(201).json({
             success: true,
@@ -535,7 +578,7 @@ const updateProfilePicture = CatchAsyncError(async (req: Request, res: Response,
 
 
         await user.save();
-        await redis.set(userId as string, JSON.stringify(user));
+        // await redis.set(userId as string, JSON.stringify(user));
 
         // فقط فیلدهای مورد نظر را ارسال کن
         const userResponse = {

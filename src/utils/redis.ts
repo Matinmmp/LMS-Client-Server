@@ -21,6 +21,9 @@ const redisClient = () => {
 
 export const redis = new Redis(redisClient())
 
+
+
+
 // import { Redis } from "ioredis";
 // import dotenv from 'dotenv';
 

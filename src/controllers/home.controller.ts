@@ -7,7 +7,7 @@ import CourseModel from "../models/course.model";
 import Fuse from "fuse.js";
 import _ from "lodash";
 
-import { redis } from "../utils/redis";
+// import { redis } from "../utils/redis";
 
 
 
@@ -49,7 +49,7 @@ const getHomeLastCourses = CatchAsyncError(async (req: Request, res: Response, n
                 $sort: { lastContentUpdate: -1 } // مرتب‌سازی بر اساس آخرین آپدیت
             },
             {
-                $limit: 12 
+                $limit: 12
             },
             {
                 $lookup: {
@@ -118,8 +118,8 @@ const getDiscountedCourses = CatchAsyncError(async (req: Request, res: Response,
     try {
         const courses = await CourseModel.aggregate([
             {
-                $match: { 
-                    showCourse: true, 
+                $match: {
+                    showCourse: true,
                     "discount.percent": { $gt: 0 }, // دوره‌هایی که تخفیف دارند
                     "discount.expireTime": { $gte: new Date() } // دوره‌هایی که تخفیفشان منقضی نشده است
                 }
@@ -408,17 +408,17 @@ const getHomeFavoritTeachers = CatchAsyncError(async (req: Request, res: Respons
 const CACHE_EXPIRATION = 2 * 60 * 60; // ۲ ساعت
 
 // تابع کمکی برای ذخیره داده در cache با کلید و مدت زمان مشخص
-const getOrSetCache = async (key: string, fetchFunction: () => Promise<any>) => {
-    const cachedData = await redis.get(key);
-    if (cachedData) {
-        return JSON.parse(cachedData);
-    }
+// const getOrSetCache = async (key: string, fetchFunction: () => Promise<any>) => {
+//     const cachedData = await redis.get(key);
+//     if (cachedData) {
+//         return JSON.parse(cachedData);
+//     }
 
-    const freshData = await fetchFunction();
-    await redis.setex(key, CACHE_EXPIRATION, JSON.stringify(freshData));
+//     const freshData = await fetchFunction();
+//     await redis.setex(key, CACHE_EXPIRATION, JSON.stringify(freshData));
 
-    return freshData;
-};
+//     return freshData;
+// };
 
 const homeSearch = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -436,11 +436,14 @@ const homeSearch = CatchAsyncError(async (req: Request, res: Response, next: Nex
         // }
 
         // 2. کش کردن داده‌های دوره‌ها با اطلاعات مربی و فیلد tags برای جستجو
-        const courses = await getOrSetCache("courses_for_home_search", () =>
-            CourseModel.find({}, 'name urlName thumbnail.imageUrl tags rating teacherId') // انتخاب tags برای جستجو و teacherId برای مربی
-                .populate('teacherId', 'engName faName') // اضافه کردن اطلاعات مربی بدون _id
-                .lean()
-        );
+        // const courses = await getOrSetCache("courses_for_home_search", () =>
+        //     CourseModel.find({}, 'name urlName thumbnail.imageUrl tags rating teacherId') // انتخاب tags برای جستجو و teacherId برای مربی
+        //         .populate('teacherId', 'engName faName') // اضافه کردن اطلاعات مربی بدون _id
+        //         .lean()
+        // );
+
+        const courses = await CourseModel.find({}, 'name urlName thumbnail.imageUrl tags rating teacherId').populate('teacherId', 'engName faName').lean()
+
 
         // 3. استفاده از Fuse برای جستجوی فازی
         const fuse = new Fuse(courses, { keys: ['name', 'tags', 'teacher.engName', 'teacher.faName'], includeScore: true }); // استفاده از tags در جستجو

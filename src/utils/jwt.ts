@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { IUser } from "../models/user.model";
-import { redis } from "./redis";
+// import { redis } from "./redis";
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -31,7 +31,7 @@ export const sendToken = (user: IUser, statusCode: number, res: Response, req: R
 
 
     // upload session to redis
-    redis.set(user._id as string, JSON.stringify(user) as any)
+    // redis.set(user._id as string, JSON.stringify(user) as any)
 
     createToken(res, req, accessToken, refreshToken, undefined);
 
@@ -103,10 +103,8 @@ export const createToken = async (res: Response, req: Request, accessToken: stri
     res.cookie('refresh_token', refreshToken, refreshTokenOptions);
 
 
-
-
-    if (user)
-        await redis.set(user._id, JSON.stringify(user), "EX", 604800)
+    // if (user)
+    //     await redis.set(user._id, JSON.stringify(user), "EX", 604800)
 }
 
 

@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { CatchAsyncError } from "../middleware/catchAsyncErrors";
 import ErrorHandler from "../utils/ErrorHandler";
 import CourseModel from "../models/course.model";
-import { redis } from "../utils/redis";
+// import { redis } from "../utils/redis";
 
 import Fuse from "fuse.js";
 import AcademyModel from "../models/academy.model";
@@ -509,14 +509,14 @@ type searchCoursesTypes = {
 }
 
 // تابعی برای کش کردن داده‌ها
-async function getOrSetCache(key: string, expiration: number, fetchFunction: () => Promise<any>) {
-    const cachedData = await redis.get(key);
-    if (cachedData) return JSON.parse(cachedData);
+// async function getOrSetCache(key: string, expiration: number, fetchFunction: () => Promise<any>) {
+//     const cachedData = await redis.get(key);
+//     if (cachedData) return JSON.parse(cachedData);
 
-    const freshData = await fetchFunction();
-    await redis.setex(key, expiration, JSON.stringify(freshData));
-    return freshData;
-}
+//     const freshData = await fetchFunction();
+//     await redis.setex(key, expiration, JSON.stringify(freshData));
+//     return freshData;
+// }
 
 const searchCourses = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -525,19 +525,28 @@ const searchCourses = CatchAsyncError(async (req: Request, res: Response, next: 
         const pageNumber = parseInt(page, 10);
 
         // کش برای تمام آکادمی‌ها
-        const allAcademies = await getOrSetCache("all_academies", REDIS_EXPIRATION_DAY, async () =>
-            await AcademyModel.find({}).select("engName _id").lean()
-        );
+        // const allAcademies = await getOrSetCache("all_academies", REDIS_EXPIRATION_DAY, async () =>
+        //     await AcademyModel.find({}).select("engName _id").lean()
+        // );
 
+        // // کش برای تمام مدرسین
+        // const allTeachers = await getOrSetCache("all_teachers", REDIS_EXPIRATION_DAY, async () =>
+        //     await TeacherModel.find({}).select("engName _id").lean()
+        // );
+
+        // // کش برای تمام دسته‌بندی‌ها
+        // const allCategories = await getOrSetCache("all_categories", REDIS_EXPIRATION_DAY, async () =>
+        //     await CategoryModel.find({}).select("name _id").lean()
+        // );
+
+        const allAcademies = await AcademyModel.find({}).select("engName _id").lean()
+    
         // کش برای تمام مدرسین
-        const allTeachers = await getOrSetCache("all_teachers", REDIS_EXPIRATION_DAY, async () =>
-            await TeacherModel.find({}).select("engName _id").lean()
-        );
-
+        const allTeachers = await TeacherModel.find({}).select("engName _id").lean()
+        
         // کش برای تمام دسته‌بندی‌ها
-        const allCategories = await getOrSetCache("all_categories", REDIS_EXPIRATION_DAY, async () =>
-            await CategoryModel.find({}).select("name _id").lean()
-        );
+        const allCategories = await CategoryModel.find({}).select("name _id").lean()
+
 
         // let allCourses: any = await redis.get("all_courses");
         // if (allCourses) {
