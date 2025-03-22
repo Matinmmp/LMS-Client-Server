@@ -7,7 +7,9 @@ import { DeleteObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client
 import BlogCategoryModel from "../models/blogCategory.model";
 import Fuse from "fuse.js";
 import CategoryModel from "../models/category.model";
+import { RateLimiterMemory } from 'rate-limiter-flexible';
 
+require('dotenv').config();
 
 const s3 = new S3Client({
     region: "default",
@@ -18,9 +20,7 @@ const s3 = new S3Client({
     },
 })
 
-/**
- * 📌 ایجاد یک بلاگ جدید
- */
+
 const createBlog = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const body = req.body;
@@ -48,7 +48,7 @@ const createBlog = CatchAsyncError(async (req: Request, res: Response, next: Nex
             ...body,
             thumbnail: {
                 imageName,
-                imageUrl: `${process.env.LIARA_Public_ENDPOINT}/Blogs/${imageName}`,
+                imageUrl: `https://images.vc-virtual-learn.com/Blogs/${imageName}`,
             },
         });
 
@@ -62,9 +62,6 @@ const createBlog = CatchAsyncError(async (req: Request, res: Response, next: Nex
     }
 });
 
-/**
- * 📌 دریافت تمام بلاگ‌ها
- */
 const getAllBlogs = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const blogs = await BlogModel.find().select("title slug thumbnail description status publishDate views");
@@ -74,26 +71,6 @@ const getAllBlogs = CatchAsyncError(async (req: Request, res: Response, next: Ne
     }
 });
 
-/**
- * 📌 دریافت جزئیات یک بلاگ خاص
- */
-const getBlogBySlug = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const { slug } = req.params;
-
-        const blog = await BlogModel.findOne({ slug });
-
-        if (!blog) return next(new ErrorHandler("بلاگ مورد نظر یافت نشد", 404));
-
-        res.status(200).json({ success: true, blog });
-    } catch (error: any) {
-        return next(new ErrorHandler(error.message, 500));
-    }
-});
-
-/**
- * 📌 ویرایش بلاگ
- */
 const updateBlog = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
@@ -126,7 +103,7 @@ const updateBlog = CatchAsyncError(async (req: Request, res: Response, next: Nex
             // جایگزین کردن اطلاعات عکس جدید
             data.thumbnail = {
                 imageName,
-                imageUrl: `${process.env.LIARA_Public_ENDPOINT}/Blogs/${imageName}`,
+                imageUrl: `https://images.vc-virtual-learn.com/Blogs/${imageName}`,
             };
         }
 
@@ -143,9 +120,6 @@ const updateBlog = CatchAsyncError(async (req: Request, res: Response, next: Nex
     }
 });
 
-/**
- * 📌 حذف بلاگ
- */
 const deleteBlog = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
@@ -172,6 +146,20 @@ const deleteBlog = CatchAsyncError(async (req: Request, res: Response, next: Nex
     }
 });
 
+
+const getBlogBySlug = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { slug } = req.params;
+
+        const blog = await BlogModel.findOne({ slug });
+
+        if (!blog) return next(new ErrorHandler("بلاگ مورد نظر یافت نشد", 404));
+
+        res.status(200).json({ success: true, blog });
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message, 500));
+    }
+});
 
 
 const itemsPerPage = 12;
@@ -286,7 +274,6 @@ const getBlogsByCategory = CatchAsyncError(async (req: Request, res: Response, n
     }
 });
 
-
 const homeSearch = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { query } = req.query;
@@ -399,7 +386,7 @@ const getOldestAndPopularBlogs = CatchAsyncError(async (req: Request, res: Respo
     }
 });
 
-import { RateLimiterMemory } from 'rate-limiter-flexible';
+
 
 const rateLimiter = new RateLimiterMemory({
     points: 1, // 1 ویو
@@ -425,7 +412,7 @@ const recordBlogView = CatchAsyncError(async (req: Request, res: Response, next:
 });
 
 
-export const getBlogsByCategories = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+const getBlogsByCategories = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         // دریافت تمام دسته‌بندی‌ها
         const categories = await CategoryModel.find({}).lean();
@@ -491,14 +478,103 @@ const getRelatedBlogsByCourseName = CatchAsyncError(async (req: Request, res: Re
 });
 
 
+const getBlogCategories = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
 
-type searchCoursesTypes = {
-    searchText: string,
-    order: string, //key='1'=>'جدید‌ترین' ,key= '2'=>'قدیمی‌ترین' ,key= '3'=>'تمام شده' ,key='4'=>'درحال برگزاری' ,key='5'=>'محبوبترین',key='6'=>'پرفروش ترین',can be null if was null just bring order by newst
-    categories: [string]//will be name of one or more category name or can be null =>if null bring all 
-    page: string //1
-}
+        const categories = await BlogCategoryModel.find({})
+
+        res.status(200).json({ categories, success: true })
+
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message, 400));
+    }
+})
+
+
+const createBlogCategory = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { name, slug, avatar } = req.body; // دریافت اطلاعات ورودی
+
+        if (!name || !slug || !avatar) {
+            return next(new ErrorHandler("تمام فیلدهای ضروری را پر کنید", 400));
+        }
+
+        // تبدیل Base64 به Buffer
+        const imageName = `${Date.now()}-${slug}.png`;
+        const buffer = Buffer.from(avatar.split(",")[1], "base64");
+
+        const uploadParams: any = {
+            Body: buffer,
+            Bucket: process.env.LIARA_BUCKET_NAME_COURSE,
+            Key: `CategoryImages/${imageName}`,
+            ACL: "public-read",
+        };
+
+        await s3.send(new PutObjectCommand(uploadParams));
+
+        // ذخیره اطلاعات در دیتابیس
+        const newCategory = await BlogCategoryModel.create({
+            name,
+            slug,
+            avatar: {
+                imageName,
+                imageUrl: `https://images.vc-virtual-learn.com/CategoryImages/${imageName}`,
+            }
+        });
+
+        res.status(201).json({
+            success: true,
+            message: "دسته‌بندی با موفقیت ایجاد شد",
+            category: newCategory,
+        });
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message, 500));
+    }
+});
+
+const deleteBlogCategory = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+
+        const category = await BlogCategoryModel.findById(id);
+        if (!category) {
+            return next(new ErrorHandler("دسته‌بندی مورد نظر یافت نشد", 404));
+        }
+
+        // حذف تصویر از S3
+        if (category.avatar.imageName) {
+            const deleteParams = {
+                Bucket: process.env.LIARA_BUCKET_NAME_COURSE,
+                Key: `CategoryImages/${category.avatar.imageName}`
+            };
+            await s3.send(new DeleteObjectCommand(deleteParams));
+        }
+
+        await category.deleteOne();
+
+        res.status(200).json({ success: true, message: "دسته‌بندی با موفقیت حذف شد" });
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message, 500));
+    }
+});
 
 export {
-    getRelatedBlogsByCourseName
+    getRelatedBlogsByCourseName,
+    createBlog,
+    getAllBlogs,
+    getBlogBySlug,
+    recordBlogView,
+    getOldestAndPopularBlogs,
+    getLatestBlogs,
+    getSpecialBlogs,
+    getBlogsInSlider,
+    homeSearch,
+    getBlogsByCategory,
+    deleteBlog,
+    searchBlogs,
+    updateBlog,
+    getBlogsByCategories,
+    createBlogCategory,
+    deleteBlogCategory,
+    getBlogCategories
 }

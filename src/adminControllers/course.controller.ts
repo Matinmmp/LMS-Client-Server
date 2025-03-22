@@ -52,7 +52,7 @@ const uploadCourse = CatchAsyncError(async (req: Request, res: Response, next: N
             ...body,
             thumbnail: {
                 imageName: imageName,
-                imageUrl: `${process.env.LIARA_Public_ENDPOINT}/CoursesImages/${imageName}`,
+                imageUrl: `https://images.vc-virtual-learn.com/CoursesImages/${imageName}`,
             },
         };
 
@@ -195,7 +195,7 @@ const editCourse = CatchAsyncError(async (req: Request, res: Response, next: Nex
             // اضافه کردن اطلاعات عکس جدید به دیتا
             data.thumbnail = {
                 imageName: imageName,
-                imageUrl: `${process.env.LIARA_Public_ENDPOINT}/CoursesImages/${imageName}`,
+                imageUrl: `https://images.vc-virtual-learn.com/CoursesImages/${imageName}`,
             };
         }
         else{

@@ -3,8 +3,9 @@ import mongoose, { Model, Schema } from "mongoose";
 interface IBlog extends Document {
     title: string; // عنوان بلاگ
     slug: string; // آدرس یکتا
-    description: string; // متن کامل بلاگ
-    longDescription: string; // خلاصه بلاگ
+    description: string;
+    longDescription: string;
+    headers: [string];
     thumbnail: { imageName: string; imageUrl: string }; // تصویر اصلی
     isInSlider: boolean;
     isSpecial: boolean;
@@ -28,7 +29,8 @@ const blogSchema = new Schema<IBlog>({
     title: { type: String, required: true },
     slug: { type: String, required: true, unique: true }, // آدرس یکتا
     description: { type: String, required: true },
-    longDescription: String,
+    longDescription: { type: String, required: true },
+    headers: [String],
     thumbnail: { imageName: String, imageUrl: String },
     isInSlider: { type: Boolean, default: false },
     isSpecial: { type: Boolean, default: false },

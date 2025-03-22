@@ -21,6 +21,7 @@ import adminCategoryRouter from "./adminRoutes/category.route";
 import adminCourseRouter from "./adminRoutes/course.route";
 import adminDasboardRoute from "./adminRoutes/dashboard.route";
 import adminTeacherRouter from "./adminRoutes/teacher.route";
+import adminBlogRoute from "./adminRoutes/blog.route";
 
 export const app = express();
 
@@ -56,6 +57,7 @@ app.use('/api/v1/admin321', adminCategoryRouter);
 app.use('/api/v1/admin321', adminCourseRouter);
 app.use('/api/v1/admin321', adminDasboardRoute);
 app.use('/api/v1/admin321', adminTeacherRouter);
+app.use('/api/v1/admin321', adminBlogRoute);
 
 
 

@@ -75,7 +75,7 @@ const createTeacher = CatchAsyncError(async (req: Request, res: Response, next: 
             engName, description, longDescription, faName, tags,seoMeta,
             avatar: {
                 imageName: imageName,
-                imageUrl: `${process.env.LIARA_Public_ENDPOINT}/teacher/${imageName}`,
+                imageUrl: `https://images.vc-virtual-learn.com/teacher/${imageName}`,
             }
         }
 
