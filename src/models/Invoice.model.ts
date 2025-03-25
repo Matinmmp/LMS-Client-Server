@@ -3,7 +3,8 @@ import mongoose, { Document, Model, Schema } from "mongoose";
 interface IInvoiceCourse extends Document {
     courseId: mongoose.Schema.Types.ObjectId; // آیدی دوره
     courseName: string; // نام دوره
-    courseUrlName:string;
+    courseFaName: string; // نام دوره
+    courseUrlName: string;
     originalPrice: number; // قیمت اصلی دوره
     discountAmount: number; // مبلغ تخفیف برای این دوره
     finalPrice: number; // مبلغ نهایی دوره
@@ -31,6 +32,10 @@ const invoiceCourseSchema: Schema<IInvoiceCourse> = new Schema({
         required: true
     },
     courseName: {
+        type: String,
+        required: true
+    },
+    courseFaName: {
         type: String,
         required: true
     },
@@ -78,7 +83,7 @@ const invoiceSchema: Schema<IInvoice> = new Schema({
     },
     paymentMethod: {
         type: String,
-        enum: ["online", "card_to_card", "wallet",'free'], // روش‌های پرداخت
+        enum: ["online", "card_to_card", "wallet", 'free'], // روش‌های پرداخت
         required: true
     },
     paymentStatus: {

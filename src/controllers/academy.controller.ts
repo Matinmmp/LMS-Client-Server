@@ -148,6 +148,7 @@ const getAcademyCoursesByEngName = CatchAsyncError(async (req: Request, res: Res
                     "thumbnail.imageUrl": 1,
                     description: 1,
                     name: 1,
+                    faName: 1,
                     courseLength: 1,
                     price: 1,
                     totalLessons: 1,

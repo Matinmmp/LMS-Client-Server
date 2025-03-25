@@ -26,8 +26,8 @@ interface IBlog extends Document {
 
 
 const blogSchema = new Schema<IBlog>({
-    title: { type: String, required: true },
-    slug: { type: String, required: true, unique: true }, // آدرس یکتا
+    title: { type: String, required: true },//
+    slug: { type: String, required: true, unique: true }, //
     description: { type: String, required: true },
     longDescription: { type: String, required: true },
     headers: [String],

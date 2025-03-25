@@ -92,6 +92,7 @@ const getHomeLastCourses = CatchAsyncError(async (req: Request, res: Response, n
                     "thumbnail.imageUrl": 1,
                     description: 1,
                     name: 1,
+                    faName: 1,
                     teacher: 1,
                     academy: 1,
                     courseLength: 1,
@@ -171,6 +172,7 @@ const getDiscountedCourses = CatchAsyncError(async (req: Request, res: Response,
                     "thumbnail.imageUrl": 1,
                     description: 1,
                     name: 1,
+                    faName: 1,
                     teacher: 1,
                     academy: 1,
                     courseLength: 1,
@@ -248,6 +250,7 @@ const getHomeFavoritCourses = CatchAsyncError(async (req: Request, res: Response
                     "thumbnail.imageUrl": 1,
                     description: 1,
                     name: 1,
+                    faName: 1,
                     teacher: 1,
                     academy: 1,
                     courseLength: 1,
@@ -442,11 +445,11 @@ const homeSearch = CatchAsyncError(async (req: Request, res: Response, next: Nex
         //         .lean()
         // );
 
-        const courses = await CourseModel.find({}, 'name urlName thumbnail.imageUrl tags rating teacherId').populate('teacherId', 'engName faName').lean()
+        const courses = await CourseModel.find({}, 'name faName urlName thumbnail.imageUrl tags rating teacherId').populate('teacherId', 'engName faName').lean()
 
 
         // 3. استفاده از Fuse برای جستجوی فازی
-        const fuse = new Fuse(courses, { keys: ['name', 'tags', 'teacher.engName', 'teacher.faName'], includeScore: true }); // استفاده از tags در جستجو
+        const fuse = new Fuse(courses, { keys: ['name', "faName",'tags', 'teacher.engName', 'teacher.faName'], includeScore: true }); // استفاده از tags در جستجو
         const searchResults = fuse.search(query);
 
         // 4. مرتب‌سازی نتایج بر اساس محبوبیت (تعداد دانشجویان، امتیاز)

@@ -220,6 +220,7 @@ const getTeacherCoursesByEngName = CatchAsyncError(async (req: Request, res: Res
                     "thumbnail.imageUrl": 1,
                     description: 1,
                     name: 1,
+                    faName: 1,
                     teacher: 1,
                     academy: 1,
                     courseLength: 1,

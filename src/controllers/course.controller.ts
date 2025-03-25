@@ -606,6 +606,7 @@ const searchCourses = CatchAsyncError(async (req: Request, res: Response, next: 
                     "thumbnail.imageUrl": 1,
                     description: 1,
                     name: 1,
+                    faName: 1,
                     teacher: 1,
                     academy: 1,
                     categories: 1, // افزودن فیلد دسته‌بندی به خروجی نهایی
@@ -746,6 +747,7 @@ const getRelatedCourses = CatchAsyncError(async (req: Request, res: Response, ne
             {
                 $project: {
                     name: 1,
+                    faName: 1,
                     urlName: 1,
                     "thumbnail.imageUrl": 1,
                 },

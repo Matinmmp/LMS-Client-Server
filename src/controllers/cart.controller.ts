@@ -22,8 +22,9 @@ const getCoursesByIds = CatchAsyncError(async (req: Request, res: Response, next
     const courses = await CourseModel.find(
         { _id: { $in: validIds } },
         {
-            urlName:1,
+            urlName: 1,
             name: 1,
+            faName: 1,
             price: 1,
             discount: 1,
             "thumbnail.imageUrl": 1, // انتخاب فیلدهای مورد نیاز

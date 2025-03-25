@@ -13,10 +13,10 @@ require('dotenv').config();
 
 const s3 = new S3Client({
     region: "default",
-    endpoint: process.env.LIARA_ENDPOINT_COURSE || "",
+    endpoint: process.env.LIARA_ENDPOINT || "",
     credentials: {
-        accessKeyId: process.env.LIARA_ACCESS_KEY_COURSE || "",
-        secretAccessKey: process.env.LIARA_SECRET_KEY_COURSE || ""
+        accessKeyId: process.env.LIARA_ACCESS_KEY || "",
+        secretAccessKey: process.env.LIARA_SECRET_KEY || ""
     },
 })
 
@@ -505,7 +505,7 @@ const createBlogCategory = CatchAsyncError(async (req: Request, res: Response, n
 
         const uploadParams: any = {
             Body: buffer,
-            Bucket: process.env.LIARA_BUCKET_NAME_COURSE,
+            Bucket: process.env.LIARA_BUCKET_NAME,
             Key: `CategoryImages/${imageName}`,
             ACL: "public-read",
         };

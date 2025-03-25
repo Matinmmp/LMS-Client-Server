@@ -6,7 +6,7 @@ import academyRouter from "./routes/academy.route";
 import courseRouter from "./routes/course.route";
 import dashboardRoute from "./routes/dashboard.route";
 import homeRouter from "./routes/home.route";
-import blogRouter from "./routes/blog.route";
+import adminBlogRouter from "./routes/blog.route";
 import courseReviewRoute from "./routes/courseReview.route";
 import cartRouter from "./routes/cart.route";
 import formRoute from "./routes/form.route";
@@ -22,6 +22,7 @@ import adminCourseRouter from "./adminRoutes/course.route";
 import adminDasboardRoute from "./adminRoutes/dashboard.route";
 import adminTeacherRouter from "./adminRoutes/teacher.route";
 import adminBlogRoute from "./adminRoutes/blog.route";
+import blogRouter from "./routes/blog.route";
 
 export const app = express();
 
@@ -45,11 +46,12 @@ app.use('/api/v1', academyRouter);
 app.use('/api/v1', courseRouter);
 app.use('/api/v1/dashboard', dashboardRoute);
 app.use('/api/v1', homeRouter);
-app.use('/api/v1', blogRouter);
+app.use('/api/v1', adminBlogRouter);
 app.use('/api/v1', courseReviewRoute);
 app.use('/api/v1', cartRouter);
 app.use('/api/v1', formRoute);
 app.use('/api/v1', invoiceRouter);
+app.use('/api/v1', blogRouter);
 
 
 app.use('/api/v1/admin321', adminAcademyRouter);

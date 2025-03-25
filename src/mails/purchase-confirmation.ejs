@@ -76,7 +76,7 @@
                 <tbody>
                     <% invoice.courses.forEach(course => { %>
                     <tr>
-                        <td><%= course.courseName %></td>
+                        <td><%= course.courseFaName %></td>
                         <td><%= course.originalPrice.toLocaleString() %> تومان</td>
                         <td><%= course.discountAmount.toLocaleString() %> تومان</td>
                         <td><%= course.finalPrice.toLocaleString() %> تومان</td>

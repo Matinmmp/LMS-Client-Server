@@ -48,6 +48,7 @@ const initiatePayment = CatchAsyncError(async (req: Request, res: Response, next
                 courseUrlName: course.urlName,
                 courseId: course._id,
                 courseName: course.name,
+                courseFaName: course.faName,
                 originalPrice: course.price,
                 discountAmount,
                 finalPrice,
