@@ -111,7 +111,7 @@ const academySchema: Schema<IAcademy> = new mongoose.Schema({
 }, { timestamps: true });
 
 // اضافه کردن ایندکس‌های ترکیبی برای جستجوهای پیشرفته
-academySchema.index({ engName: 1, faName: 1 }); // جستجو بر اساس نام انگلیسی و فارسی
+// academySchema.index({ engName: 1, faName: 1 }); // جستجو بر اساس نام انگلیسی و فارسی
 
 
 

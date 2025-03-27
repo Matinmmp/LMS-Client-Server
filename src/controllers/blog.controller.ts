@@ -558,6 +558,35 @@ const deleteBlogCategory = CatchAsyncError(async (req: Request, res: Response, n
     }
 });
 
+const categoriesWithCount = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+
+    try {
+        // دریافت تمام کتگوری‌ها
+        const categories = await BlogCategoryModel.find({}, "name slug avatar.imageUrl").lean();
+
+        // دریافت تعداد بلاگ‌های مرتبط برای هر کتگوری
+        const categoriesWithCounts = await Promise.all(
+            categories.map(async (category) => {
+                const blogCount = await BlogModel.countDocuments({ categories: category._id });
+                return {
+                    name: category.name,
+                    slug: category.slug,
+                    imageUrl: category.avatar?.imageUrl || null,
+                    totalBlogs: blogCount,
+                };
+            })
+        );
+
+        res.status(200).json({
+            success: true,
+            categories: categoriesWithCounts,
+        });
+    } catch (error: any) {
+        next(error);
+    }
+
+})
+
 export {
     getRelatedBlogsByCourseName,
     createBlog,
@@ -576,5 +605,6 @@ export {
     getBlogsByCategories,
     createBlogCategory,
     deleteBlogCategory,
-    getBlogCategories
+    getBlogCategories,
+    categoriesWithCount
 }

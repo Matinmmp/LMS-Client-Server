@@ -103,7 +103,7 @@ const teacherSchema: Schema<ITeacher> = new mongoose.Schema({
 }, { timestamps: true });
 
 // اضافه کردن ایندکس‌های ترکیبی برای جستجوهای پیشرفته
-teacherSchema.index({ engName: 1, faName: 1 }); // جستجو بر اساس نام انگلیسی و فارسی
+// teacherSchema.index({ engName: 1, faName: 1 }); // جستجو بر اساس نام انگلیسی و فارسی
 // teacherSchema.index({ rating: -1 }); // مرتب‌سازی بر اساس امتیاز (از بالا به پایین)
 // teacherSchema.index({ totalStudents: -1 }); // مرتب‌سازی بر اساس تعداد دانشجویان (از بالا به پایین)
 
