@@ -6,7 +6,6 @@ import BlogModel from "../models/blog.model";
 import { DeleteObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import BlogCategoryModel from "../models/blogCategory.model";
 import Fuse from "fuse.js";
-import CategoryModel from "../models/category.model";
 import { RateLimiterMemory } from 'rate-limiter-flexible';
 
 require('dotenv').config();
@@ -60,7 +59,7 @@ const createBlog = CatchAsyncError(async (req: Request, res: Response, next: Nex
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 500));
     }
-});
+});//
 
 const getAllBlogs = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -69,7 +68,7 @@ const getAllBlogs = CatchAsyncError(async (req: Request, res: Response, next: Ne
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 500));
     }
-});
+});//
 
 const updateBlog = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -118,7 +117,7 @@ const updateBlog = CatchAsyncError(async (req: Request, res: Response, next: Nex
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 500));
     }
-});
+});//
 
 const deleteBlog = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -144,7 +143,7 @@ const deleteBlog = CatchAsyncError(async (req: Request, res: Response, next: Nex
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 500));
     }
-});
+});//
 
 
 const getBlogBySlug = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
@@ -253,14 +252,14 @@ const getBlogsByCategory = CatchAsyncError(async (req: Request, res: Response, n
         if (!category) return next(new ErrorHandler("دسته‌بندی مورد نظر یافت نشد", 404));
 
         // دریافت بلاگ‌هایی که در این دسته‌بندی هستند
-        const blogs = await BlogModel.find({ categoryIds: category._id })
+        const blogs = await BlogModel.find({ categories: category._id })
             .select("title description thumbnail createdAt views likes slug")
             .sort({ createdAt: -1 })
             .skip((pageNumber - 1) * itemsPerPage)
             .limit(itemsPerPage)
             .lean();
 
-        const totalBlogs = await BlogModel.countDocuments({ categoryIds: category._id });
+        const totalBlogs = await BlogModel.countDocuments({ categories: category._id });
         const totalPages = Math.ceil(totalBlogs / itemsPerPage);
 
         res.status(200).json({
@@ -268,6 +267,7 @@ const getBlogsByCategory = CatchAsyncError(async (req: Request, res: Response, n
             blogs,
             currentPage: pageNumber,
             totalPage: totalPages,
+            name:category.name
         });
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 500));
@@ -326,7 +326,7 @@ const getBlogsInSlider = CatchAsyncError(async (req: Request, res: Response, nex
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 500));
     }
-});
+});//
 
 const getSpecialBlogs = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -341,7 +341,7 @@ const getSpecialBlogs = CatchAsyncError(async (req: Request, res: Response, next
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 500));
     }
-});
+});//
 
 const getLatestBlogs = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -358,7 +358,7 @@ const getLatestBlogs = CatchAsyncError(async (req: Request, res: Response, next:
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 500));
     }
-});
+});//
 
 const getOldestAndPopularBlogs = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -384,7 +384,7 @@ const getOldestAndPopularBlogs = CatchAsyncError(async (req: Request, res: Respo
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 500));
     }
-});
+});//
 
 
 
@@ -415,7 +415,7 @@ const recordBlogView = CatchAsyncError(async (req: Request, res: Response, next:
 const getBlogsByCategories = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         // دریافت تمام دسته‌بندی‌ها
-        const categories = await CategoryModel.find({}).lean();
+        const categories = await BlogCategoryModel.find({}).lean();
 
         // ایجاد یک شیء برای نگهداری اطلاعات بلاگ‌ها بر اساس دسته‌بندی
         let categoryData: any = {};
@@ -442,9 +442,9 @@ const getBlogsByCategories = CatchAsyncError(async (req: Request, res: Response,
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 500));
     }
-});
+});//
 
-
+ 
 const getRelatedBlogsByCourseName = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const courseName = req.params.name;
@@ -488,7 +488,7 @@ const getBlogCategories = CatchAsyncError(async (req: Request, res: Response, ne
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 400));
     }
-})
+})//
 
 
 const createBlogCategory = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
@@ -530,7 +530,7 @@ const createBlogCategory = CatchAsyncError(async (req: Request, res: Response, n
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 500));
     }
-});
+});//
 
 const deleteBlogCategory = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -556,7 +556,7 @@ const deleteBlogCategory = CatchAsyncError(async (req: Request, res: Response, n
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 500));
     }
-});
+});//
 
 const categoriesWithCount = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
 
@@ -585,7 +585,7 @@ const categoriesWithCount = CatchAsyncError(async (req: Request, res: Response, 
         next(error);
     }
 
-})
+})//
 
 export {
     getRelatedBlogsByCourseName,
