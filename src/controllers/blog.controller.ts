@@ -166,41 +166,17 @@ const searchBlogs = CatchAsyncError(async (req: Request, res: Response, next: Ne
     try {
         const { searchText, order, categories, page = "1" } = req.body;
         const pageNumber = parseInt(page, 10);
+        const itemsPerPage = 10; // تعداد آیتم‌ها در هر صفحه
 
         // دریافت لیست دسته‌بندی‌ها
-        const allCategories = await BlogCategoryModel.find({}).select("name slug").lean();
+        const allCategories = await BlogCategoryModel.find({})
+            .select("_id name slug")
+            .lean();
 
         // دریافت تمام بلاگ‌ها
-        let allBlogs = await BlogModel.aggregate([
-            {
-                $lookup: {
-                    from: "blogcategories",
-                    localField: "categoryIds",
-                    foreignField: "_id",
-                    as: "categoryData",
-                },
-            },
-            {
-                $addFields: {
-                    categories: {
-                        categoryNames: "$categoryData.name",
-                        categoryIds: "$categoryData._id",
-                    },
-                },
-            },
-            {
-                $project: {
-                    title: 1,
-                    description: 1,
-                    thumbnail: 1,
-                    createdAt: 1,
-                    categories: 1,
-                    views: 1,
-                    likes: 1,
-                    slug: 1,
-                },
-            },
-        ]);
+        let allBlogs = await BlogModel.find({})
+            .select("title description thumbnail publishDate categories views likes slug comments")
+            .lean();
 
         // فیلتر بر اساس دسته‌بندی
         if (categories && categories.length > 0) {
@@ -209,7 +185,7 @@ const searchBlogs = CatchAsyncError(async (req: Request, res: Response, next: Ne
                 .map((c: any) => String(c._id));
 
             allBlogs = allBlogs.filter((blog: any) =>
-                blog.categories.categoryIds.some((catId: any) => categoryIds.includes(String(catId)))
+                blog.categories?.some((catId: any) => categoryIds.includes(catId.toString())) // 🚀 تبدیل به string
             );
         }
 
@@ -224,7 +200,7 @@ const searchBlogs = CatchAsyncError(async (req: Request, res: Response, next: Ne
         if (order === "2") allBlogs.sort((a: any, b: any) => a.createdAt - b.createdAt); // قدیمی‌ترین
         else if (order === "5") allBlogs.sort((a: any, b: any) => b.views - a.views); // محبوب‌ترین
         else if (order === "6") allBlogs.sort((a: any, b: any) => b.likes - a.likes); // پرلایک‌ترین
-        else allBlogs.sort((a: any, b: any) => b.createdAt - a.createdAt); // جدید‌ترین (پیش‌فرض)
+        else allBlogs.sort((a: any, b: any) => b.createdAt - a.createdAt); // جدیدترین (پیش‌فرض)
 
         // پیجینیشن
         const totalBlogs = allBlogs.length;
@@ -242,6 +218,7 @@ const searchBlogs = CatchAsyncError(async (req: Request, res: Response, next: Ne
     }
 });
 
+
 const getBlogsByCategory = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { slug } = req.params;
@@ -253,7 +230,7 @@ const getBlogsByCategory = CatchAsyncError(async (req: Request, res: Response, n
 
         // دریافت بلاگ‌هایی که در این دسته‌بندی هستند
         const blogs = await BlogModel.find({ categories: category._id })
-            .select("title description thumbnail createdAt views likes slug")
+            .select("title description thumbnail publishDate views likes slug comments")
             .sort({ createdAt: -1 })
             .skip((pageNumber - 1) * itemsPerPage)
             .limit(itemsPerPage)
@@ -267,12 +244,12 @@ const getBlogsByCategory = CatchAsyncError(async (req: Request, res: Response, n
             blogs,
             currentPage: pageNumber,
             totalPage: totalPages,
-            name:category.name
+            name: category.name
         });
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 500));
     }
-});
+});//
 
 const homeSearch = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -311,7 +288,7 @@ const homeSearch = CatchAsyncError(async (req: Request, res: Response, next: Nex
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 500));
     }
-});
+});//
 
 const getBlogsInSlider = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -444,7 +421,7 @@ const getBlogsByCategories = CatchAsyncError(async (req: Request, res: Response,
     }
 });//
 
- 
+
 const getRelatedBlogsByCourseName = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const courseName = req.params.name;
