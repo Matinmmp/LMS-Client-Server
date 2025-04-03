@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { getAllCourseUrlNames, getCourseByName, getCourseDataByNameLoged, getCourseDataByNameNoLoged, getRelatedCourses, rateCourse, rename1, searchCourses } from '../controllers/course.controller';
+import { getAllCourseUrlNames, getCourseByName, getCourseDataByNameLoged, getCourseDataByNameNoLoged, getRelatedCourses, rateCourse, recordCourseView, rename1, searchCourses } from '../controllers/course.controller';
 import { isAuthenticated, } from '../middleware/auth';
 import { getDiscountedCourses } from '../controllers/home.controller';
  
@@ -16,6 +16,7 @@ courseRouter.get('/getDiscountedCourses', getDiscountedCourses);
 courseRouter.post('/rateCourse', isAuthenticated, rateCourse);
 courseRouter.post('/searchCourses', searchCourses);
 courseRouter.put('/rename', rename1);
+courseRouter.get('/recordCourseView/:id', recordCourseView);
 
 
 

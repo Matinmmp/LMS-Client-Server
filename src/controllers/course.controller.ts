@@ -19,6 +19,7 @@ import jwt from "jsonwebtoken";
 
 import dotenv from 'dotenv';
 import CourseRatingModel from "../models/courseRating.model";
+import { RateLimiterMemory } from "rate-limiter-flexible";
 
 dotenv.config();
 
@@ -837,6 +838,30 @@ const rateCourse = CatchAsyncError(async (req: Request, res: Response, next: Nex
 });
 
 
+const rateLimiter = new RateLimiterMemory({
+    points: 1, // 1 ویو
+    duration: 60 * 60, // در هر ساعت
+});
+
+const recordCourseView = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    const courseId = req.params.id;
+    const userIp: any = req.ip;
+    console.log('asdfadf');
+    try {
+        await rateLimiter.consume(userIp); // مصرف محدودیت برای این IP
+
+        // ثبت ویو
+        await CourseModel.findByIdAndUpdate(courseId, { $inc: { viewsCount: 1 } });
+
+        res.status(200).json({ message: "View recorded successfully!" });
+    } catch (rejRes) {
+        return res.status(429).json({
+            message: "Too many views from this IP. Please try again later.",
+        });
+    }
+});
+
+
 const rename1 = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { oldFileKey, newFileKey }: any = req.body;
@@ -879,7 +904,8 @@ export {
     searchCourses,
     getRelatedCourses,
     rateCourse,
-    rename1
+    rename1,
+    recordCourseView
 }
 
 
