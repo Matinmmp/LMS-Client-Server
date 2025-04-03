@@ -408,7 +408,9 @@ const getBlogsByCategories = CatchAsyncError(async (req: Request, res: Response,
             // اضافه کردن اطلاعات مربوط به هر دسته‌بندی به شیء
             categoryData[category.name] = {
                 totalBlogs: await BlogModel.countDocuments({ categories: category._id }), // تعداد بلاگ‌های مرتبط با این دسته‌بندی
-                blogs: blogs // ۱۲ بلاگ اخیر
+                blogs: blogs,// ۱۲ بلاگ اخیر
+                slug: category.slug,
+                name: category.name
             };
         }
 
