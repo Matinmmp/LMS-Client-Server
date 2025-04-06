@@ -166,7 +166,7 @@ const searchBlogs = CatchAsyncError(async (req: Request, res: Response, next: Ne
     try {
         const { searchText, order, categories, page = "1" } = req.body;
         const pageNumber = parseInt(page, 10);
-        const itemsPerPage = 10; // تعداد آیتم‌ها در هر صفحه
+        const itemsPerPage = 12; // تعداد آیتم‌ها در هر صفحه
 
         // دریافت لیست دسته‌بندی‌ها
         const allCategories = await BlogCategoryModel.find({})
