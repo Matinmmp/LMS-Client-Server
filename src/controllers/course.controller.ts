@@ -839,28 +839,33 @@ const rateCourse = CatchAsyncError(async (req: Request, res: Response, next: Nex
 
 
 const rateLimiter = new RateLimiterMemory({
-    points: 1, // 1 ویو
-    duration: 60 * 60, // در هر ساعت
+    points: 1, // فقط یک بار
+    duration: 30 * 60, // هر نیم ساعت
 });
 
 const recordCourseView = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     const courseId = req.params.id;
-    const userIp: any = req.ip;
-    console.log('asdfadf');
-    try {
-        await rateLimiter.consume(userIp); // مصرف محدودیت برای این IP
+    const userIp = req.ip;
 
-        // ثبت ویو
+    const key = `${userIp}-${courseId}`; // هر دوره، یه محدودیت جدا بر اساس IP
+
+    try {
+        await rateLimiter.consume(key); // مصرف محدودیت بر اساس IP + courseId
+
+        // افزایش تعداد بازدید
         await CourseModel.findByIdAndUpdate(courseId, { $inc: { viewsCount: 1 } });
 
-        res.status(200).json({ message: "View recorded successfully!" });
+        return res.status(200).json({
+            success: true,
+            message: "✅ View recorded successfully!",
+        });
     } catch (rejRes) {
         return res.status(429).json({
-            message: "Too many views from this IP. Please try again later.",
+            success: false,
+            message: "⏳ You already viewed this course recently. Try again later.",
         });
     }
 });
-
 
 const rename1 = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
