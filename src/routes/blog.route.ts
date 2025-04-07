@@ -1,5 +1,5 @@
 import express from 'express';
-import { getBlogBySlug, getBlogsByCategories, getBlogsByCategory, getBlogsInSlider, getLatestBlogs, getOldestAndPopularBlogs, getRelatedBlogsByCourseName, getSpecialBlogs, searchBlogs } from '../controllers/blog.controller';
+import { getBlogBySlug, getBlogsByCategories, getBlogsByCategory, getBlogsInSlider, getLatestBlogs, getOldestAndPopularBlogs, getRelatedBlogsByCourseName, getSpecialBlogs, recordBlogView, searchBlogs } from '../controllers/blog.controller';
 import { homeSearch } from '../controllers/home.controller';
 
 
@@ -17,6 +17,7 @@ blogRouter.get('/getBlogsByCategory/:slug', getBlogsByCategory);
 blogRouter.post('/homeSearch', homeSearch);
 blogRouter.post('/searchBlogs', searchBlogs);
 blogRouter.post('/homeSearch', homeSearch);
+blogRouter.get('/recordBlogView/:id', recordBlogView);
 
  
 

@@ -364,26 +364,31 @@ const getOldestAndPopularBlogs = CatchAsyncError(async (req: Request, res: Respo
 });//
 
 
-
 const rateLimiter = new RateLimiterMemory({
-    points: 1, // 1 ویو
-    duration: 60 * 60, // در هر ساعت
+    points: 1, // فقط یک بار
+    duration: 30 * 60, // هر نیم ساعت
 });
 
 const recordBlogView = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     const blogId = req.params.id;
     const userIp: any = req.ip;
 
-    try {
-        await rateLimiter.consume(userIp); // مصرف محدودیت برای این IP
+    const key = `${userIp}-${blogId}`; // هر دوره، یه محدودیت جدا بر اساس IP
 
-        // ثبت ویو
+    try {
+        await rateLimiter.consume(key); // مصرف محدودیت بر اساس IP + courseId
+
+        // افزایش تعداد بازدید
         await BlogModel.findByIdAndUpdate(blogId, { $inc: { views: 1 } });
 
-        res.status(200).json({ message: "View recorded successfully!" });
+        return res.status(200).json({
+            success: true,
+            message: "✅ View recorded successfully!",
+        });
     } catch (rejRes) {
         return res.status(429).json({
-            message: "Too many views from this IP. Please try again later.",
+            success: false,
+            message: "⏳ You already viewed this course recently. Try again later.",
         });
     }
 });
