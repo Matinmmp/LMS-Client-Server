@@ -293,7 +293,8 @@ const homeSearch = CatchAsyncError(async (req: Request, res: Response, next: Nex
 const getBlogsInSlider = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const blogs = await BlogModel.find({ isInSlider: true })
-            .select('title slug thumbnail')
+            .select('title slug thumbnail createdAt')
+            .sort({ createdAt: -1 })
             .lean();
 
         res.status(200).json({
@@ -308,7 +309,8 @@ const getBlogsInSlider = CatchAsyncError(async (req: Request, res: Response, nex
 const getSpecialBlogs = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const blogs = await BlogModel.find({ isSpecial: true })
-            .select('title slug description publishDate thumbnail')
+            .select('title slug description publishDate thumbnail createdAt')
+            .sort({ createdAt: -1 })
             .lean();
 
         res.status(200).json({
@@ -341,7 +343,7 @@ const getOldestAndPopularBlogs = CatchAsyncError(async (req: Request, res: Respo
     try {
         // 1. قدیمی‌ترین بلاگ‌ها (۱۰ تا)
         const oldestBlogs = await BlogModel.find()
-            .sort({ publishDate: 1 })
+            .sort({ publishDate: -1 })
             .limit(10)
             .select('title slug publishDate thumbnail')
             .lean();
