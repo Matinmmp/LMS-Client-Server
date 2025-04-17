@@ -573,6 +573,20 @@ const categoriesWithCount = CatchAsyncError(async (req: Request, res: Response, 
 
 })//
 
+
+const getAllBlogSlugs = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const blogs = await BlogModel.find().select('slug').lean();
+
+        res.status(200).json({
+            success: true,
+            blogs
+        });
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message, 500));
+    }
+});//
+
 export {
     getRelatedBlogsByCourseName,
     createBlog,
@@ -592,5 +606,6 @@ export {
     createBlogCategory,
     deleteBlogCategory,
     getBlogCategories,
-    categoriesWithCount
+    categoriesWithCount,
+    getAllBlogSlugs
 }
