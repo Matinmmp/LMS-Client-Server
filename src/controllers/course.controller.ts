@@ -164,7 +164,7 @@ const getCourseByName = CatchAsyncError(async (req: Request, res: Response, next
                         finishDate: "$finishDate",
                         seoMeta: "$seoMeta",
                         folderName: "$folderName",
-                        ratingNumber:"$ratingNumber"
+                        ratingNumber: "$ratingNumber"
                     }
                 }
             }
@@ -541,10 +541,10 @@ const searchCourses = CatchAsyncError(async (req: Request, res: Response, next: 
         // );
 
         const allAcademies = await AcademyModel.find({}).select("engName _id").lean()
-    
+
         // کش برای تمام مدرسین
         const allTeachers = await TeacherModel.find({}).select("engName _id").lean()
-        
+
         // کش برای تمام دسته‌بندی‌ها
         const allCategories = await CategoryModel.find({}).select("name _id").lean()
 
@@ -849,26 +849,16 @@ const recordCourseView = CatchAsyncError(async (req: Request, res: Response, nex
 
     const key = `${userIp}-${courseId}`; // هر دوره، یه محدودیت جدا بر اساس IP
 
-    // console.log('courseId',courseId);
-    // console.log('userIp',userIp);
-
     try {
         await rateLimiter.consume(key); // مصرف محدودیت بر اساس IP + courseId
         // افزایش تعداد بازدید
         await CourseModel.findByIdAndUpdate(courseId, { $inc: { viewsCount: 1 } });
-        
-        return res.status(200).json({
-            success: true,
-            message: "✅ View recorded successfully!",
-        });
-    } catch (rejRes) {
-        console.log('no view');
 
-        return res.status(429).json({
-            success: false,
-            message: "⏳ You already viewed this course recently. Try again later.",
-        });
+
+    } catch (rejRes) {
+
     }
+    res.end();
 });
 
 const rename1 = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {

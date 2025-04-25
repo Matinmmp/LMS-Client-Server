@@ -375,24 +375,19 @@ const recordBlogView = CatchAsyncError(async (req: Request, res: Response, next:
     const blogId = req.params.id;
     const userIp: any = req.ip;
 
-    const key = `${userIp}-${blogId}`; // هر دوره، یه محدودیت جدا بر اساس IP
+    const key = `${userIp}-${blogId}`;
 
     try {
-        await rateLimiter.consume(key); // مصرف محدودیت بر اساس IP + courseId
+        await rateLimiter.consume(key);
 
-        // افزایش تعداد بازدید
         await BlogModel.findByIdAndUpdate(blogId, { $inc: { views: 1 } });
 
-        return res.status(200).json({
-            success: true,
-            message: "✅ View recorded successfully!",
-        });
+
     } catch (rejRes) {
-        return res.status(429).json({
-            success: false,
-            message: "⏳ You already viewed this course recently. Try again later.",
-        });
+
     }
+
+    res.end();
 });
 
 
