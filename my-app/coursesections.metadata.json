@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"courseId":{"$numberInt":"1"}},"name":"courseId_1","background":true},{"v":{"$numberInt":"2"},"key":{"order":{"$numberInt":"1"}},"name":"order_1","background":true}],"uuid":"fe9f9b528a7e4f20adb388693cbc5542","collectionName":"coursesections","type":"collection"}
