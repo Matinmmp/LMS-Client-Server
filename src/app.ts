@@ -27,8 +27,8 @@ import blogRouter from "./routes/blog.route";
 export const app = express();
 
 // cors => cross origin rsourse sharing
-// app.use(cors({ origin: ['http://localhost:3000'], credentials: true }));
-app.use(cors({ origin: ['https://vc-virtual-learn.com','https://www.vc-virtual-learn.com','http://localhost:3000','http://localhost:5173'], credentials: true }));
+app.use(cors({ origin: ['http://localhost:3000'], credentials: true }));
+// app.use(cors({ origin: ['https://vc-virtual-learn.com','https://www.vc-virtual-learn.com','http://localhost:3000','http://localhost:5173'], credentials: true }));
 
 
 // body parser
